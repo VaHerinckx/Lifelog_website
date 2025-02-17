@@ -1,0 +1,154 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: #171738;
+}
+
+.podcast-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #171738;
+  color: white;
+  min-height: 100vh;
+}
+
+.podcast-page h1,
+.podcast-page h2 {
+  color: #EF4444;
+  margin-bottom: 10px;
+}
+
+.page-description {
+  color: #ffffff;
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+
+.filters-section {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #D8DCFF;
+  color: black;
+  border-radius: 4px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-group label {
+  color: black;
+}
+
+.filter-select {
+  padding: 8px;
+  border-radius: 4px;
+  color: black;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background-color: #D8DCFF;
+  min-width: 200px;
+}
+
+.filter-select option {
+  background-color: #313715;
+  color: black;
+}
+
+.podcast-info {
+  margin: 20px 0;
+  padding: 20px;
+  background-color: #3423A6;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.podcast-header {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.podcast-artwork {
+  width: 200px;
+  height: 200px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.podcast-details {
+  flex: 1;
+}
+
+.podcast-details h2 {
+  margin: 0 0 10px 0;
+}
+
+.podcast-artist {
+  font-size: 1.1em;
+  color: black;
+  opacity: 0.9;
+  margin: 0 0 8px 0;
+}
+
+.podcast-genre {
+  color: black;
+  opacity: 0.7;
+  font-size: 0.9em;
+  margin: 0;
+}
+
+.chart-container {
+  margin-top: 20px;
+  padding: 20px;
+  background-color: #D8DCFF;  /* Changed from rgba(255, 255, 255, 0.1) */
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Chart styling */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: rgba(23, 23, 56, 0.2);
+}
+
+.recharts-text {
+  fill: #171738 !important;
+  opacity: 0.9;
+}
+
+/* Change the bar color to dark blue */
+.recharts-bar-rectangle {
+  fill: #3423A6 !important;
+}
+
+.recharts-tooltip-wrapper {
+  background-color: #171738 !important;
+}
+
+.recharts-tooltip-label,
+.recharts-tooltip-item {
+  color: #171738;
+}
+
+.recharts-legend-item-text {
+  color: #171738 !important;
+}
+
+
+.loading, .error {
+  text-align: center;
+  padding: 20px;
+  font-size: 18px;
+  color: white;
+}
+
+.error {
+  color: #EF4444;
+}

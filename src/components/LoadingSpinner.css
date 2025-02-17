@@ -1,0 +1,113 @@
+/* LoadingSpinner.css */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  background-color: #171738;
+}
+
+.solar-system {
+  position: relative;
+  width: 400px;
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.center-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #3423A6;
+  z-index: 10;
+  background-color: rgba(52, 35, 166, 0.1);
+  border-radius: 50%;
+  padding: 15px;
+  box-shadow: 0 0 20px rgba(52, 35, 166, 0.3);
+}
+
+.orbit {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+
+.orbit-inner {
+  width: 200px;
+  height: 200px;
+  animation: spin 8s linear infinite;
+}
+
+.orbit-outer {
+  width: 300px;
+  height: 300px;
+  animation: spin-reverse 12s linear infinite;
+}
+
+.icon-container {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  background-color: rgba(52, 35, 166, 0.1);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.orbit-inner .icon-container:nth-child(1) { top: -20px; left: calc(50% - 20px); }
+.orbit-inner .icon-container:nth-child(2) { right: -20px; top: calc(50% - 20px); }
+.orbit-inner .icon-container:nth-child(3) { bottom: -20px; left: calc(50% - 20px); }
+.orbit-inner .icon-container:nth-child(4) { left: -20px; top: calc(50% - 20px); }
+
+.orbit-outer .icon-container:nth-child(1) { top: -20px; left: calc(50% - 20px); }
+.orbit-outer .icon-container:nth-child(2) { right: -20px; top: calc(50% - 20px); }
+.orbit-outer .icon-container:nth-child(3) { bottom: -20px; left: calc(50% - 20px); }
+.orbit-outer .icon-container:nth-child(4) { left: -20px; top: calc(50% - 20px); }
+
+.orbit-icon {
+  color: #FB4B4E;
+}
+
+.orbit-inner .orbit-icon {
+  color: #EAC435;
+}
+
+.icon-container:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 15px rgba(251, 75, 78, 0.3);
+}
+
+.loading-text {
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-top: 2rem;
+  text-align: center;
+}
+
+@keyframes spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes spin-reverse {
+  from {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+}
