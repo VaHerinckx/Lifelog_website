@@ -115,3 +115,34 @@
     transform: translate(-50%, -50%) rotate(0deg);
   }
 }
+
+.loading-message {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.loading-text {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  animation: fadeInOut 2s ease-in-out infinite;
+}
+
+.loading-subtext {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+@keyframes fadeInOut {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}

@@ -3,7 +3,34 @@ import React from 'react';
 import { Activity, Music, Podcast, Book, Film, DollarSign, Brain, Utensils, Briefcase } from 'lucide-react';
 import './LoadingSpinner.css';
 
+const getLoadingMessage = (centerIcon) => {
+  switch (centerIcon) {
+    case Podcast:
+      return "Loading your podcast listening history...";
+    case Music:
+      return "Tuning into your music data...";
+    case Utensils:
+      return "Gathering your nutrition information...";
+    case Activity:
+      return "Tracking down your sports activities...";
+    case Brain:
+      return "Analyzing your health metrics...";
+    case Book:
+      return "Flipping through your reading history...";
+    case Film:
+      return "Rolling your viewing history...";
+    case DollarSign:
+      return "Calculating your financial data...";
+    case Briefcase:
+      return "Compiling your work statistics...";
+    default:
+      return "Collecting your life data...";
+  }
+};
+
 const LoadingSpinner = ({ centerIcon: CenterIcon = Podcast, containerClass = "" }) => {
+  const loadingMessage = getLoadingMessage(CenterIcon);
+
   return (
     <div className={`loading-container ${containerClass}`}>
       <div className="solar-system">
@@ -44,7 +71,11 @@ const LoadingSpinner = ({ centerIcon: CenterIcon = Podcast, containerClass = "" 
           </div>
         </div>
       </div>
-      <p className="loading-text">Collecting your life data...</p>
+
+      <div className="loading-message">
+        <p className="loading-text">{loadingMessage}</p>
+        <p className="loading-subtext">Please wait while we organize your personal insights...</p>
+      </div>
     </div>
   );
 };
