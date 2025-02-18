@@ -1,0 +1,87 @@
+/* src/components/Reusable_components/NavigationBar.css */
+.navigation-bar {
+  background-color: #171738;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #333333;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+}
+
+.nav-logo-img {
+  width: 40px;
+  height: 40px;
+}
+
+.nav-logo-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  background: linear-gradient(to right, #ef4444, #dc2626);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.nav-items {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  overflow-x: auto;
+  padding: 0.5rem;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #9ca3af;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.nav-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.nav-item.active {
+  background-color: #3423A6;
+  color: white;
+}
+
+.nav-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.nav-label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .nav-items {
+    display: none;
+  }
+
+  .navigation-bar {
+    justify-content: center;
+  }
+}

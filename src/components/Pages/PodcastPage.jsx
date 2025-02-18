@@ -4,8 +4,9 @@ import Papa from 'papaparse';
 import _ from 'lodash';
 import './PodcastPage.css';
 import { Podcast } from 'lucide-react';
-import LoadingSpinner from './LoadingSpinner';
-import { DRIVE_FILES, getDriveDownloadUrl } from '../config/config';
+import LoadingSpinner from '../Reusable_components/LoadingSpinner';
+import NavigationBar from '../Reusable_components/NavigationBar'; // Add this import
+import { DRIVE_FILES, getDriveDownloadUrl } from '../../config/config';
 
 // Map of podcast names to their logo URLs
 // In a real application, this would come from your backend or a CMS
@@ -173,16 +174,28 @@ const PodcastPage = () => {
   }, [selectedPodcast, selectedPeriod, podcastData]);
 
   if (loading) {
-    return <LoadingSpinner centerIcon={Podcast} />;
+    return (
+      <>
+        <NavigationBar />
+        <LoadingSpinner centerIcon={Podcast} />
+      </>
+    );
   }
 
   if (error) {
-    return <div className="error">Error loading podcast data: {error}</div>;
+    return (
+      <>
+        <NavigationBar />
+        <div className="error">Error loading podcast data: {error}</div>
+      </>
+    );
   }
 
   return (
-    <div className="podcast-page">
-      <h1>Podcast Tracking</h1>
+    <div className="page-container"> {/* Add this wrapper */}
+      <NavigationBar />
+      <div className="podcast-page">
+        <h1>Podcast Tracking</h1>
       <p className="page-description">Monitor your podcast listening habits and discover insights</p>
 
       <div className="filters-section">
@@ -251,6 +264,7 @@ const PodcastPage = () => {
           </BarChart>
         </ResponsiveContainer>
       </div>
+    </div>
     </div>
   );
 };
