@@ -7,42 +7,26 @@ import { Podcast } from 'lucide-react';
 import LoadingSpinner from '../Reusable_components/LoadingSpinner';
 import NavigationBar from '../Reusable_components/NavigationBar'; // Add this import
 import { DRIVE_FILES, getDriveDownloadUrl } from '../../config/config';
+import { useData } from '../../context/DataContext';
+
 
 // Map of podcast names to their logo URLs
 // In a real application, this would come from your backend or a CMS
 
 const PodcastPage = () => {
-  const [podcastData, setPodcastData] = useState([]);
+  // Get data and functions from context
+  const { data, loading, error, fetchData } = useData();
+
+  // Local state
   const [uniquePodcasts, setUniquePodcasts] = useState([]);
   const [selectedPodcast, setSelectedPodcast] = useState('all');
   const [selectedPodcastInfo, setSelectedPodcastInfo] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState('yearly');
   const [chartData, setChartData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  // Function to clean strings from null bytes
-  const cleanString = (str) => {
-    return str ? str.replace(/\u0000/g, '').trim() : str;
-  };
-
-  // Function to clean podcast data
-  const cleanPodcastData = (data) => {
-    return data.map(item => {
-      const cleanedItem = {};
-      Object.entries(item).forEach(([key, value]) => {
-        const cleanKey = cleanString(key).trim();
-        const cleanValue = typeof value === 'string' ? cleanString(value).trim() : value;
-        cleanedItem[cleanKey] = cleanValue;
-      });
-      return cleanedItem;
-    });
-  };
 
   // Function to parse date string
   const parseDate = (dateStr) => {
     if (!dateStr) return null;
-    // Handle the format: "2025-01-04 20:23:16+00:00"
     const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (!match) return null;
     return new Date(match[1], parseInt(match[2]) - 1, match[3]);
@@ -86,13 +70,12 @@ const PodcastPage = () => {
   };
 
   // Function to process listening time data
-  const processListeningData = (data, podcastFilter = 'all', period = 'yearly') => {
+  const processListeningData = (podcastData, podcastFilter = 'all', period = 'yearly') => {
     const filtered = podcastFilter === 'all'
-      ? data
-      : data.filter(item => item['podcast_name'] === podcastFilter);
+      ? podcastData
+      : podcastData.filter(item => item['podcast_name'] === podcastFilter);
 
-    // Add just this block for podcast info
-    if (podcastFilter !== 'all') {
+    if (podcastFilter !== 'all' && filtered.length > 0) {
       const podcastInfo = filtered[0];
       setSelectedPodcastInfo({
         name: podcastInfo.podcast_name,
@@ -113,67 +96,35 @@ const PodcastPage = () => {
           const duration = parseFloat(episode['duration']);
           return isNaN(duration) ? 0 : duration / 60;
         }),
-        rawPeriod: key // Used for sorting
+        rawPeriod: key
       }))
       .sort((a, b) => a.rawPeriod.localeCompare(b.rawPeriod));
   };
 
+  // Fetch podcast data when component mounts
   useEffect(() => {
-    const loadPodcastData = async () => {
-      console.log('Starting to load podcast data...'); // Add this
-      try {
-        const response = await fetch(getDriveDownloadUrl(DRIVE_FILES.PODCAST.FILE_ID));
+    fetchData('podcast');
+  }, [fetchData]);
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const csvText = await response.text();
-        console.log('CSV text received, starting to parse...'); // Add this
-
-        Papa.parse(csvText, {
-          delimiter: "|",
-          header: true,
-          skipEmptyLines: true,
-          complete: (results) => {
-            console.log('Parsing complete, processing data...'); // Add this
-            const cleaned = cleanPodcastData(results.data);
-            setPodcastData(cleaned);
-
-            const podcasts = _.uniq(cleaned.map(item => item['podcast_name'])).filter(Boolean);
-            setUniquePodcasts(podcasts);
-
-            const initialChartData = processListeningData(cleaned, 'all', 'yearly');
-            setChartData(initialChartData);
-
-            setLoading(false);
-            console.log('Data loading complete!'); // Add this
-          },
-          error: (error) => {
-            console.error("Parsing error:", error);
-            setError(`Error parsing CSV: ${error.message}`);
-            setLoading(false);
-          }
-        });
-      } catch (err) {
-        console.error("Fetch error:", err);
-        setError(`Error fetching data: ${err.message}`);
-        setLoading(false);
-      }
-    };
-
-    loadPodcastData();
-  }, []);
+  // Process initial data when it's loaded
+  useEffect(() => {
+    if (data.podcast) {
+      const podcasts = _.uniq(data.podcast.map(item => item['podcast_name'])).filter(Boolean);
+      setUniquePodcasts(podcasts);
+      const initialChartData = processListeningData(data.podcast, 'all', 'yearly');
+      setChartData(initialChartData);
+    }
+  }, [data.podcast]);
 
   // Update chart when selections change
   useEffect(() => {
-    if (podcastData.length > 0) {
-      const newChartData = processListeningData(podcastData, selectedPodcast, selectedPeriod);
+    if (data.podcast) {
+      const newChartData = processListeningData(data.podcast, selectedPodcast, selectedPeriod);
       setChartData(newChartData);
     }
-  }, [selectedPodcast, selectedPeriod, podcastData]);
+  }, [selectedPodcast, selectedPeriod, data.podcast]);
 
-  if (loading) {
+  if (loading.podcast) {
     return (
       <>
         <NavigationBar />
@@ -182,89 +133,89 @@ const PodcastPage = () => {
     );
   }
 
-  if (error) {
+  if (error.podcast) {
     return (
       <>
         <NavigationBar />
-        <div className="error">Error loading podcast data: {error}</div>
+        <div className="error">Error loading podcast data: {error.podcast}</div>
       </>
     );
   }
 
   return (
-    <div className="page-container"> {/* Add this wrapper */}
+    <div className="page-container">
       <NavigationBar />
       <div className="podcast-page">
         <h1>Podcast Tracking</h1>
-      <p className="page-description">Monitor your podcast listening habits and discover insights</p>
+        <p className="page-description">Monitor your podcast listening habits and discover insights</p>
 
-      <div className="filters-section">
-        <div className="filter-group">
-          <label htmlFor="podcast-select">Select Podcast:</label>
-          <select
-            id="podcast-select"
-            value={selectedPodcast}
-            onChange={(e) => setSelectedPodcast(e.target.value)}
-            className="filter-select"
-          >
-            <option value="all">All Podcasts</option>
-            {uniquePodcasts.map(podcast => (
-              <option key={podcast} value={podcast}>{podcast}</option>
-            ))}
-          </select>
-        </div>
-
-
-        <div className="filter-group">
-          <label htmlFor="period-select">Time Period:</label>
-          <select
-            id="period-select"
-            value={selectedPeriod}
-            onChange={(e) => setSelectedPeriod(e.target.value)}
-            className="filter-select"
-          >
-            <option value="yearly">Yearly</option>
-            <option value="monthly">Monthly</option>
-            <option value="daily">Daily</option>
-          </select>
-        </div>
-        {selectedPodcastInfo && (
-        <div className="podcast-info">
-          <div className="podcast-header">
-            <img
-              src={selectedPodcastInfo.artwork}
-              alt={`${selectedPodcastInfo.name} artwork`}
-              className="podcast-artwork"
-            />
-            <div className="podcast-details">
-              <h2>{selectedPodcastInfo.name}</h2>
-              <p className="podcast-artist">{selectedPodcastInfo.artist}</p>
-              <p className="podcast-genre">{selectedPodcastInfo.genre}</p>
-            </div>
+        <div className="filters-section">
+          <div className="filter-group">
+            <label htmlFor="podcast-select">Select Podcast:</label>
+            <select
+              id="podcast-select"
+              value={selectedPodcast}
+              onChange={(e) => setSelectedPodcast(e.target.value)}
+              className="filter-select"
+            >
+              <option value="all">All Podcasts</option>
+              {uniquePodcasts.map(podcast => (
+                <option key={podcast} value={podcast}>{podcast}</option>
+              ))}
+            </select>
           </div>
-        </div>
-      )}
-      </div>
 
-      <div className="chart-container">
-        <h2>Listening Time by {selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)} Period</h2>
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="period"
-              angle={selectedPeriod === 'monthly' || selectedPeriod === 'daily' ? -45 : 0}
-              textAnchor="end"
-              height={80}
-            />
-            <YAxis label={{ value: 'Minutes Listened', angle: -90, position: 'insideLeft' }} />
-            <Tooltip formatter={(value) => `${Math.round(value)} minutes`} />
-            <Legend />
-            <Bar dataKey="totalMinutes" name="Minutes Listened" />
-          </BarChart>
-        </ResponsiveContainer>
+          <div className="filter-group">
+            <label htmlFor="period-select">Time Period:</label>
+            <select
+              id="period-select"
+              value={selectedPeriod}
+              onChange={(e) => setSelectedPeriod(e.target.value)}
+              className="filter-select"
+            >
+              <option value="yearly">Yearly</option>
+              <option value="monthly">Monthly</option>
+              <option value="daily">Daily</option>
+            </select>
+          </div>
+
+          {selectedPodcastInfo && (
+            <div className="podcast-info">
+              <div className="podcast-header">
+                <img
+                  src={selectedPodcastInfo.artwork}
+                  alt={`${selectedPodcastInfo.name} artwork`}
+                  className="podcast-artwork"
+                />
+                <div className="podcast-details">
+                  <h2>{selectedPodcastInfo.name}</h2>
+                  <p className="podcast-artist">{selectedPodcastInfo.artist}</p>
+                  <p className="podcast-genre">{selectedPodcastInfo.genre}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="chart-container">
+          <h2>Listening Time by {selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)} Period</h2>
+          <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis
+                dataKey="period"
+                angle={selectedPeriod === 'monthly' || selectedPeriod === 'daily' ? -45 : 0}
+                textAnchor="end"
+                height={80}
+              />
+              <YAxis label={{ value: 'Minutes Listened', angle: -90, position: 'insideLeft' }} />
+              <Tooltip formatter={(value) => `${Math.round(value)} minutes`} />
+              <Legend />
+              <Bar dataKey="totalMinutes" name="Minutes Listened" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
-    </div>
     </div>
   );
 };
