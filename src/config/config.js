@@ -2,7 +2,7 @@
 
 export const DRIVE_FILES = {
   PODCAST: {
-      FILE_ID: '1kcN66NQNymiIIyfsCaXSWZ5ALIQJxTmZ'
+      FILE_ID: process.env.REACT_APP_PODCAST_FILE_ID
   }
 };
 
