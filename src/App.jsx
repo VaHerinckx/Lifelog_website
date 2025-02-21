@@ -1,24 +1,29 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { DataProvider } from './context/DataContext';
-import Layout from './components/Reusable_components/Layout';
-import Homepage from './components/Homepage';
-import PodcastPage from './components/Pages/PodcastPage';
-import MusicPage from './components/Pages/MusicPage';
+import Layout from './components/ui/Layout';
+import Homepage from './pages/Home/Homepage';
+import PodcastPage from './pages/Podcast/PodcastPage';
 
 const App = () => {
   return (
-    <Router>
-      <DataProvider>
+    <DataProvider>
+      <Router>
         <Routes>
-          {/* Homepage route */}
+          {/* Homepage outside of Layout */}
           <Route path="/" element={<Homepage />} />
 
-          {/* Layout wrapper route */}
+          {/* All other pages wrapped in Layout */}
           <Route element={<Layout />}>
             <Route path="/podcast" element={<PodcastPage />} />
-            <Route path="/music" element={<MusicPage />} />
-
+            <Route
+              path="/music"
+              element={
+                <div className="page-container">
+                  <div>Music Page Coming Soon</div>
+                </div>
+              }
+            />
             <Route
               path="/nutrition"
               element={
@@ -27,7 +32,6 @@ const App = () => {
                 </div>
               }
             />
-
             <Route
               path="/sport"
               element={
@@ -36,7 +40,6 @@ const App = () => {
                 </div>
               }
             />
-
             <Route
               path="/health"
               element={
@@ -45,7 +48,6 @@ const App = () => {
                 </div>
               }
             />
-
             <Route
               path="/reading"
               element={
@@ -54,7 +56,6 @@ const App = () => {
                 </div>
               }
             />
-
             <Route
               path="/movies-tv"
               element={
@@ -63,7 +64,6 @@ const App = () => {
                 </div>
               }
             />
-
             <Route
               path="/finances"
               element={
@@ -72,7 +72,6 @@ const App = () => {
                 </div>
               }
             />
-
             <Route
               path="/work"
               element={
@@ -83,8 +82,8 @@ const App = () => {
             />
           </Route>
         </Routes>
-      </DataProvider>
-    </Router>
+      </Router>
+    </DataProvider>
   );
 };
 

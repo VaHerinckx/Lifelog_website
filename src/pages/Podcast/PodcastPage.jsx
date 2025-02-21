@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import Papa from 'papaparse';
 import _ from 'lodash';
 import './PodcastPage.css';
-import { Music } from 'lucide-react';  // Add this import
-import LoadingSpinner from '../Reusable_components/LoadingSpinner';
-import NavigationBar from '../Reusable_components/NavigationBar'; // Add this import
-import { DRIVE_FILES, getDriveDownloadUrl } from '../../config/config';
+import { Podcast } from 'lucide-react';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useData } from '../../context/DataContext';
+// src/pages/Podcast/PodcastPage.jsx
+import ListeningHeatmap from '../../components/charts/ListeningHeatmap';
 
 
 // Map of podcast names to their logo URLs
 // In a real application, this would come from your backend or a CMS
 
-const MusicPage = () => {
+const PodcastPage = () => {
   // Get data and functions from context
   const { data, loading, error, fetchData } = useData();
 
@@ -128,7 +127,7 @@ const MusicPage = () => {
     return (
       <>
 
-        <LoadingSpinner centerIcon={Music} />
+        <LoadingSpinner centerIcon={Podcast} />
       </>
     );
   }
@@ -141,7 +140,7 @@ const MusicPage = () => {
       </>
     );
   }
-
+  console.log('Podcast data being passed to heatmap:', data.podcast);
   return (
     <div className="page-container">
 
@@ -150,33 +149,34 @@ const MusicPage = () => {
         <p className="page-description">Monitor your podcast listening habits and discover insights</p>
 
         <div className="filters-section">
-          <div className="filter-group">
-            <label htmlFor="podcast-select">Select Podcast:</label>
-            <select
-              id="podcast-select"
-              value={selectedPodcast}
-              onChange={(e) => setSelectedPodcast(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Podcasts</option>
-              {uniquePodcasts.map(podcast => (
-                <option key={podcast} value={podcast}>{podcast}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="filter-group">
-            <label htmlFor="period-select">Time Period:</label>
-            <select
-              id="period-select"
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="filter-select"
-            >
-              <option value="yearly">Yearly</option>
-              <option value="monthly">Monthly</option>
-              <option value="daily">Daily</option>
-            </select>
+          <div className="filters-selections">
+            <div className="filter-group">
+              <label htmlFor="podcast-select">Select Podcast:</label>
+              <select
+                id="podcast-select"
+                value={selectedPodcast}
+                onChange={(e) => setSelectedPodcast(e.target.value)}
+                className="filter-select"
+              >
+                <option value="all">All Podcasts</option>
+                {uniquePodcasts.map(podcast => (
+                  <option key={podcast} value={podcast}>{podcast}</option>
+                ))}
+              </select>
+            </div>
+            <div className="filter-group">
+              <label htmlFor="period-select">Time Period:</label>
+              <select
+                id="period-select"
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                className="filter-select"
+              >
+                <option value="yearly">Yearly</option>
+                <option value="monthly">Monthly</option>
+                <option value="daily">Daily</option>
+              </select>
+            </div>
           </div>
 
           {selectedPodcastInfo && (
@@ -197,27 +197,45 @@ const MusicPage = () => {
           )}
         </div>
 
-        <div className="chart-container">
-          <h2>Listening Time by {selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)} Period</h2>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis
-                dataKey="period"
-                angle={selectedPeriod === 'monthly' || selectedPeriod === 'daily' ? -45 : 0}
-                textAnchor="end"
-                height={80}
+        <div className="charts-grid">
+          <div className="chart-container">
+            <h2>Listening Time by {selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)} Period</h2>
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="period"
+                  angle={selectedPeriod === 'monthly' || selectedPeriod === 'daily' ? -45 : 0}
+                  textAnchor="end"
+                  height={80}
+                />
+                <YAxis label={{ value: 'Minutes Listened', angle: -90, position: 'insideLeft' }} />
+                <Tooltip formatter={(value) => `${Math.round(value)} minutes`} />
+                <Legend />
+                <Bar dataKey="totalMinutes" name="Minutes Listened" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="chart-container">
+            {loading.podcast ? (
+              <div className="w-full h-96 flex items-center justify-center">
+                <p>Loading podcast data...</p>
+              </div>
+            ) : error.podcast ? (
+              <div className="w-full h-96 flex items-center justify-center text-red-500">
+                <p>Error loading podcast data: {error.podcast}</p>
+              </div>
+            ) : data.podcast ? (
+              <ListeningHeatmap
+                data={data.podcast}
+                selectedPodcast={selectedPodcast}
               />
-              <YAxis label={{ value: 'Minutes Listened', angle: -90, position: 'insideLeft' }} />
-              <Tooltip formatter={(value) => `${Math.round(value)} minutes`} />
-              <Legend />
-              <Bar dataKey="totalMinutes" name="Minutes Listened" />
-            </BarChart>
-          </ResponsiveContainer>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default MusicPage;
+export default PodcastPage;

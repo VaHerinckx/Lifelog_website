@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Papa from 'papaparse';
 import _ from 'lodash';
-import './PodcastPage.css';
-import { Podcast } from 'lucide-react';
-import LoadingSpinner from '../Reusable_components/LoadingSpinner';
-import NavigationBar from '../Reusable_components/NavigationBar'; // Add this import
+import '../Podcast/PodcastPage.css';
+import { Music } from 'lucide-react';  // Add this import
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import NavigationBar from '../../components/ui/NavigationBar'; // Add this import
 import { DRIVE_FILES, getDriveDownloadUrl } from '../../config/config';
 import { useData } from '../../context/DataContext';
 
@@ -13,7 +13,7 @@ import { useData } from '../../context/DataContext';
 // Map of podcast names to their logo URLs
 // In a real application, this would come from your backend or a CMS
 
-const PodcastPage = () => {
+const MusicPage = () => {
   // Get data and functions from context
   const { data, loading, error, fetchData } = useData();
 
@@ -128,7 +128,7 @@ const PodcastPage = () => {
     return (
       <>
 
-        <LoadingSpinner centerIcon={Podcast} />
+        <LoadingSpinner centerIcon={Music} />
       </>
     );
   }
@@ -220,4 +220,4 @@ const PodcastPage = () => {
   );
 };
 
-export default PodcastPage;
+export default MusicPage;
