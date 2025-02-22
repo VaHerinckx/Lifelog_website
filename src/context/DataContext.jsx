@@ -53,7 +53,7 @@ const cleanDate = (dateStr) => {
 
     // Check if date is valid and within reasonable range (e.g., between 2000 and 2030)
     if (isNaN(date.getTime()) ||
-        date.getFullYear() < 2000 ||
+        date.getFullYear() < 2019 ||
         date.getFullYear() > 2030) {
       return null;
     }
@@ -63,8 +63,6 @@ const cleanDate = (dateStr) => {
     return null;
   }
 };
-
-
 
 
 // Helper function to clean data

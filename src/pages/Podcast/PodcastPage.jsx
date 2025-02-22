@@ -1,4 +1,3 @@
-// src/pages/Podcast/PodcastPage.jsx
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import _ from 'lodash';
@@ -8,7 +7,6 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useData } from '../../context/DataContext';
 import ListeningHeatmap from '../../components/charts/ListeningHeatmap';
 import TopPodcastsChart from '../../components/charts/TopPodcastsChart';
-import 'react-range-slider-input/dist/style.css';
 
 const PodcastPage = () => {
   // Get data and functions from context
@@ -24,56 +22,39 @@ const PodcastPage = () => {
     startDate: null,
     endDate: null
   });
-  const [allDates, setAllDates] = useState([]);
-  const [sliderValues, setSliderValues] = useState([0, 100]);
 
   // Fetch podcast data when component mounts
   useEffect(() => {
     fetchData('podcast');
   }, [fetchData]);
 
-  // Initialize date range when data is loaded
+  // Process dates and podcasts when data is loaded
   useEffect(() => {
     if (data.podcast) {
+      // Get unique podcasts
       const podcasts = _.uniq(data.podcast.map(item => item['podcast_name'])).filter(Boolean);
       setUniquePodcasts(podcasts);
-      const dates = data.podcast
+
+      // Process and filter dates
+      const validDates = data.podcast
         .map(item => new Date(item['modified at']))
-        .filter(date => !isNaN(date.getTime()))
+        .filter(date => !isNaN(date.getTime()) && date.getFullYear() > 1970)
         .sort((a, b) => a - b);
 
-      if (dates.length > 0) {
-        setAllDates(dates);
-        setDateRange({
-          startDate: dates[0].toISOString().split('T')[0],
-          endDate: dates[dates.length - 1].toISOString().split('T')[0]
-        });
+      if (validDates.length > 0) {
+        const startDate = validDates[0].toISOString().split('T')[0];
+        const endDate = validDates[validDates.length - 1].toISOString().split('T')[0];
+
+        console.log('Setting date range:', { startDate, endDate });
+        setDateRange({ startDate, endDate });
       }
     }
   }, [data.podcast]);
 
-  const handleSliderChange = (values) => {
-    setSliderValues(values);
-    const startIdx = Math.floor((values[0] / 100) * (allDates.length - 1));
-    const endIdx = Math.floor((values[1] / 100) * (allDates.length - 1));
-
-    setDateRange({
-      startDate: allDates[startIdx].toISOString().split('T')[0],
-      endDate: allDates[endIdx].toISOString().split('T')[0]
-    });
-  };
-  // Function to parse date string
-  const parseDate = (dateStr) => {
-    if (!dateStr) return null;
-    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (!match) return null;
-    return new Date(match[1], parseInt(match[2]) - 1, match[3]);
-  };
-
   // Function to get period key for grouping
   const getPeriodKey = (dateStr, period) => {
-    const date = parseDate(dateStr);
-    if (!date) return 'Unknown';
+    const date = new Date(dateStr);
+    if (!date || isNaN(date.getTime())) return 'Unknown';
 
     switch (period) {
       case 'yearly':
@@ -81,7 +62,7 @@ const PodcastPage = () => {
       case 'monthly':
         return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
       case 'daily':
-        return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+        return date.toISOString().split('T')[0];
       default:
         return date.getFullYear().toString();
     }
@@ -109,7 +90,15 @@ const PodcastPage = () => {
 
   // Function to process listening time data
   const processListeningData = (podcastData, podcastFilter = 'all', period = 'yearly') => {
+    if (!podcastData) return [];
+
     const filtered = podcastData.filter(item => {
+      // Check if date is valid
+      const itemDate = new Date(item['modified at']);
+      if (isNaN(itemDate.getTime()) || itemDate.getFullYear() <= 1970) {
+        return false;
+      }
+
       // Filter by podcast if needed
       if (podcastFilter !== 'all' && item['podcast_name'] !== podcastFilter) {
         return false;
@@ -117,7 +106,6 @@ const PodcastPage = () => {
 
       // Filter by date range
       if (dateRange.startDate && dateRange.endDate) {
-        const itemDate = new Date(item['modified at']);
         const start = new Date(dateRange.startDate);
         const end = new Date(dateRange.endDate);
         start.setHours(0, 0, 0, 0);
@@ -148,7 +136,7 @@ const PodcastPage = () => {
         period: formatPeriodLabel(key, period),
         totalMinutes: _.sumBy(episodes, episode => {
           const duration = parseFloat(episode['duration']);
-          return isNaN(duration) ? 0 : duration / 60;
+          return isNaN(duration) ? 0 : Math.round(duration / 60);
         }),
         rawPeriod: key
       }))
@@ -164,19 +152,11 @@ const PodcastPage = () => {
   }, [selectedPodcast, selectedPeriod, dateRange, data.podcast]);
 
   if (loading.podcast) {
-    return (
-      <div className="loading-container">
-        <LoadingSpinner centerIcon={Podcast} />
-      </div>
-    );
+    return <LoadingSpinner centerIcon={Podcast} />;
   }
 
   if (error.podcast) {
-    return (
-      <div className="page-container">
-        <div className="error">Error loading podcast data: {error.podcast}</div>
-      </div>
-    );
+    return <div className="error">Error loading podcast data: {error.podcast}</div>;
   }
 
   return (
@@ -221,10 +201,13 @@ const PodcastPage = () => {
               <input
                 type="date"
                 value={dateRange.startDate || ''}
-                onChange={(e) => setDateRange(prev => ({
-                  ...prev,
-                  startDate: e.target.value
-                }))}
+                onChange={(e) => {
+                  console.log('Date input change:', e.target.value);
+                  setDateRange(prev => ({
+                    ...prev,
+                    startDate: e.target.value
+                  }));
+                }}
                 className="date-input"
                 min={dateRange.startDate}
                 max={dateRange.endDate}
@@ -251,7 +234,7 @@ const PodcastPage = () => {
               <img
                 src={selectedPodcastInfo.artwork}
                 alt={`${selectedPodcastInfo.name} artwork`}
-                className="podcast-large-artwork"
+                className="podcast-artwork"
               />
               <div className="podcast-details">
                 <h2>{selectedPodcastInfo.name}</h2>
@@ -276,12 +259,13 @@ const PodcastPage = () => {
                 height={80}
               />
               <YAxis label={{ value: 'Minutes Listened', angle: -90, position: 'insideLeft' }} />
-              <Tooltip formatter={(value) => `${Math.round(value)} minutes`} />
+              <Tooltip formatter={(value) => `${Math.round(value).toLocaleString()} minutes`} />
               <Legend />
-              <Bar dataKey="totalMinutes" name="Minutes Listened" />
+              <Bar dataKey="totalMinutes" name="Minutes Listened" fill="#3423A6" />
             </BarChart>
           </ResponsiveContainer>
         </div>
+
         <div className="chart-container">
           <ListeningHeatmap
             data={data.podcast}
@@ -289,8 +273,9 @@ const PodcastPage = () => {
             dateRange={dateRange}
           />
         </div>
+
         <div className="chart-container">
-          {data.podcast && <TopPodcastsChart data={data.podcast} dateRange={dateRange} />}
+          <TopPodcastsChart data={data.podcast} dateRange={dateRange} />
         </div>
       </div>
     </div>
