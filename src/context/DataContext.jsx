@@ -36,11 +36,36 @@ const decodeUTF8 = (str) => {
   }
 };
 
-// Helper function to clean strings
+// In the clean string function in DataContext.jsx
 const cleanString = (str) => {
   if (!str) return str;
+  // Remove null bytes and trim
   return decodeUTF8(str.replace(/\u0000/g, '').trim());
 };
+
+// Add a new helper function for date validation and cleaning
+const cleanDate = (dateStr) => {
+  if (!dateStr) return null;
+
+  try {
+    // Parse the date string
+    const date = new Date(dateStr);
+
+    // Check if date is valid and within reasonable range (e.g., between 2000 and 2030)
+    if (isNaN(date.getTime()) ||
+        date.getFullYear() < 2000 ||
+        date.getFullYear() > 2030) {
+      return null;
+    }
+
+    return date.toISOString();
+  } catch (e) {
+    return null;
+  }
+};
+
+
+
 
 // Helper function to clean data
 const cleanData = (data) => {
@@ -48,8 +73,14 @@ const cleanData = (data) => {
     const cleanedItem = {};
     Object.entries(item).forEach(([key, value]) => {
       const cleanKey = cleanString(key).trim();
-      const cleanValue = typeof value === 'string' ? cleanString(value).trim() : value;
-      cleanedItem[cleanKey] = cleanValue;
+
+      // Special handling for date fields
+      if (cleanKey.includes('modified at') || cleanKey.includes('date')) {
+        cleanedItem[cleanKey] = cleanDate(value);
+      } else {
+        // Normal string cleaning for non-date fields
+        cleanedItem[cleanKey] = typeof value === 'string' ? cleanString(value).trim() : value;
+      }
     });
     return cleanedItem;
   });
