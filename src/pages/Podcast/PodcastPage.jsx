@@ -286,11 +286,7 @@ const PodcastPage = () => {
                 className="listening-time-chart__axis listening-time-chart__axis--x"
               />
               <YAxis
-                label={{
-                  value: 'Minutes Listened',
-                  angle: -90,
-                  position: 'insideLeft'
-                }}
+                tickFormatter={(value) => value.toLocaleString()}  // Add thousands separators
                 className="listening-time-chart__axis listening-time-chart__axis--y"
               />
               <Tooltip

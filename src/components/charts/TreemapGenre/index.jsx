@@ -3,6 +3,17 @@ import { Treemap, ResponsiveContainer, Tooltip } from 'recharts';
 import _ from 'lodash';
 import './TreemapGenre.css';
 
+const COLORS = {
+  base: '#3423A6',      // Darkest purple
+  semidark: '#4433B6',  // Semi-dark purple
+  medium1: '#5443C6',   // Medium purple 1
+  medium2: '#6453D6',   // Medium purple 2
+  medium3: '#7463E6',   // Medium purple 3
+  light: '#8F84E8',     // Light purple
+  stroke: '#171738',    // Stroke color
+  text: '#FFFFFF'       // Text color
+};
+
 const TreemapGenre = ({ data, selectedPodcast, dateRange }) => {
   const treeMapData = useMemo(() => {
     if (!data || !dateRange.startDate || !dateRange.endDate) {
@@ -19,54 +30,88 @@ const TreemapGenre = ({ data, selectedPodcast, dateRange }) => {
         (selectedPodcast === 'all' || item.podcast_name === selectedPodcast) &&
         itemDate >= start &&
         itemDate <= end &&
-        item.genre // Only include items with a genre
+        item.genre
       );
     });
 
+    // Clean and normalize genres before grouping
+    const cleanedData = filteredData.map(item => ({
+      ...item,
+      genre: item.genre?.includes('https://') || item.genre?.includes('image/thumb') ? 'Unknown' : item.genre
+    }));
+
     // Group episodes by genre and calculate total listening time
-    const genreGroups = _.groupBy(filteredData, 'genre');
+    const genreGroups = _.groupBy(cleanedData, 'genre');
 
     // Convert to treemap format and calculate metrics
-    const genreData = Object.entries(genreGroups).map(([genre, episodes]) => {
-      const totalMinutes = Math.round(
-        episodes.reduce((sum, episode) => {
-          const duration = parseFloat(episode.duration) || 0;
-          return sum + (duration / 60);
-        }, 0)
-      );
-      const episodeCount = episodes.length;
+    const genreData = Object.entries(genreGroups)
+      .map(([genre, episodes]) => {
+        const totalMinutes = Math.round(
+          episodes.reduce((sum, episode) => {
+            const duration = parseFloat(episode.duration) || 0;
+            return sum + (duration / 60);
+          }, 0)
+        );
 
-      return {
-        name: genre || 'Unknown',
-        size: totalMinutes || 0,
-        episodeCount,
-        averageLength: episodeCount > 0 ? Math.round(totalMinutes / episodeCount) : 0
-      };
-    }).filter(item => item.size > 0); // Remove genres with no listening time
+        return {
+          name: genre || 'Unknown',
+          size: totalMinutes || 0
+        };
+      })
+      .filter(item => item.size > 0) // Remove genres with no listening time
+      .sort((a, b) => b.size - a.size); // Sort by size descending
 
-    return genreData.length > 0 ? genreData : [];
+    return genreData;
   }, [data, selectedPodcast, dateRange]);
 
-  // Custom color scale based on your theme
-  const getColor = (index) => {
-    const colors = ['#3423A6', '#4433B6', '#5443C6', '#6453D6', '#7463E6'];
-    return colors[index % colors.length];
-  };
-
-  // Custom tooltip content
   const CustomTooltip = ({ active, payload }) => {
-    if (!active || !payload || !payload.length || !payload[0].payload) {
-      return null;
-    }
+    if (!active || !payload || !payload.length) return null;
 
     const data = payload[0].payload;
     return (
       <div className="treemap-tooltip">
         <p className="tooltip-title">{data.name}</p>
         <p className="tooltip-content">Total Time: {data.size.toLocaleString()} minutes</p>
-        <p className="tooltip-content">Episodes: {data.episodeCount.toLocaleString()}</p>
-        <p className="tooltip-content">Avg Length: {data.averageLength.toLocaleString()} minutes</p>
       </div>
+    );
+  };
+
+  const CustomizedContent = ({ root, depth, x, y, width, height, name, value }) => {
+    const maxSize = root.children?.[0]?.value || 0;
+    const ratio = value / maxSize;
+
+    let fill;
+    if (ratio > 0.8) fill = COLORS.base;
+    else if (ratio > 0.6) fill = COLORS.semidark;
+    else if (ratio > 0.4) fill = COLORS.medium1;
+    else if (ratio > 0.2) fill = COLORS.medium2;
+    else if (ratio > 0.1) fill = COLORS.medium3;
+    else fill = COLORS.light;
+
+    return (
+      <g>
+        <rect
+          x={x}
+          y={y}
+          width={width}
+          height={height}
+          fill={fill}
+          stroke={COLORS.stroke}
+          strokeWidth={1}
+        />
+        {width > 50 && height > 30 && (
+          <text
+            x={x + width / 2}
+            y={y + height / 2}
+            textAnchor="middle"
+            fill={COLORS.text}
+            fontSize={14}
+            dominantBaseline="middle"
+          >
+            {name}
+          </text>
+        )}
+      </g>
     );
   };
 
@@ -89,12 +134,12 @@ const TreemapGenre = ({ data, selectedPodcast, dateRange }) => {
           <Treemap
             data={treeMapData}
             dataKey="size"
-            nameKey="name"
-            stroke="#171738"
-            fill="#3423A6"
             aspectRatio={4 / 3}
+            stroke="light-white"
+            fill="#3423A6"
+            content={CustomizedContent}
           >
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={CustomTooltip} />
           </Treemap>
         </ResponsiveContainer>
       </div>
