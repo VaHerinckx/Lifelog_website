@@ -28,7 +28,7 @@
     "react-dom": "^18.2.0",
     "react-range-slider-input": "^3.2.1",
     "react-router-dom": "^6.21.3",
-    "recharts": "^2.10.4",
+    "recharts": "^2.15.1",
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7"
   },

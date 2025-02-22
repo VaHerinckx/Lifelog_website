@@ -7,6 +7,7 @@ import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useData } from '../../context/DataContext';
 import ListeningHeatmap from '../../components/charts/ListeningHeatmap';
 import TopPodcastsChart from '../../components/charts/TopPodcastsChart';
+import TreemapGenre from '../../components/charts/TreemapGenre';
 
 const PodcastPage = () => {
   // Get data and functions from context
@@ -44,8 +45,6 @@ const PodcastPage = () => {
       if (validDates.length > 0) {
         const startDate = validDates[0].toISOString().split('T')[0];
         const endDate = validDates[validDates.length - 1].toISOString().split('T')[0];
-
-        console.log('Setting date range:', { startDate, endDate });
         setDateRange({ startDate, endDate });
       }
     }
@@ -88,35 +87,54 @@ const PodcastPage = () => {
     }
   };
 
-  // Function to process listening time data
-  const processListeningData = (podcastData, podcastFilter = 'all', period = 'yearly') => {
-    if (!podcastData) return [];
+  const generateAllPeriods = (startDate, endDate, periodType) => {
+    const periods = [];
+    const start = new Date(startDate);
+    const end = new Date(endDate);
 
+    let current = new Date(start);
+
+    while (current <= end) {
+      switch (periodType) {
+        case 'yearly':
+          periods.push(current.getFullYear().toString());
+          current.setFullYear(current.getFullYear() + 1);
+          break;
+        case 'monthly':
+          periods.push(`${current.getFullYear()}-${(current.getMonth() + 1).toString().padStart(2, '0')}`);
+          current.setMonth(current.getMonth() + 1);
+          break;
+        case 'daily':
+          periods.push(current.toISOString().split('T')[0]);
+          current.setDate(current.getDate() + 1);
+          break;
+      }
+    }
+    return periods;
+  };
+  const processListeningData = (podcastData, podcastFilter = 'all', period = 'yearly') => {
+    if (!podcastData || !dateRange.startDate || !dateRange.endDate) return [];
+
+    // Filter the data first
     const filtered = podcastData.filter(item => {
-      // Check if date is valid
       const itemDate = new Date(item['modified at']);
       if (isNaN(itemDate.getTime()) || itemDate.getFullYear() <= 1970) {
         return false;
       }
 
-      // Filter by podcast if needed
       if (podcastFilter !== 'all' && item['podcast_name'] !== podcastFilter) {
         return false;
       }
 
-      // Filter by date range
-      if (dateRange.startDate && dateRange.endDate) {
-        const start = new Date(dateRange.startDate);
-        const end = new Date(dateRange.endDate);
-        start.setHours(0, 0, 0, 0);
-        end.setHours(23, 59, 59, 999);
+      const start = new Date(dateRange.startDate);
+      const end = new Date(dateRange.endDate);
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
 
-        if (itemDate < start || itemDate > end) return false;
-      }
-
-      return true;
+      return itemDate >= start && itemDate <= end;
     });
 
+    // Update podcast info if needed
     if (podcastFilter !== 'all' && filtered.length > 0) {
       const podcastInfo = filtered[0];
       setSelectedPodcastInfo({
@@ -129,18 +147,23 @@ const PodcastPage = () => {
       setSelectedPodcastInfo(null);
     }
 
+    // Group the filtered data by period
     const grouped = _.groupBy(filtered, item => getPeriodKey(item['modified at'], period));
 
-    return Object.entries(grouped)
-      .map(([key, episodes]) => ({
-        period: formatPeriodLabel(key, period),
-        totalMinutes: _.sumBy(episodes, episode => {
-          const duration = parseFloat(episode['duration']);
-          return isNaN(duration) ? 0 : Math.round(duration / 60);
-        }),
-        rawPeriod: key
-      }))
-      .sort((a, b) => a.rawPeriod.localeCompare(b.rawPeriod));
+    // Generate all possible periods
+    const allPeriods = generateAllPeriods(dateRange.startDate, dateRange.endDate, period);
+
+    // Create the final dataset with zeros for missing periods
+    return allPeriods.map(periodKey => ({
+      period: formatPeriodLabel(periodKey, period),
+      totalMinutes: grouped[periodKey]
+        ? _.sumBy(grouped[periodKey], episode => {
+            const duration = parseFloat(episode['duration']);
+            return isNaN(duration) ? 0 : Math.round(duration / 60);
+          })
+        : 0,
+      rawPeriod: periodKey
+    }));
   };
 
   // Update chart when selections change
@@ -202,7 +225,6 @@ const PodcastPage = () => {
                 type="date"
                 value={dateRange.startDate || ''}
                 onChange={(e) => {
-                  console.log('Date input change:', e.target.value);
                   setDateRange(prev => ({
                     ...prev,
                     startDate: e.target.value
@@ -234,7 +256,7 @@ const PodcastPage = () => {
               <img
                 src={selectedPodcastInfo.artwork}
                 alt={`${selectedPodcastInfo.name} artwork`}
-                className="podcast-artwork"
+                className="podcast-large-artwork"
               />
               <div className="podcast-details">
                 <h2>{selectedPodcastInfo.name}</h2>
@@ -248,24 +270,42 @@ const PodcastPage = () => {
 
       <div className="charts-grid">
         <div className="chart-container">
-          <h2>Listening Time by {selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)} Period</h2>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
+          <h2 className="listening-time-chart__title">
+            Listening Time by {selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)} Period
+          </h2>
+          <ResponsiveContainer width="100%" height={400} className="listening-time-chart__container">
+            <BarChart data={chartData} className="listening-time-chart__graph">
+              <CartesianGrid strokeDasharray="3 3"
+                             className="listening-time-chart__grid"
+                             />
               <XAxis
                 dataKey="period"
                 angle={selectedPeriod === 'monthly' || selectedPeriod === 'daily' ? -45 : 0}
                 textAnchor="end"
                 height={80}
+                className="listening-time-chart__axis listening-time-chart__axis--x"
               />
-              <YAxis label={{ value: 'Minutes Listened', angle: -90, position: 'insideLeft' }} />
-              <Tooltip formatter={(value) => `${Math.round(value).toLocaleString()} minutes`} />
-              <Legend />
-              <Bar dataKey="totalMinutes" name="Minutes Listened" fill="#3423A6" />
+              <YAxis
+                label={{
+                  value: 'Minutes Listened',
+                  angle: -90,
+                  position: 'insideLeft'
+                }}
+                className="listening-time-chart__axis listening-time-chart__axis--y"
+              />
+              <Tooltip
+                formatter={(value) => `${Math.round(value).toLocaleString()} minutes`}
+                className="listening-time-chart__tooltip"
+              />
+              <Legend className="listening-time-chart__legend"/>
+              <Bar
+                dataKey="totalMinutes"
+                name="Minutes Listened"
+                className="listening-time-chart__bar"
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
-
         <div className="chart-container">
           <ListeningHeatmap
             data={data.podcast}
@@ -276,6 +316,14 @@ const PodcastPage = () => {
 
         <div className="chart-container">
           <TopPodcastsChart data={data.podcast} dateRange={dateRange} />
+        </div>
+
+        <div className="chart-container">
+          <TreemapGenre
+            data={data.podcast}
+            selectedPodcast={selectedPodcast}
+            dateRange={dateRange}
+          />
         </div>
       </div>
     </div>
