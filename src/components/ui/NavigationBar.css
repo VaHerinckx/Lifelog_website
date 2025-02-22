@@ -1,22 +1,26 @@
-/* src/components/Reusable_components/NavigationBar.css */
+/* NavigationBar.css */
 .navigation-bar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1000;
+  height: 64px;
   background-color: #171738;
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #333333;
-  position: sticky;
-  top: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   z-index: 1000;
 }
 
+.nav-container {
+  width: 100%;
+  height: 100%;
+  position: relative; /* For the absolute positioning of children */
+}
+
 .nav-logo {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
 }
@@ -24,13 +28,14 @@
 .logo-link {
   display: flex;
   align-items: center;
-  gap: 1rem;
   text-decoration: none;
+  color: white;
+  gap: 10px;
 }
 
 .nav-logo-img {
-  width: 40px;
   height: 40px;
+  width: auto;
 }
 
 .nav-logo-text {
@@ -42,51 +47,87 @@
 }
 
 .nav-items {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
-  gap: 1.5rem;
+  gap: 20px;
   align-items: center;
   overflow-x: auto;
-  padding: 0.5rem;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  max-width: 800px;
+}
+
+.nav-items::-webkit-scrollbar {
+  display: none;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: #9ca3af;
+  gap: 8px;
   text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  transition: all 0.3s ease;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
   color: white;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .nav-item.active {
-  background-color: #3423A6;
   color: white;
+  background-color: rgba(239, 68, 68, 0.2);
 }
 
 .nav-icon {
   width: 20px;
   height: 20px;
+  object-fit: contain;
 }
 
 .nav-label {
   font-size: 0.9rem;
-  font-weight: 500;
 }
 
-/* Responsive design */
+/* Mobile responsive adjustments */
 @media (max-width: 768px) {
-  .nav-items {
-    display: none;
+  .navigation-bar {
+    height: 56px;
   }
 
-  .navigation-bar {
-    justify-content: center;
+  .nav-logo {
+    left: 10px;
+  }
+
+  .nav-logo-img {
+    height: 32px;
+  }
+
+  .nav-logo-text {
+    font-size: 1.2rem;
+  }
+
+  .nav-items {
+    gap: 10px;
+  }
+
+  .nav-item {
+    padding: 6px 8px;
+  }
+
+  .nav-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .nav-label {
+    display: none; /* Hide labels on mobile */
   }
 }
