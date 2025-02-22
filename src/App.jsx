@@ -57,7 +57,7 @@ const App = () => {
               }
             />
             <Route
-              path="/movies-tv"
+              path="/movies"
               element={
                 <div className="page-container">
                   <div>Movies & TV Page Coming Soon</div>

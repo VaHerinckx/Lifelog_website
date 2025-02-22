@@ -76,7 +76,7 @@ const Homepage = () => {
       <section className="welcome-banner">
         <div className="welcome-content">
           <h2 className="welcome-title">
-            Welcome to Your Life Dashboard
+            Welcome to your life dashboard, Valentin
           </h2>
           <p className="welcome-text">
             LifeLog is your personal life tracking companion. Monitor and analyze various aspects

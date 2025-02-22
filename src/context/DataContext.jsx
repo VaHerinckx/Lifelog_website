@@ -5,9 +5,41 @@ import { DRIVE_FILES, getDriveDownloadUrl } from '../config/config';
 
 const DataContext = createContext();
 
+// Helper function to decode UTF-8 strings properly
+const decodeUTF8 = (str) => {
+  try {
+    // First try to decode as UTF-8
+    return decodeURIComponent(escape(str));
+  } catch (e) {
+    // If that fails, try to fix common encoding issues
+    return str
+      .replace(/[\u0000-\u0019]/g, '') // Remove control characters
+      .replace(/�/g, 'è') // Fix common special characters
+      .replace(/[\u0080-\u00ff]/g, (char) => { // Fix Latin-1 characters
+        const specialChars = {
+          'Ã¨': 'è',
+          'Ã©': 'é',
+          'Ã«': 'ë',
+          'Ã¯': 'ï',
+          'Ã´': 'ô',
+          'Ã¶': 'ö',
+          'Ã¹': 'ù',
+          'Ã»': 'û',
+          'Ã¼': 'ü',
+          'Ã ': 'à',
+          'Ã¢': 'â',
+          // Add more special characters as needed
+        };
+        return specialChars[char] || char;
+      })
+      .trim();
+  }
+};
+
 // Helper function to clean strings
 const cleanString = (str) => {
-  return str ? str.replace(/\u0000/g, '').trim() : str;
+  if (!str) return str;
+  return decodeUTF8(str.replace(/\u0000/g, '').trim());
 };
 
 // Helper function to clean data
@@ -39,12 +71,10 @@ export const DataProvider = ({ children }) => {
   const [error, setError] = useState({});
 
   const fetchData = useCallback(async (dataType) => {
-    // If data already exists, don't fetch again
     if (data[dataType]) {
       return data[dataType];
     }
 
-    // Set loading state for this specific data type
     setLoading(prev => ({ ...prev, [dataType]: true }));
 
     try {
@@ -56,13 +86,11 @@ export const DataProvider = ({ children }) => {
         case 'music':
           fileId = DRIVE_FILES.MUSIC.FILE_ID;
           break;
-        // Add cases for other data types
         default:
           throw new Error(`Unknown data type: ${dataType}`);
       }
 
       const response = await fetch(getDriveDownloadUrl(fileId));
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -74,6 +102,8 @@ export const DataProvider = ({ children }) => {
           delimiter: "|",
           header: true,
           skipEmptyLines: true,
+          encoding: 'UTF-8', // Explicitly set UTF-8 encoding
+          transform: (value) => cleanString(value), // Clean each value as it's parsed
           complete: (results) => {
             const cleanedData = cleanData(results.data);
             setData(prev => ({ ...prev, [dataType]: cleanedData }));

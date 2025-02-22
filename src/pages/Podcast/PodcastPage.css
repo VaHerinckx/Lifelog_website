@@ -1,21 +1,24 @@
+/* src/pages/Podcast/PodcastPage.css */
 html, body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
   background-color: #171738;
 }
+.layout-content {
+  padding: 0rem;
+}
 
-.podcast-page {
-  padding: 10rem;
-  /*max-width: 1200px;*/
+.page-container {
+  padding: 0rem;
   margin: 0 auto;
   background-color: #171738;
   color: white;
   min-height: 100vh;
 }
 
-.podcast-page h1,
-.podcast-page h2 {
+.page-container h1,
+.page-container h2 {
   color: #EF4444;
   margin-bottom: 10px;
 }
@@ -39,10 +42,10 @@ html, body {
 }
 
 .filters-selections {
-  flex-direction: row;  /* Change from column to row */
+  flex-direction: row;
   gap: 20px;
-  display: flex;  /* Ensure flex display is also set */
-  align-items: center;  /* Optional: vertically center the items */
+  display: flex;
+  align-items: flex-start;
 }
 
 .filter-group {
@@ -53,19 +56,41 @@ html, body {
 
 .filter-group label {
   color: black;
+  min-width: 100px;
 }
 
-.filter-select {
+.filter-select, .date-input {
   padding: 8px;
   border-radius: 4px;
   color: black;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(52, 35, 166, 0.2);
   background-color: #D8DCFF;
   min-width: 200px;
 }
 
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.date-separator {
+  color: #171738;
+  font-weight: 500;
+}
+
+.date-input {
+  min-width: 150px;
+}
+
 .filter-select option {
-  background-color: #313715;
+  background-color: #D8DCFF;
   color: black;
 }
 
@@ -83,7 +108,7 @@ html, body {
   align-items: flex-start;
 }
 
-.podcast-artwork {
+.podcast-large-artwork {
   width: 200px;
   height: 200px;
   border-radius: 8px;
@@ -100,13 +125,13 @@ html, body {
 
 .podcast-artist {
   font-size: 1.1em;
-  color: black;
+  color: white;
   opacity: 0.9;
   margin: 0 0 8px 0;
 }
 
 .podcast-genre {
-  color: black;
+  color: white;
   opacity: 0.7;
   font-size: 0.9em;
   margin: 0;
@@ -143,7 +168,6 @@ html, body {
   opacity: 0.9;
 }
 
-/* Change the bar color to dark blue */
 .recharts-bar-rectangle {
   fill: #3423A6 !important;
 }
@@ -172,6 +196,7 @@ html, body {
   color: #EF4444;
 }
 
+/* Responsive layouts */
 @media (min-width: 992px) {
   .charts-grid {
     grid-template-columns: 3fr 2fr;
@@ -184,94 +209,158 @@ html, body {
   }
 }
 
-
 /* Mobile-specific adjustments */
 @media (max-width: 768px) {
-  .podcast-page {
-      padding: 1rem; /* Reduce padding on mobile */
+  .page-container {
+    padding: 1rem;
   }
 
   .filters-section {
-      flex-direction: column;
+    flex-direction: column;
   }
 
   .filters-selections {
-      flex-direction: column;
-      gap: 15px;
+    flex-direction: column;
+    gap: 15px;
   }
 
   .filter-group {
-      flex-direction: column;
-      align-items: stretch;
+    flex-direction: column;
+    align-items: stretch;
   }
 
   .filter-group label {
-      margin-bottom: 5px;
+    margin-bottom: 5px;
   }
 
-  .filter-select {
-      width: 100%; /* Full width on mobile */
+  .filter-select, .date-input {
+    width: 100%;
+  }
+
+  .date-inputs {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .date-separator {
+    text-align: center;
+    padding: 0.25rem 0;
   }
 
   .podcast-header {
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
   }
 
   .podcast-artwork {
-      width: 150px;
-      height: 150px;
-      margin-bottom: 10px;
+    width: 150px;
+    height: 150px;
+    margin-bottom: 10px;
   }
 
   .podcast-details {
-      align-items: center;
+    align-items: center;
   }
 
   .charts-grid {
-      grid-template-columns: 1fr; /* Stack charts vertically on mobile */
-      gap: 1rem;
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
-  /* Ensure charts are readable */
   .chart-container {
-      overflow-x: auto;
+    overflow-x: auto;
   }
 
-  /* Improve touch targets */
-  select,
-  input,
-  button {
-      min-height: 44px; /* Recommended touch target size */
-      font-size: 16px; /* Prevent auto-zoom on iOS */
+  select, input, button {
+    min-height: 44px;
+    font-size: 16px;
   }
 }
 
-/* Preserve original desktop styles */
+/* Desktop styles */
 @media (min-width: 769px) {
-  .podcast-page {
-      padding: 10rem;
-      margin: 0 auto;
+  .page-container {
+    padding: 5rem;
+    padding-top: 1rem;
+    margin: 0 auto;
   }
 
   .filters-section {
-      flex-direction: column;
-      display: flex;
+    flex-direction: column;
+    display: flex;
   }
 
   .filters-selections {
-      flex-direction: row;
-      gap: 20px;
+    flex-direction: row;
+    gap: 20px;
   }
 
   .filter-group {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
   .charts-grid {
-      grid-template-columns: 3fr 2fr;
+    grid-template-columns: 3fr 2fr;
+  }
+}
+
+
+.date-range-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  padding: 0 10px;
+}
+
+.date-labels {
+  display: flex;
+  justify-content: space-between;
+  color: #171738;
+  font-size: 0.875rem;
+}
+
+/* Slider styling */
+.date-slider {
+  height: 6px;
+  background: #3423A6;
+  border-radius: 3px;
+}
+
+.date-slider .range-slider__range {
+  background: #3423A6;
+  transition: height 0.2s ease;
+}
+
+.date-slider .range-slider__thumb {
+  width: 16px;
+  height: 16px;
+  background: white;
+  border: 2px solid #3423A6;
+  border-radius: 50%;
+  cursor: grab;
+  transition: transform 0.2s ease;
+}
+
+.date-slider .range-slider__thumb:hover {
+  transform: scale(1.2);
+}
+
+.date-slider .range-slider__thumb:active {
+  cursor: grabbing;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .date-range-container {
+    padding: 0;
+  }
+
+  .date-slider .range-slider__thumb {
+    width: 20px;
+    height: 20px;
   }
 }
