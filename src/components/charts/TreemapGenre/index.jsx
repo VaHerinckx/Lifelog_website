@@ -76,6 +76,7 @@ const TreemapGenre = ({ data, selectedPodcast, dateRange }) => {
     );
   };
 
+  // Improved CustomizedContent with text wrapping
   const CustomizedContent = ({ root, depth, x, y, width, height, name, value }) => {
     const maxSize = root.children?.[0]?.value || 0;
     const ratio = value / maxSize;
@@ -88,6 +89,9 @@ const TreemapGenre = ({ data, selectedPodcast, dateRange }) => {
     else if (ratio > 0.1) fill = COLORS.medium3;
     else fill = COLORS.light;
 
+    // Only attempt to render text if we have enough space
+    const shouldRenderText = width > 30 && height > 20;
+
     return (
       <g>
         <rect
@@ -99,17 +103,28 @@ const TreemapGenre = ({ data, selectedPodcast, dateRange }) => {
           stroke={COLORS.stroke}
           strokeWidth={1}
         />
-        {width > 50 && height > 30 && (
-          <text
-            x={x + width / 2}
-            y={y + height / 2}
-            textAnchor="middle"
-            fill={COLORS.text}
-            fontSize={14}
-            dominantBaseline="middle"
-          >
-            {name}
-          </text>
+        {shouldRenderText && (
+          <foreignObject x={x} y={y} width={width} height={height}>
+            <div
+              xmlns="http://www.w3.org/1999/xhtml"
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '4px',
+                overflow: 'hidden',
+                color: COLORS.text,
+                fontSize: width < 80 ? '10px' : '14px',
+                textAlign: 'center',
+                wordBreak: 'break-word',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {name}
+            </div>
+          </foreignObject>
         )}
       </g>
     );
