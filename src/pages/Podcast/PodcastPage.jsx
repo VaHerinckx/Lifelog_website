@@ -15,7 +15,9 @@ const PodcastPage = () => {
 
   // Local state
   const [uniquePodcasts, setUniquePodcasts] = useState([]);
+  const [uniqueGenres, setUniqueGenres] = useState([]);
   const [selectedPodcast, setSelectedPodcast] = useState('all');
+  const [selectedGenre, setSelectedGenre] = useState('all');
   const [selectedPodcastInfo, setSelectedPodcastInfo] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState('yearly');
   const [chartData, setChartData] = useState([]);
@@ -29,12 +31,30 @@ const PodcastPage = () => {
     fetchData('podcast');
   }, [fetchData]);
 
-  // Process dates and podcasts when data is loaded
+  // Process dates, podcasts, and genres when data is loaded
   useEffect(() => {
     if (data.podcast) {
       // Get unique podcasts
       const podcasts = _.uniq(data.podcast.map(item => item['podcast_name'])).filter(Boolean);
       setUniquePodcasts(podcasts);
+
+      // Get unique genres with proper filtering for problematic entries
+      const cleanedGenres = data.podcast
+        .map(item => {
+          // Clean up invalid genre entries (URLs, image paths, etc.)
+          if (!item.genre) return null;
+          if (item.genre.includes('https://') ||
+              item.genre.includes('image/thumb') ||
+              item.genre.length > 30) {
+            return 'Unknown';
+          }
+          return item.genre;
+        })
+        .filter(Boolean); // Filter out null/undefined/empty values
+
+      // Get unique cleaned genres
+      const genres = _.uniq(cleanedGenres).sort();
+      setUniqueGenres(genres);
 
       // Process and filter dates
       const validDates = data.podcast
@@ -112,20 +132,45 @@ const PodcastPage = () => {
     }
     return periods;
   };
-  const processListeningData = (podcastData, podcastFilter = 'all', period = 'yearly') => {
+
+  // Main filter function for data
+  const filterData = (podcastData) => {
     if (!podcastData || !dateRange.startDate || !dateRange.endDate) return [];
 
-    // Filter the data first
-    const filtered = podcastData.filter(item => {
+    return podcastData.filter(item => {
       const itemDate = new Date(item['modified at']);
       if (isNaN(itemDate.getTime()) || itemDate.getFullYear() <= 1970) {
         return false;
       }
 
-      if (podcastFilter !== 'all' && item['podcast_name'] !== podcastFilter) {
+      // Filter by podcast if selected
+      if (selectedPodcast !== 'all' && item['podcast_name'] !== selectedPodcast) {
         return false;
       }
 
+      // Filter by genre if selected
+      if (selectedGenre !== 'all') {
+        const formattedGenre = selectedGenre === 'Unknown' ? null : selectedGenre;
+
+        // Match against cleaned genre values
+        let matchGenre = false;
+        const itemGenre = item.genre;
+
+        if (!itemGenre && selectedGenre === 'Unknown') {
+          matchGenre = true;
+        } else if (itemGenre && itemGenre.includes('https://') ||
+                  itemGenre && itemGenre.includes('image/thumb') ||
+                  itemGenre && itemGenre.length > 30) {
+          // This is an invalid genre that should match "Unknown"
+          matchGenre = (selectedGenre === 'Unknown');
+        } else {
+          matchGenre = (itemGenre === formattedGenre);
+        }
+
+        if (!matchGenre) return false;
+      }
+
+      // Filter by date range
       const start = new Date(dateRange.startDate);
       const end = new Date(dateRange.endDate);
       start.setHours(0, 0, 0, 0);
@@ -133,9 +178,16 @@ const PodcastPage = () => {
 
       return itemDate >= start && itemDate <= end;
     });
+  };
+
+  const processListeningData = (podcastData, period = 'yearly') => {
+    if (!podcastData || !dateRange.startDate || !dateRange.endDate) return [];
+
+    // Apply the general filters first
+    const filtered = filterData(podcastData);
 
     // Update podcast info if needed
-    if (podcastFilter !== 'all' && filtered.length > 0) {
+    if (selectedPodcast !== 'all' && filtered.length > 0) {
       const podcastInfo = filtered[0];
       setSelectedPodcastInfo({
         name: podcastInfo.podcast_name,
@@ -169,10 +221,10 @@ const PodcastPage = () => {
   // Update chart when selections change
   useEffect(() => {
     if (data.podcast) {
-      const newChartData = processListeningData(data.podcast, selectedPodcast, selectedPeriod);
+      const newChartData = processListeningData(data.podcast, selectedPeriod);
       setChartData(newChartData);
     }
-  }, [selectedPodcast, selectedPeriod, dateRange, data.podcast]);
+  }, [selectedPodcast, selectedGenre, selectedPeriod, dateRange, data.podcast]);
 
   if (loading.podcast) {
     return <LoadingSpinner centerIcon={Podcast} />;
@@ -190,7 +242,7 @@ const PodcastPage = () => {
       <div className="filters-section">
         <div className="filters-selections">
           <div className="filter-group">
-            <label htmlFor="podcast-select">Select Podcast:</label>
+            <label htmlFor="podcast-select">Podcast:</label>
             <select
               id="podcast-select"
               value={selectedPodcast}
@@ -205,16 +257,17 @@ const PodcastPage = () => {
           </div>
 
           <div className="filter-group">
-            <label htmlFor="period-select">Time Period:</label>
+            <label htmlFor="genre-select">Genre:</label>
             <select
-              id="period-select"
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
+              id="genre-select"
+              value={selectedGenre}
+              onChange={(e) => setSelectedGenre(e.target.value)}
               className="filter-select"
             >
-              <option value="yearly">Yearly</option>
-              <option value="monthly">Monthly</option>
-              <option value="daily">Daily</option>
+              <option value="all">All Genres</option>
+              {uniqueGenres.map(genre => (
+                <option key={genre} value={genre}>{genre}</option>
+              ))}
             </select>
           </div>
 
@@ -270,9 +323,24 @@ const PodcastPage = () => {
 
       <div className="charts-grid">
         <div className="chart-container">
-          <h2 className="listening-time-chart__title">
-            Listening Time by {selectedPeriod.charAt(0).toUpperCase() + selectedPeriod.slice(1)} Period
-          </h2>
+          <div className="chart-header">
+            <h2 className="listening-time-chart__title">
+              Listening Time by Period
+            </h2>
+            <div className="chart-filter">
+              <label htmlFor="period-select">Period:</label>
+              <select
+                id="period-select"
+                value={selectedPeriod}
+                onChange={(e) => setSelectedPeriod(e.target.value)}
+                className="filter-select"
+              >
+                <option value="yearly">Yearly</option>
+                <option value="monthly">Monthly</option>
+                <option value="daily">Daily</option>
+              </select>
+            </div>
+          </div>
           <ResponsiveContainer width="100%" height={400} className="listening-time-chart__container">
             <BarChart data={chartData} className="listening-time-chart__graph">
               <CartesianGrid strokeDasharray="3 3"
@@ -304,19 +372,19 @@ const PodcastPage = () => {
         </div>
         <div className="chart-container">
           <ListeningHeatmap
-            data={data.podcast}
+            data={filterData(data.podcast)}
             selectedPodcast={selectedPodcast}
             dateRange={dateRange}
           />
         </div>
 
         <div className="chart-container">
-          <TopPodcastsChart data={data.podcast} dateRange={dateRange} />
+          <TopPodcastsChart data={filterData(data.podcast)} dateRange={dateRange} />
         </div>
 
         <div className="chart-container">
           <TreemapGenre
-            data={data.podcast}
+            data={filterData(data.podcast)}
             selectedPodcast={selectedPodcast}
             dateRange={dateRange}
           />

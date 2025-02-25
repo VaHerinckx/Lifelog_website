@@ -19,7 +19,7 @@ html, body {
 
 .page-container h1,
 .page-container h2 {
-  color: #EF4444;
+  color: #FB4B4E;
   margin-bottom: 10px;
 }
 
@@ -43,20 +43,26 @@ html, body {
 
 .filters-selections {
   flex-direction: row;
-  gap: 20px;
+  gap: 15px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  width: 100%;
+  justify-content: space-between;
 }
 
 .filter-group {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 1;
+  max-width: 350px;
 }
 
 .filter-group label {
   color: black;
-  min-width: 100px;
+  width: 120px;
+  white-space: nowrap;
 }
 
 .filter-select, .date-input {
@@ -65,28 +71,33 @@ html, body {
   color: black;
   border: 1px solid rgba(52, 35, 166, 0.2);
   background-color: #D8DCFF;
-  min-width: 200px;
+  flex: 1;
+  max-width: 200px;
 }
 
 .date-range {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 2;
+  max-width: 450px;
 }
 
 .date-inputs {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex: 1;
 }
 
 .date-separator {
   color: #171738;
   font-weight: 500;
+  padding: 0 5px;
 }
 
 .date-input {
-  min-width: 150px;
+  width: calc(50% - 15px);
 }
 
 .filter-select option {
@@ -153,6 +164,31 @@ html, body {
   flex-direction: column;
 }
 
+/* New chart header styling */
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.chart-filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chart-filter label {
+  color: #171738;
+  font-weight: 500;
+  width: auto;
+  white-space: nowrap;
+}
+
+.chart-filter .filter-select {
+  width: 120px;
+}
+
 .chart-container .recharts-responsive-container {
   flex-grow: 1;
 }
@@ -193,7 +229,7 @@ html, body {
 }
 
 .error {
-  color: #EF4444;
+  color: #FB4B4E;
 }
 
 /* Responsive layouts */
@@ -270,6 +306,12 @@ html, body {
 
   .chart-container {
     overflow-x: auto;
+  }
+
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
   }
 
   select, input, button {
