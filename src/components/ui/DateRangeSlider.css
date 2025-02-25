@@ -1,0 +1,107 @@
+/* src/components/ui/DateRangeSlider/DateRangeSlider.css */
+.date-range-slider {
+  width: 100%;
+  padding: 10px 5px;
+  position: relative;
+}
+
+.date-range-display {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: #171738;
+  font-weight: 500;
+}
+
+.date-label {
+  font-size: 0.9rem;
+}
+
+.slider-container {
+  position: relative;
+  height: 40px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.slider-track {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 6px;
+  background-color: rgba(52, 35, 166, 0.1);
+  border-radius: 3px;
+}
+
+.slider-fill {
+  position: absolute;
+  height: 100%;
+  background-color: #3423A6;
+  border-radius: 3px;
+  z-index: 2;
+}
+
+.slider-inactive {
+  position: absolute;
+  height: 100%;
+  background-color: rgba(52, 35, 166, 0.1);
+  z-index: 1;
+  border-radius: 3px;
+  opacity: 0.5;
+}
+
+.slider-inactive-left {
+  left: 0;
+}
+
+.slider-inactive-right {
+  right: 0;
+}
+
+.slider-thumb {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
+  background-color: #FFFFFF;
+  border: 2px solid #3423A6;
+  border-radius: 50%;
+  cursor: grab;
+  z-index: 3;
+  transition: transform 0.2s;
+}
+
+.slider-thumb:hover, .slider-thumb:active {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.slider-thumb:active {
+  cursor: grabbing;
+}
+
+.date-ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  color: #171738;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .date-range-slider {
+    padding: 5px 0;
+  }
+
+  .slider-container {
+    height: 50px; /* Larger touch target for mobile */
+  }
+
+  .slider-thumb {
+    width: 22px;
+    height: 22px;
+  }
+}

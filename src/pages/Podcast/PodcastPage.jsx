@@ -8,6 +8,7 @@ import { useData } from '../../context/DataContext';
 import ListeningHeatmap from '../../components/charts/ListeningHeatmap';
 import TopPodcastsChart from '../../components/charts/TopPodcastsChart';
 import TreemapGenre from '../../components/charts/TreemapGenre';
+import DateRangeSlider from '../../components/ui/DateRangeSlider';
 
 const PodcastPage = () => {
   // Get data and functions from context
@@ -273,31 +274,11 @@ const PodcastPage = () => {
 
           <div className="filter-group date-range">
             <label>Date Range:</label>
-            <div className="date-inputs">
-              <input
-                type="date"
-                value={dateRange.startDate || ''}
-                onChange={(e) => {
-                  setDateRange(prev => ({
-                    ...prev,
-                    startDate: e.target.value
-                  }));
-                }}
-                className="date-input"
-                min={dateRange.startDate}
-                max={dateRange.endDate}
-              />
-              <span className="date-separator">to</span>
-              <input
-                type="date"
-                value={dateRange.endDate || ''}
-                onChange={(e) => setDateRange(prev => ({
-                  ...prev,
-                  endDate: e.target.value
-                }))}
-                className="date-input"
-                min={dateRange.startDate}
-                max={dateRange.endDate}
+            <div className="date-slider-container">
+              <DateRangeSlider
+                startDate={dateRange.startDate}
+                endDate={dateRange.endDate}
+                onChange={(newRange) => setDateRange(newRange)}
               />
             </div>
           </div>
@@ -341,7 +322,7 @@ const PodcastPage = () => {
               </select>
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={400} className="listening-time-chart__container">
+          <ResponsiveContainer width="100%" height="100%" className="listening-time-chart__container">
             <BarChart data={chartData} className="listening-time-chart__graph">
               <CartesianGrid strokeDasharray="3 3"
                              className="listening-time-chart__grid"

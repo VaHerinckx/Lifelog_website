@@ -77,27 +77,15 @@ html, body {
 
 .date-range {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
   flex: 2;
   max-width: 450px;
 }
 
-.date-inputs {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.date-slider-container {
   flex: 1;
-}
-
-.date-separator {
-  color: #171738;
-  font-weight: 500;
-  padding: 0 5px;
-}
-
-.date-input {
-  width: calc(50% - 15px);
+  width: 100%;
 }
 
 .filter-select option {
