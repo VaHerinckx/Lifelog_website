@@ -4,6 +4,7 @@ import { DataProvider } from './context/DataContext';
 import Layout from './components/ui/Layout';
 import Homepage from './pages/Home/Homepage';
 import PodcastPage from './pages/Podcast/PodcastPage';
+import ReadingPage from './pages/Reading/ReadingPage';
 
 const App = () => {
   return (
@@ -48,14 +49,7 @@ const App = () => {
                 </div>
               }
             />
-            <Route
-              path="/reading"
-              element={
-                <div className="page-container">
-                  <div>Reading Page Coming Soon</div>
-                </div>
-              }
-            />
+            <Route path="/reading" element={<ReadingPage />} />
             <Route
               path="/movies"
               element={

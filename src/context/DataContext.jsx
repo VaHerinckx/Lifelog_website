@@ -73,7 +73,10 @@ const cleanData = (data) => {
       const cleanKey = cleanString(key).trim();
 
       // Special handling for date fields
-      if (cleanKey.includes('modified at') || cleanKey.includes('date')) {
+      if (cleanKey.includes('modified at') ||
+          cleanKey.includes('date') ||
+          cleanKey.includes('finish') ||
+          cleanKey.includes('start')) {
         cleanedItem[cleanKey] = cleanDate(value);
       } else {
         // Normal string cleaning for non-date fields
@@ -111,6 +114,9 @@ export const DataProvider = ({ children }) => {
       switch (dataType) {
         case 'podcast':
           fileId = DRIVE_FILES.PODCAST.FILE_ID;
+          break;
+        case 'reading':
+          fileId = DRIVE_FILES.READING.FILE_ID;
           break;
         case 'music':
           fileId = DRIVE_FILES.MUSIC.FILE_ID;

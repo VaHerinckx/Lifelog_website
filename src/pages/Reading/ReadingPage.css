@@ -1,0 +1,305 @@
+/* src/pages/Reading/ReadingPage.css */
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background-color: #171738;
+}
+
+.layout-content {
+  padding: 0rem;
+}
+
+.page-container {
+  padding: 0rem;
+  margin: 0 auto;
+  background-color: #171738;
+  color: white;
+  min-height: 100vh;
+}
+
+.page-container h1,
+.page-container h2 {
+  color: #FB4B4E;
+  margin-bottom: 10px;
+}
+
+.page-description {
+  color: #ffffff;
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+
+.filters-section {
+  margin: 20px 0;
+  padding: 15px;
+  background-color: #D8DCFF;
+  color: black;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.filters-selections {
+  flex-direction: row;
+  gap: 20px;
+  display: flex;
+  align-items: flex-start;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-group label {
+  color: black;
+  min-width: 100px;
+}
+
+.filter-select, .date-input {
+  padding: 8px;
+  border-radius: 4px;
+  color: black;
+  border: 1px solid rgba(52, 35, 166, 0.2);
+  background-color: #D8DCFF;
+  min-width: 200px;
+}
+
+.date-range {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.date-separator {
+  color: #171738;
+  font-weight: 500;
+}
+
+.date-input {
+  min-width: 150px;
+}
+
+.filter-select option {
+  background-color: #D8DCFF;
+  color: black;
+}
+
+/* Book info section styling */
+.book-info {
+  margin: 20px 0;
+  padding: 20px;
+  background-color: #3423A6;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.book-header {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.book-large-cover {
+  width: 150px;
+  height: 220px; /* Taller than podcast artwork to resemble a book */
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  object-fit: cover;
+}
+
+.book-details {
+  flex: 1;
+}
+
+.book-details h2 {
+  margin: 0 0 10px 0;
+}
+
+.book-author {
+  font-size: 1.1em;
+  color: white;
+  opacity: 0.9;
+  margin: 0 0 8px 0;
+}
+
+.book-genre {
+  color: white;
+  opacity: 0.7;
+  font-size: 0.9em;
+  margin: 0;
+}
+
+.charts-grid {
+  display: grid;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.chart-container {
+  padding: 20px;
+  background-color: #D8DCFF;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-container .recharts-responsive-container {
+  flex-grow: 1;
+}
+
+/* Placeholder message for development */
+.placeholder-message {
+  margin: 40px 0;
+  padding: 30px;
+  background-color: #3423A6;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-align: center;
+}
+
+.placeholder-message p {
+  margin-bottom: 15px;
+}
+
+.placeholder-message ul {
+  display: inline-block;
+  text-align: left;
+  margin: 0 auto;
+}
+
+.placeholder-message li {
+  margin-bottom: 5px;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: 20px;
+  font-size: 18px;
+  color: white;
+}
+
+.error {
+  color: #FB4B4E;
+}
+
+/* Responsive layouts */
+@media (min-width: 992px) {
+  .charts-grid {
+    grid-template-columns: 3fr 2fr;
+  }
+}
+
+@media (min-width: 1200px) {
+  .charts-grid {
+    grid-template-columns: 2fr 1fr;
+  }
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 1rem;
+  }
+
+  .filters-section {
+    flex-direction: column;
+  }
+
+  .filters-selections {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .filter-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group label {
+    margin-bottom: 5px;
+  }
+
+  .filter-select, .date-input {
+    width: 100%;
+  }
+
+  .date-inputs {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .date-separator {
+    text-align: center;
+    padding: 0.25rem 0;
+  }
+
+  .book-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .book-large-cover {
+    margin-bottom: 15px;
+  }
+
+  .book-details {
+    align-items: center;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .chart-container {
+    overflow-x: auto;
+  }
+
+  select, input, button {
+    min-height: 44px;
+    font-size: 16px;
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 769px) {
+  .page-container {
+    padding: 5rem;
+    padding-top: 1rem;
+    margin: 0 auto;
+  }
+
+  .filters-section {
+    flex-direction: column;
+    display: flex;
+  }
+
+  .filters-selections {
+    flex-direction: row;
+    gap: 20px;
+  }
+
+  .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .charts-grid {
+    grid-template-columns: 3fr 2fr;
+  }
+}
