@@ -159,7 +159,7 @@ const ReadingPage = () => {
           id: bookId,
           title: title,
           author: latestEntry.Author || '',
-          publicationYear: originalYear,
+          publicationYear: originalYear ? Math.floor(originalYear) : '',
           myRating: parseFloat(myRating),
           averageRating: parseFloat(avgRating),
           genre: latestEntry.Genre || 'Unknown',
