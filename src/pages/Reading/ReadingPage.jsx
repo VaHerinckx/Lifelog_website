@@ -192,16 +192,16 @@ const ReadingPage = () => {
     const lastMonthDate = new Date();
     lastMonthDate.setMonth(now.getMonth() - 1);
 
-    const recentBooks = processedBooks.filter(book =>
+    const recentBooks = filteredBooks.filter(book =>
       book.timestamp && book.timestamp >= lastMonthDate
     ).length;
 
     setReadingStats({
-      totalBooks: processedBooks.length,
-      totalPages: _.sumBy(processedBooks, 'pages'),
-      avgRating: _.meanBy(processedBooks, 'myRating').toFixed(1),
+      totalBooks: filteredBooks.length,
+      totalPages: _.sumBy(filteredBooks, 'pages'),
+      avgRating: _.meanBy(filteredBooks, 'myRating').toFixed(1),
       avgReadingDuration: Math.round(_.meanBy(
-        processedBooks.filter(book => book.readingDuration),
+        filteredBooks.filter(book => book.readingDuration),
         'readingDuration'
       )),
       recentBooks: recentBooks
@@ -266,6 +266,32 @@ const ReadingPage = () => {
     }
   }, [books, selectedGenre, selectedFiction, selectedTimeframe, sortOrder]);
 
+  // Add this effect to update stats when filtered books change
+useEffect(() => {
+  if (filteredBooks.length > 0) {
+    const now = new Date();
+    const lastMonthDate = new Date();
+    lastMonthDate.setMonth(now.getMonth() - 1);
+
+    const recentBooks = filteredBooks.filter(book =>
+      book.timestamp && book.timestamp >= lastMonthDate
+    ).length;
+
+    setReadingStats({
+      totalBooks: filteredBooks.length,
+      totalPages: _.sumBy(filteredBooks, 'pages'),
+      avgRating: filteredBooks.filter(book => book.myRating > 0).length > 0
+        ? _.meanBy(filteredBooks.filter(book => book.myRating > 0), 'myRating').toFixed(1)
+        : "0.0",
+      avgReadingDuration: Math.round(_.meanBy(
+        filteredBooks.filter(book => book.readingDuration),
+        'readingDuration'
+      )),
+      recentBooks: recentBooks
+    });
+  }
+}, [filteredBooks]);
+
   // Handle file upload directly
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
@@ -327,32 +353,6 @@ const ReadingPage = () => {
       <div className="page-content">
         <h1>Reading Tracker</h1>
         <p className="page-description">Track your reading habits and discover insights about your books</p>
-
-        {/* Reading Stats */}
-        <div className="stats-cards">
-          <div className="stat-card">
-            <div className="stat-value">{readingStats.totalBooks}</div>
-            <div className="stat-label">Books Read</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">{readingStats.totalPages.toLocaleString()}</div>
-            <div className="stat-label">Total Pages</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">{readingStats.avgRating}</div>
-            <div className="stat-label">Average Rating</div>
-          </div>
-          {readingStats.avgReadingDuration > 0 && (
-            <div className="stat-card">
-              <div className="stat-value">{readingStats.avgReadingDuration}</div>
-              <div className="stat-label">Avg. Days to Read</div>
-            </div>
-          )}
-          <div className="stat-card">
-            <div className="stat-value">{readingStats.recentBooks}</div>
-            <div className="stat-label">Books Last Month</div>
-          </div>
-        </div>
 
         {/* Enhanced Filters and Controls */}
         <div className="controls-container">
@@ -434,6 +434,32 @@ const ReadingPage = () => {
             <div className="book-count">
               {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'} found
             </div>
+          </div>
+        </div>
+
+        {/* Reading Stats */}
+        <div className="stats-cards">
+          <div className="stat-card">
+            <div className="stat-value">{readingStats.totalBooks}</div>
+            <div className="stat-label">Books Read</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value">{readingStats.totalPages.toLocaleString()}</div>
+            <div className="stat-label">Total Pages</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value">{readingStats.avgRating}</div>
+            <div className="stat-label">Average Rating</div>
+          </div>
+          {readingStats.avgReadingDuration > 0 && (
+            <div className="stat-card">
+              <div className="stat-value">{readingStats.avgReadingDuration}</div>
+              <div className="stat-label">Avg. Days to Read</div>
+            </div>
+          )}
+          <div className="stat-card">
+            <div className="stat-value">{readingStats.recentBooks}</div>
+            <div className="stat-label">Books Last Month</div>
           </div>
         </div>
 
