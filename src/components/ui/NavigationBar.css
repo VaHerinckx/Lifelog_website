@@ -57,7 +57,7 @@
   overflow-x: auto;
   -ms-overflow-style: none;
   scrollbar-width: none;
-  max-width: 800px;
+  /*max-width: 800px;*/
 }
 
 .nav-items::-webkit-scrollbar {

@@ -9,6 +9,8 @@ import { useData } from '../../context/DataContext';
 // Import the BookDetails component
 import BookDetails from './components/BookDetails';
 
+
+
 // Component to display star ratings
 const StarRating = ({ rating, size = 16 }) => {
   const fullStars = Math.floor(rating);
@@ -29,7 +31,14 @@ const StarRating = ({ rating, size = 16 }) => {
 };
 
 // Component to display a book card
+// Component to display a book card
 const BookCard = ({ book, onClick }) => {
+  // Format the timestamp to a readable date
+  const formatDate = (date) => {
+    if (!date || !(date instanceof Date) || isNaN(date)) return 'Unknown date';
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
   return (
     <div className="book-card" onClick={() => onClick(book)}>
       <div className="book-cover-container">
@@ -60,6 +69,21 @@ const BookCard = ({ book, onClick }) => {
             </span>
           </div>
         </div>
+
+        {/* Add reading date information */}
+        <div className="reading-dates">
+          <span className="date-label">Read on:</span>
+          <span className="date-value">{formatDate(book.timestamp)}</span>
+        </div>
+
+        {/* If you have reading duration, you can show a calculated start date */}
+        {book.readingDuration && book.timestamp && (
+          <div className="reading-duration">
+            <span className="duration-value">
+              {book.readingDuration} days to read
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -255,7 +279,12 @@ const ReadingPage = () => {
 
       // Apply sorting
       if (sortOrder === 'recent') {
-        filtered = _.sortBy(filtered, book => book.timestamp).reverse();
+        filtered = _.sortBy(filtered, book => {
+          // Check if timestamp is a valid date
+          return book.timestamp instanceof Date && !isNaN(book.timestamp.getTime())
+            ? book.timestamp.getTime()  // Use getTime() for valid dates
+            : -Infinity;  // Push invalid dates to the end
+        }).reverse();
       } else if (sortOrder === 'rating') {
         filtered = _.sortBy(filtered, book => book.myRating).reverse();
       } else if (sortOrder === 'title') {

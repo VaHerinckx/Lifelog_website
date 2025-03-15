@@ -1,15 +1,29 @@
 /* src/pages/Reading/ReadingPage.css */
+/* Add this rule to force the page content to take full width */
 .page-container {
-  padding: 0;
-  margin: 0 auto;
-  background-color: var(--background-color);
-  color: white;
-  min-height: 100vh;
+  width: 95%; /* Use most of the viewport width */
+  max-width: 260000px; /* Prevent excessive width on very large screens */
+  margin: 0 auto; /* Center the container */
+  box-sizing: border-box;
+}
+
+body {
+  max-width: 100%;
 }
 
 .page-content {
-  padding: 2rem 5rem;
+  width: 95%; /* Use most of the available width */
+  max-width: 1800px; /* Prevent excessive width on very large screens */
+  margin: 0 auto;
+  padding: 2rem 2rem; /* Reduce the horizontal padding */
+  box-sizing: border-box;
 }
+
+.layout-content {
+  width: 100%;
+  max-width: 100%;
+}
+
 
 @media (max-width: 768px) {
   .page-content {
@@ -109,9 +123,9 @@
 /* Books Grid View */
 .books-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
+  width: 100%;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
 }
 
 .book-card {
@@ -488,4 +502,30 @@
     font-size: 0.65rem;
     padding: 2px 4px;
   }
+}
+
+
+/* Add these styles to your ReadingPage.css */
+.reading-dates {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--text-element);
+}
+
+.date-label {
+  font-weight: 500;
+}
+
+.date-value {
+  margin-left: 4px;
+}
+
+.reading-duration {
+  font-size: 0.8rem;
+  color: var(--text-element);
+  margin-top: 4px;
+}
+
+.duration-value {
+  font-style: italic;
 }
