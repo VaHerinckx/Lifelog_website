@@ -8,7 +8,7 @@
 }
 
 .treemap-title {
-  color: #FB4B4E;
+  color: var(--title-color);
   margin-bottom: 20px;
   font-size: 1.5rem;
   font-weight: bold;

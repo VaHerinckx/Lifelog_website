@@ -2,7 +2,7 @@
 .page-container {
   padding: 0;
   margin: 0 auto;
-  background-color: #171738;
+  background-color: var(--background-color);
   color: white;
   min-height: 100vh;
 }
@@ -55,7 +55,7 @@
 }
 
 .filter-group label {
-  color: #171738;
+  color: var(--background-color);
   font-weight: 500;
   min-width: 80px;
 }
@@ -63,7 +63,7 @@
 .filter-select {
   padding: 8px 12px;
   border-radius: 4px;
-  color: #171738;
+  color: var(--background-color);
   border: 1px solid rgba(52, 35, 166, 0.2);
   background-color: #fff;
   min-width: 180px;
@@ -80,7 +80,7 @@
 .view-control-btn {
   background-color: #D8DCFF;
   border: none;
-  color: #171738;
+  color: var(--background-color);
   border-radius: 4px;
   padding: 8px;
   margin-left: 10px;
@@ -163,7 +163,7 @@
 }
 
 .book-title {
-  color: #171738;
+  color: var(--background-color);
   font-size: 1rem;
   font-weight: 600;
   margin-bottom: 6px;
@@ -209,7 +209,7 @@
 
 .fiction-tag {
   background-color: #EAC435;
-  color: #171738;
+  color: var(--background-color);
 }
 
 .non-fiction-tag {
@@ -259,7 +259,7 @@
 }
 
 .book-list-title {
-  color: #171738;
+  color: var(--background-color);
   font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: 5px;
@@ -324,7 +324,7 @@
 
 .rating-label {
   font-size: 0.85rem;
-  color: #171738;
+  color: var(--background-color);
 }
 
 .stars {
@@ -368,7 +368,7 @@
 }
 
 .stat-label {
-  color: #171738;
+  color: var(--background-color);
   font-size: 1rem;
 }
 
@@ -409,7 +409,7 @@
   background-color: #D8DCFF;
   padding: 1.5rem;
   border-radius: 8px;
-  color: #171738;
+  color: var(--background-color);
   margin-top: 1.5rem;
 }
 

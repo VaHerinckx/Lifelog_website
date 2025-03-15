@@ -10,13 +10,13 @@ body {
   padding: 0;
   width: 100vw;
   overflow-x: hidden;
-  background: #171738;
+  background: var(--background-color);
 }
 
 .page {
   width: 100vw;
   min-height: 100vh;
-  background: #171738;
+  background: var(--background-color);
   display: flex;
   flex-direction: column;
 }
@@ -24,7 +24,7 @@ body {
 /* Header styles */
 .top-header {
   width: 100%;
-  background-color: #171738;
+  background-color: var(--background-color);
   border-bottom: 1px solid #333333;
 }
 
@@ -60,7 +60,7 @@ body {
 /* Welcome section */
 .welcome-banner {
   width: 100%;
-  background-color: #171738;
+  background-color: var(--background-color);
   padding: 64px 24px;
   border-bottom: 1px solid #333333;
 }
@@ -172,7 +172,7 @@ body {
 /* Footer */
 .bottom-footer {
   width: 100%;
-  background-color: #171738;
+  background-color: var(--background-color);
   padding: 32px 24px;
   border-top: 1px solid #333333;
 }

@@ -1,0 +1,41 @@
+/* src/variables.css */
+:root {
+  /* Base color palette */
+  --title-color: #FB4B4E;
+  --background-color: #171736;
+  --element-background-color: #D8DCFF;
+  --chart-primary-color: #EAC435;
+  --chart-secondary-color: #3423A6;
+
+  /* Text colors */
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-element: #171738;
+
+  /* Border colors */
+  --border-light: rgba(255, 255, 255, 0.2);
+  --border-dark: rgba(0, 0, 0, 0.1);
+
+  /* Chart colors */
+  --chart-grid-line: rgba(23, 23, 56, 0.2);
+  --chart-text: rgba(23, 23, 56, 0.9);
+  --chart-bar: #3423A6;
+
+  /* Status colors */
+  --error-color: #EF4444;
+  --success-color: #10B981;
+  --warning-color: #F59E0B;
+
+  /* Shadow effects */
+  --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+
+  /* Gradients */
+  --header-gradient: linear-gradient(to right, #ef4444, #dc2626);
+}
+
+/* Media queries can also use these variables */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* If you want to support automatic dark mode, you can override variables here */
+  }
+}

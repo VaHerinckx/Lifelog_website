@@ -3,7 +3,7 @@ html, body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background-color: #171738;
+  background-color: var(--background-color);
 }
 .layout-content {
   padding: 0rem;
@@ -12,14 +12,14 @@ html, body {
 .page-container {
   padding: 0rem;
   margin: 0 auto;
-  background-color: #171738;
+  background-color: var(--background-color);
   color: white;
   min-height: 100vh;
 }
 
 .page-container h1,
 .page-container h2 {
-  color: #FB4B4E;
+  color: var(--title-color);
   margin-bottom: 10px;
 }
 
@@ -167,7 +167,7 @@ html, body {
 }
 
 .chart-filter label {
-  color: #171738;
+  color: var(--background-color);
   font-weight: 500;
   width: auto;
   white-space: nowrap;
@@ -188,7 +188,7 @@ html, body {
 }
 
 .recharts-text {
-  fill: #171738 !important;
+  fill: var(--background-color) !important;
   opacity: 0.9;
 }
 
@@ -197,16 +197,16 @@ html, body {
 }
 
 .recharts-tooltip-wrapper {
-  background-color: #171738 !important;
+  background-color: var(--background-color) !important;
 }
 
 .recharts-tooltip-label,
 .recharts-tooltip-item {
-  color: #171738;
+  color: var(--background-color);
 }
 
 .recharts-legend-item-text {
-  color: #171738 !important;
+  color: var(--background-color) !important;
 }
 
 .loading, .error {
@@ -217,7 +217,7 @@ html, body {
 }
 
 .error {
-  color: #FB4B4E;
+  color: var(--title-color);
 }
 
 /* Responsive layouts */
@@ -349,7 +349,7 @@ html, body {
 .date-labels {
   display: flex;
   justify-content: space-between;
-  color: #171738;
+  color: var(--background-color);
   font-size: 0.875rem;
 }
 
