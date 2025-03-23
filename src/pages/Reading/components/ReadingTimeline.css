@@ -1,0 +1,160 @@
+/* src/pages/Reading/components/ReadingTimeline.css */
+.reading-timeline-container {
+  width: 100%;
+  height: 800px;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #D8DCFF;
+  border-radius: 8px;
+  padding: 2rem 1rem;
+  margin-top: 2rem;
+}
+
+.timeline-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  background-color: #D8DCFF;
+  padding: 1rem 0;
+  z-index: 10;
+}
+
+.timeline-header h2 {
+  color: var(--background-color);
+  margin-bottom: 0.5rem;
+}
+
+.timeline-instructions {
+  color: var(--background-color);
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.timeline-content {
+  position: relative;
+  padding: 3rem 0;
+  min-height: 1000px;
+  margin-left: 80px; /* Make space for month labels */
+}
+
+/* Line that runs down the center */
+.timeline-line {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--chart-secondary-color);
+  z-index: 1;
+}
+
+/* Month marker styling */
+.timeline-month-marker {
+  position: absolute;
+  left: -80px; /* Position to the left of the timeline */
+  z-index: 2;
+  width: 90px;
+  text-align: left;
+}
+
+.month-year-label {
+  background-color: var(--chart-secondary-color);
+  color: white;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.marker-unknown .month-year-label {
+  background-color: var(--title-color);
+}
+
+/* Book card styling */
+.timeline-book-item {
+  position: absolute;
+  width: calc(100% - 20px); /* Wider cards */
+  left: 10px; /* Start just after the line */
+  min-height: 100px;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  z-index: 3;
+  overflow: hidden;
+  color: white;
+}
+
+.timeline-book-item:hover {
+  transform: scale(1.01);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 5;
+}
+
+/* Ensure text is readable on any background color */
+.timeline-book-item::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.3),
+    rgba(0, 0, 0, 0.6)
+  );
+  z-index: -1;
+}
+
+.book-timeline-info {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  justify-content: center;
+}
+
+.book-timeline-title {
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.book-timeline-duration {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .timeline-content {
+    margin-left: 60px;
+  }
+
+  .timeline-month-marker {
+    left: -60px;
+    width: 70px;
+  }
+
+  .month-year-label {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
+
+  .book-timeline-title {
+    font-size: 0.9rem;
+  }
+
+  .book-timeline-duration {
+    font-size: 0.8rem;
+  }
+}

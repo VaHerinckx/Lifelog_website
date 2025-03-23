@@ -7,9 +7,6 @@
   box-sizing: border-box;
 }
 
-body {
-  max-width: 100%;
-}
 
 .page-content {
   width: 95%; /* Use most of the available width */
@@ -528,4 +525,55 @@ body {
 
 .duration-value {
   font-style: italic;
+}
+
+
+/* Add these to your existing ReadingPage.css file */
+
+/* Update the view controls to include the timeline button */
+.view-control-btn {
+  background-color: #D8DCFF;
+  border: none;
+  color: var(--background-color);
+  border-radius: 4px;
+  padding: 8px;
+  margin-left: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.view-control-btn:hover {
+  background-color: #C5CAFF;
+}
+
+.view-control-btn.active {
+  background-color: #3423A6;
+  color: white;
+}
+
+/* Empty State Styling */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  background-color: rgba(52, 35, 166, 0.1);
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+.empty-state-icon {
+  color: #FB4B4E;
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state-message {
+  color: white;
+  font-size: 1.2rem;
 }

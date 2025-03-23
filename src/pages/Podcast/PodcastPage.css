@@ -4,7 +4,9 @@ html, body {
   padding: 0;
   min-height: 100vh;
   background-color: var(--background-color);
+  font-family: var(--font-primary);
 }
+
 .layout-content {
   padding: 0rem;
 }
@@ -15,18 +17,21 @@ html, body {
   background-color: var(--background-color);
   color: white;
   min-height: 100vh;
+  font-family: var(--font-primary);
 }
 
 .page-container h1,
 .page-container h2 {
   color: var(--title-color);
   margin-bottom: 10px;
+  font-family: var(--font-primary);
 }
 
 .page-description {
   color: #ffffff;
   margin-bottom: 20px;
   opacity: 0.9;
+  font-family: var(--font-primary);
 }
 
 .filters-section {
@@ -39,6 +44,7 @@ html, body {
   flex-direction: column;
   gap: 20px;
   flex-wrap: wrap;
+  font-family: var(--font-primary);
 }
 
 .filters-selections {
@@ -63,6 +69,7 @@ html, body {
   color: black;
   width: 120px;
   white-space: nowrap;
+  font-family: var(--font-primary);
 }
 
 .filter-select, .date-input {
@@ -73,6 +80,7 @@ html, body {
   background-color: #D8DCFF;
   flex: 1;
   max-width: 200px;
+  font-family: var(--font-primary);
 }
 
 .date-range {
@@ -91,6 +99,7 @@ html, body {
 .filter-select option {
   background-color: #D8DCFF;
   color: black;
+  font-family: var(--font-primary);
 }
 
 .podcast-info {
@@ -120,6 +129,7 @@ html, body {
 
 .podcast-details h2 {
   margin: 0 0 10px 0;
+  font-family: var(--font-primary);
 }
 
 .podcast-artist {
@@ -127,6 +137,7 @@ html, body {
   color: white;
   opacity: 0.9;
   margin: 0 0 8px 0;
+  font-family: var(--font-primary);
 }
 
 .podcast-genre {
@@ -134,6 +145,7 @@ html, body {
   opacity: 0.7;
   font-size: 0.9em;
   margin: 0;
+  font-family: var(--font-primary);
 }
 
 .charts-grid {
@@ -171,10 +183,12 @@ html, body {
   font-weight: 500;
   width: auto;
   white-space: nowrap;
+  font-family: var(--font-primary);
 }
 
 .chart-filter .filter-select {
   width: 120px;
+  font-family: var(--font-primary);
 }
 
 .chart-container .recharts-responsive-container {
@@ -190,6 +204,7 @@ html, body {
 .recharts-text {
   fill: var(--background-color) !important;
   opacity: 0.9;
+  font-family: var(--font-primary);
 }
 
 .recharts-bar-rectangle {
@@ -198,15 +213,18 @@ html, body {
 
 .recharts-tooltip-wrapper {
   background-color: var(--background-color) !important;
+  font-family: var(--font-primary);
 }
 
 .recharts-tooltip-label,
 .recharts-tooltip-item {
   color: var(--background-color);
+  font-family: var(--font-primary);
 }
 
 .recharts-legend-item-text {
   color: var(--background-color) !important;
+  font-family: var(--font-primary);
 }
 
 .loading, .error {
@@ -214,6 +232,7 @@ html, body {
   padding: 20px;
   font-size: 18px;
   color: white;
+  font-family: var(--font-primary);
 }
 
 .error {
@@ -305,6 +324,7 @@ html, body {
   select, input, button {
     min-height: 44px;
     font-size: 16px;
+    font-family: var(--font-primary);
   }
 }
 
@@ -351,6 +371,7 @@ html, body {
   justify-content: space-between;
   color: var(--background-color);
   font-size: 0.875rem;
+  font-family: var(--font-primary);
 }
 
 /* Slider styling */

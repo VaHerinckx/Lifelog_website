@@ -1,3 +1,7 @@
+/* At the top of src/variables.css */
+@import './assets/fonts/fonts.css';
+
+
 /* src/variables.css */
 :root {
   /* Base color palette */
@@ -6,6 +10,13 @@
   --element-background-color: #D8DCFF;
   --chart-primary-color: #EAC435;
   --chart-secondary-color: #3423A6;
+
+  /* Additional timeline colors - complementary to existing palette */
+  --timeline-color-1: #3F88C5;  /* Sky blue */
+  --timeline-color-2: #44BBA4;  /* Teal green */
+  --timeline-color-3: #E94F37;  /* Coral red */
+  --timeline-color-4: #7768AE;  /* Lavender purple */
+  --timeline-color-5: #8AC926;  /* Lime green */
 
   /* Text colors */
   --text-primary: #FFFFFF;
@@ -31,6 +42,10 @@
 
   /* Gradients */
   --header-gradient: linear-gradient(to right, #ef4444, #dc2626);
+
+  /* Fonts */
+  --font-primary: 'Wotfard', sans-serif;
+  --font-secondary: Arial, sans-serif;
 }
 
 /* Media queries can also use these variables */

@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Book as BookIcon, Star, StarHalf, BookOpen, List, Grid } from 'lucide-react';
+import { Book as BookIcon, Star, StarHalf, BookOpen, List, Grid, Clock, BarChart } from 'lucide-react';
 import Papa from 'papaparse';
 import _ from 'lodash';
 import './ReadingPage.css';
+import './components//ReadingPageTabs.css';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useData } from '../../context/DataContext';
 
-// Import the BookDetails component
+// Import components
 import BookDetails from './components/BookDetails';
-
-
+import ReadingTimeline from './components/ReadingTimeline';
+import ReadingAnalysisTab from './components/ReadingAnalysisTab';
 
 // Component to display star ratings
 const StarRating = ({ rating, size = 16 }) => {
@@ -30,7 +31,6 @@ const StarRating = ({ rating, size = 16 }) => {
   );
 };
 
-// Component to display a book card
 // Component to display a book card
 const BookCard = ({ book, onClick }) => {
   // Format the timestamp to a readable date
@@ -97,7 +97,7 @@ const ReadingPage = () => {
   const [selectedFiction, setSelectedFiction] = useState('all');
   const [selectedTimeframe, setSelectedTimeframe] = useState('all');
   const [sortOrder, setSortOrder] = useState('recent');
-  const [viewMode, setViewMode] = useState('grid');
+  const [viewMode, setViewMode] = useState('grid'); // 'grid', 'list', or 'timeline'
   const [genres, setGenres] = useState([]);
   const [selectedBook, setSelectedBook] = useState(null);
   const [readingStats, setReadingStats] = useState({
@@ -106,6 +106,11 @@ const ReadingPage = () => {
     avgRating: 0,
     avgReadingDuration: 0,
     recentBooks: 0
+  });
+  const [activeTab, setActiveTab] = useState('books'); // Added state for active tab
+  const [dateRange, setDateRange] = useState({
+    startDate: null,
+    endDate: null
   });
 
   // Function to process books data from the API response
@@ -191,7 +196,8 @@ const ReadingPage = () => {
           pages: parseInt(numPages),
           coverUrl: coverUrl,
           readingDuration: readingDuration ? parseInt(readingDuration) : null,
-          timestamp: new Date(latestEntry.Timestamp || '')
+          timestamp: new Date(latestEntry.Timestamp || ''),
+          page_split: latestEntry.page_split || 0 // Important for reading pace analysis
         };
       })
       .filter(Boolean) // Remove null entries
@@ -216,16 +222,31 @@ const ReadingPage = () => {
     const lastMonthDate = new Date();
     lastMonthDate.setMonth(now.getMonth() - 1);
 
-    const recentBooks = filteredBooks.filter(book =>
+    // Find date range for analysis tab
+    if (sortedBooks.length > 0) {
+      const validDates = sortedBooks
+        .map(book => book.timestamp)
+        .filter(date => date instanceof Date && !isNaN(date.getTime()))
+        .sort((a, b) => a - b);
+
+      if (validDates.length > 0) {
+        setDateRange({
+          startDate: validDates[0].toISOString().split('T')[0],
+          endDate: validDates[validDates.length - 1].toISOString().split('T')[0]
+        });
+      }
+    }
+
+    const recentBooks = sortedBooks.filter(book =>
       book.timestamp && book.timestamp >= lastMonthDate
     ).length;
 
     setReadingStats({
-      totalBooks: filteredBooks.length,
-      totalPages: _.sumBy(filteredBooks, 'pages'),
-      avgRating: _.meanBy(filteredBooks, 'myRating').toFixed(1),
+      totalBooks: sortedBooks.length,
+      totalPages: _.sumBy(sortedBooks, 'pages'),
+      avgRating: _.meanBy(sortedBooks, 'myRating').toFixed(1),
       avgReadingDuration: Math.round(_.meanBy(
-        filteredBooks.filter(book => book.readingDuration),
+        sortedBooks.filter(book => book.readingDuration),
         'readingDuration'
       )),
       recentBooks: recentBooks
@@ -296,30 +317,30 @@ const ReadingPage = () => {
   }, [books, selectedGenre, selectedFiction, selectedTimeframe, sortOrder]);
 
   // Add this effect to update stats when filtered books change
-useEffect(() => {
-  if (filteredBooks.length > 0) {
-    const now = new Date();
-    const lastMonthDate = new Date();
-    lastMonthDate.setMonth(now.getMonth() - 1);
+  useEffect(() => {
+    if (filteredBooks.length > 0) {
+      const now = new Date();
+      const lastMonthDate = new Date();
+      lastMonthDate.setMonth(now.getMonth() - 1);
 
-    const recentBooks = filteredBooks.filter(book =>
-      book.timestamp && book.timestamp >= lastMonthDate
-    ).length;
+      const recentBooks = filteredBooks.filter(book =>
+        book.timestamp && book.timestamp >= lastMonthDate
+      ).length;
 
-    setReadingStats({
-      totalBooks: filteredBooks.length,
-      totalPages: _.sumBy(filteredBooks, 'pages'),
-      avgRating: filteredBooks.filter(book => book.myRating > 0).length > 0
-        ? _.meanBy(filteredBooks.filter(book => book.myRating > 0), 'myRating').toFixed(1)
-        : "0.0",
-      avgReadingDuration: Math.round(_.meanBy(
-        filteredBooks.filter(book => book.readingDuration),
-        'readingDuration'
-      )),
-      recentBooks: recentBooks
-    });
-  }
-}, [filteredBooks]);
+      setReadingStats({
+        totalBooks: filteredBooks.length,
+        totalPages: _.sumBy(filteredBooks, 'pages'),
+        avgRating: filteredBooks.filter(book => book.myRating > 0).length > 0
+          ? _.meanBy(filteredBooks.filter(book => book.myRating > 0), 'myRating').toFixed(1)
+          : "0.0",
+        avgReadingDuration: Math.round(_.meanBy(
+          filteredBooks.filter(book => book.readingDuration),
+          'readingDuration'
+        )),
+        recentBooks: recentBooks
+      });
+    }
+  }, [filteredBooks]);
 
   // Handle file upload directly
   const handleFileUpload = async (event) => {
@@ -383,183 +404,229 @@ useEffect(() => {
         <h1>Reading Tracker</h1>
         <p className="page-description">Track your reading habits and discover insights about your books</p>
 
-        {/* Enhanced Filters and Controls */}
-        <div className="controls-container">
-          <div className="filters-section">
-            <div className="filter-group">
-              <label htmlFor="genre-select">Genre:</label>
-              <select
-                id="genre-select"
-                value={selectedGenre}
-                onChange={(e) => setSelectedGenre(e.target.value)}
-                className="filter-select"
-              >
-                <option value="all">All Genres</option>
-                {genres.map(genre => (
-                  <option key={genre} value={genre}>{genre}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <label htmlFor="fiction-select">Type:</label>
-              <select
-                id="fiction-select"
-                value={selectedFiction}
-                onChange={(e) => setSelectedFiction(e.target.value)}
-                className="filter-select"
-              >
-                <option value="all">All Types</option>
-                <option value="fiction">Fiction</option>
-                <option value="non-fiction">Non-Fiction</option>
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <label htmlFor="timeframe-select">Period:</label>
-              <select
-                id="timeframe-select"
-                value={selectedTimeframe}
-                onChange={(e) => setSelectedTimeframe(e.target.value)}
-                className="filter-select"
-              >
-                <option value="all">All Time</option>
-                <option value="month">Last Month</option>
-                <option value="quarter">Last 3 Months</option>
-                <option value="year">Last Year</option>
-              </select>
-            </div>
-
-            <div className="filter-group">
-              <label htmlFor="sort-select">Sort By:</label>
-              <select
-                id="sort-select"
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-                className="filter-select"
-              >
-                <option value="recent">Most Recent</option>
-                <option value="rating">Highest Rated</option>
-                <option value="title">Title (A-Z)</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="view-controls">
-            <button
-              className={`view-control-btn ${viewMode === 'grid' ? 'active' : ''}`}
-              onClick={() => setViewMode('grid')}
-              title="Grid View"
-            >
-              <Grid size={20} />
-            </button>
-            <button
-              className={`view-control-btn ${viewMode === 'list' ? 'active' : ''}`}
-              onClick={() => setViewMode('list')}
-              title="List View"
-            >
-              <List size={20} />
-            </button>
-            <div className="book-count">
-              {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'} found
-            </div>
-          </div>
+        {/* Tab Navigation */}
+        <div className="page-tabs">
+          <button
+            className={`page-tab ${activeTab === 'books' ? 'active' : ''}`}
+            onClick={() => setActiveTab('books')}
+          >
+            <BookIcon size={18} style={{ marginRight: '8px' }} />
+            Books
+          </button>
+          <button
+            className={`page-tab ${activeTab === 'analysis' ? 'active' : ''}`}
+            onClick={() => setActiveTab('analysis')}
+          >
+            <BarChart size={18} style={{ marginRight: '8px' }} />
+            Analysis
+          </button>
         </div>
 
-        {/* Reading Stats */}
-        <div className="stats-cards">
-          <div className="stat-card">
-            <div className="stat-value">{readingStats.totalBooks}</div>
-            <div className="stat-label">Books Read</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">{readingStats.totalPages.toLocaleString()}</div>
-            <div className="stat-label">Total Pages</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-value">{readingStats.avgRating}</div>
-            <div className="stat-label">Average Rating</div>
-          </div>
-          {readingStats.avgReadingDuration > 0 && (
-            <div className="stat-card">
-              <div className="stat-value">{readingStats.avgReadingDuration}</div>
-              <div className="stat-label">Avg. Days to Read</div>
-            </div>
-          )}
-          <div className="stat-card">
-            <div className="stat-value">{readingStats.recentBooks}</div>
-            <div className="stat-label">Books Last Month</div>
-          </div>
-        </div>
-
-        {/* Books Display */}
-        {filteredBooks.length > 0 ? (
-          viewMode === 'grid' ? (
-            <div className="books-grid">
-              {filteredBooks.map(book => (
-                <BookCard
-                  key={`${book.id}-${book.title}`}
-                  book={book}
-                  onClick={handleBookClick}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="books-list">
-              {filteredBooks.map(book => (
-                <div
-                  key={`list-${book.id}-${book.title}`}
-                  className="book-list-item"
-                  onClick={() => handleBookClick(book)}
-                >
-                  <div className="book-list-cover">
-                    <img
-                      src={book.coverUrl || "/api/placeholder/80/120"}
-                      alt={`${book.title} cover`}
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "/api/placeholder/80/120";
-                      }}
-                    />
-                  </div>
-                  <div className="book-list-info">
-                    <h3 className="book-list-title">{book.title}</h3>
-                    <p className="book-list-author">{book.author}</p>
-                    <div className="book-list-meta">
-                      <div className="rating-container">
-                        <StarRating rating={book.myRating} />
-                        <span className="rating-value">{book.myRating.toFixed(1)}</span>
-                      </div>
-                      <div className="book-list-details">
-                        <BookOpen size={16} />
-                        <span>{book.pages} pages</span>
-                        {book.readingDuration && (
-                          <span className="reading-duration">
-                            • Read in {book.readingDuration} days
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="book-list-tags">
-                    <span className={`book-list-tag ${book.fiction ? 'fiction-tag' : 'non-fiction-tag'}`}>
-                      {book.fiction ? 'Fiction' : 'Non-Fiction'}
-                    </span>
-                    {book.genre && book.genre !== 'Unknown' && (
-                      <span className="book-list-tag genre-tag">{book.genre}</span>
-                    )}
-                  </div>
+        {/* Books Tab Content */}
+        {activeTab === 'books' && (
+          <>
+            {/* Enhanced Filters and Controls */}
+            <div className="controls-container">
+              <div className="filters-section">
+                <div className="filter-group">
+                  <label htmlFor="genre-select">Genre:</label>
+                  <select
+                    id="genre-select"
+                    value={selectedGenre}
+                    onChange={(e) => setSelectedGenre(e.target.value)}
+                    className="filter-select"
+                  >
+                    <option value="all">All Genres</option>
+                    {genres.map(genre => (
+                      <option key={genre} value={genre}>{genre}</option>
+                    ))}
+                  </select>
                 </div>
-              ))}
+
+                <div className="filter-group">
+                  <label htmlFor="fiction-select">Type:</label>
+                  <select
+                    id="fiction-select"
+                    value={selectedFiction}
+                    onChange={(e) => setSelectedFiction(e.target.value)}
+                    className="filter-select"
+                  >
+                    <option value="all">All Types</option>
+                    <option value="fiction">Fiction</option>
+                    <option value="non-fiction">Non-Fiction</option>
+                  </select>
+                </div>
+
+                <div className="filter-group">
+                  <label htmlFor="timeframe-select">Period:</label>
+                  <select
+                    id="timeframe-select"
+                    value={selectedTimeframe}
+                    onChange={(e) => setSelectedTimeframe(e.target.value)}
+                    className="filter-select"
+                  >
+                    <option value="all">All Time</option>
+                    <option value="month">Last Month</option>
+                    <option value="quarter">Last 3 Months</option>
+                    <option value="year">Last Year</option>
+                  </select>
+                </div>
+
+                <div className="filter-group">
+                  <label htmlFor="sort-select">Sort By:</label>
+                  <select
+                    id="sort-select"
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    className="filter-select"
+                  >
+                    <option value="recent">Most Recent</option>
+                    <option value="rating">Highest Rated</option>
+                    <option value="title">Title (A-Z)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="view-controls">
+                <button
+                  className={`view-control-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                  onClick={() => setViewMode('grid')}
+                  title="Grid View"
+                >
+                  <Grid size={20} />
+                </button>
+                <button
+                  className={`view-control-btn ${viewMode === 'list' ? 'active' : ''}`}
+                  onClick={() => setViewMode('list')}
+                  title="List View"
+                >
+                  <List size={20} />
+                </button>
+                <button
+                  className={`view-control-btn ${viewMode === 'timeline' ? 'active' : ''}`}
+                  onClick={() => setViewMode('timeline')}
+                  title="Timeline View"
+                >
+                  <Clock size={20} />
+                </button>
+                <div className="book-count">
+                  {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'} found
+                </div>
+              </div>
             </div>
-          )
-        ) : (
-          <div className="empty-state">
-            <BookIcon size={48} className="empty-state-icon" />
-            <p className="empty-state-message">
-              No books match your current filters. Try adjusting your criteria.
-            </p>
-          </div>
+
+            {/* Reading Stats */}
+            <div className="stats-cards">
+              <div className="stat-card">
+                <div className="stat-value">{readingStats.totalBooks}</div>
+                <div className="stat-label">Books Read</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">{readingStats.totalPages.toLocaleString()}</div>
+                <div className="stat-label">Total Pages</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-value">{readingStats.avgRating}</div>
+                <div className="stat-label">Average Rating</div>
+              </div>
+              {readingStats.avgReadingDuration > 0 && (
+                <div className="stat-card">
+                  <div className="stat-value">{readingStats.avgReadingDuration}</div>
+                  <div className="stat-label">Avg. Days to Read</div>
+                </div>
+              )}
+              <div className="stat-card">
+                <div className="stat-value">{readingStats.recentBooks}</div>
+                <div className="stat-label">Books Last Month</div>
+              </div>
+            </div>
+
+            {/* Books Display - conditional rendering based on view mode */}
+            {filteredBooks.length > 0 ? (
+              <>
+                {/* Grid View */}
+                {viewMode === 'grid' && (
+                  <div className="books-grid">
+                    {filteredBooks.map(book => (
+                      <BookCard
+                        key={`${book.id}-${book.title}`}
+                        book={book}
+                        onClick={handleBookClick}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                {/* List View */}
+                {viewMode === 'list' && (
+                  <div className="books-list">
+                    {filteredBooks.map(book => (
+                      <div
+                        key={`list-${book.id}-${book.title}`}
+                        className="book-list-item"
+                        onClick={() => handleBookClick(book)}
+                      >
+                        <div className="book-list-cover">
+                          <img
+                            src={book.coverUrl || "/api/placeholder/80/120"}
+                            alt={`${book.title} cover`}
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = "/api/placeholder/80/120";
+                            }}
+                          />
+                        </div>
+                        <div className="book-list-info">
+                          <h3 className="book-list-title">{book.title}</h3>
+                          <p className="book-list-author">{book.author}</p>
+                          <div className="book-list-meta">
+                            <div className="rating-container">
+                              <StarRating rating={book.myRating} />
+                              <span className="rating-value">{book.myRating.toFixed(1)}</span>
+                            </div>
+                            <div className="book-list-details">
+                              <BookOpen size={16} />
+                              <span>{book.pages} pages</span>
+                              {book.readingDuration && (
+                                <span className="reading-duration">
+                                  • Read in {book.readingDuration} days
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="book-list-tags">
+                          <span className={`book-list-tag ${book.fiction ? 'fiction-tag' : 'non-fiction-tag'}`}>
+                            {book.fiction ? 'Fiction' : 'Non-Fiction'}
+                          </span>
+                          {book.genre && book.genre !== 'Unknown' && (
+                            <span className="book-list-tag genre-tag">{book.genre}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Timeline View */}
+                {viewMode === 'timeline' && (
+                  <ReadingTimeline books={filteredBooks} />
+                )}
+              </>
+            ) : (
+              <div className="empty-state">
+                <BookIcon size={48} className="empty-state-icon" />
+                <p className="empty-state-message">
+                  No books match your current filters. Try adjusting your criteria.
+                </p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Analysis Tab Content */}
+        {activeTab === 'analysis' && (
+          <ReadingAnalysisTab books={books} dateRange={dateRange} />
         )}
 
         {/* Book Details Modal */}
