@@ -7,15 +7,18 @@ const ReadingPaceChart = ({ data, dateRange, selectedPeriod, onPeriodChange }) =
 
   useEffect(() => {
     // Basic validation with detailed logging
-
     if (!Array.isArray(data) || data.length === 0) {
       console.log("Empty or invalid data array");
       setChartData([]);
       return;
     }
 
-    // Create a temporary array to hold our data for each period
+    // Create a temporary object to hold our data for each period
     const periodSums = {};
+
+    // Track min and max dates from valid entries
+    let minDate = null;
+    let maxDate = null;
 
     // Process each reading entry directly, just grouping by date period
     data.forEach((entry, index) => {
@@ -46,6 +49,10 @@ const ReadingPaceChart = ({ data, dateRange, selectedPeriod, onPeriodChange }) =
         date: date.toISOString(),
         pages: pageSplit
       });
+
+      // Update min and max dates
+      if (!minDate || date < minDate) minDate = new Date(date);
+      if (!maxDate || date > maxDate) maxDate = new Date(date);
 
       // Determine period key based on selected period
       let periodKey;
@@ -87,8 +94,72 @@ const ReadingPaceChart = ({ data, dateRange, selectedPeriod, onPeriodChange }) =
       periodSums[periodKey].totalPages += pageSplit;
     });
 
+    // If we have valid min and max dates, generate a complete sequence of periods
+    if (minDate && maxDate) {
+      // Helper function to generate period key and display label
+      const generatePeriodInfo = (date) => {
+        let periodKey, displayLabel;
+
+        if (selectedPeriod === 'yearly') {
+          periodKey = date.getFullYear().toString();
+          displayLabel = periodKey;
+        }
+        else if (selectedPeriod === 'monthly') {
+          periodKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+          displayLabel = new Date(date.getFullYear(), date.getMonth(), 1)
+            .toLocaleString('default', { month: 'short', year: 'numeric' });
+        }
+        else { // Daily
+          periodKey = date.toISOString().split('T')[0];
+          displayLabel = date.toLocaleDateString();
+        }
+
+        return { periodKey, displayLabel };
+      };
+
+      // Fill in missing periods with zero values
+      const currentDate = new Date(minDate);
+
+      // Adjust currentDate to the start of its period
+      if (selectedPeriod === 'yearly') {
+        currentDate.setMonth(0, 1);
+        currentDate.setHours(0, 0, 0, 0);
+      }
+      else if (selectedPeriod === 'monthly') {
+        currentDate.setDate(1);
+        currentDate.setHours(0, 0, 0, 0);
+      }
+      else { // Daily
+        currentDate.setHours(0, 0, 0, 0);
+      }
+
+      while (currentDate <= maxDate) {
+        const { periodKey, displayLabel } = generatePeriodInfo(currentDate);
+
+        // If this period doesn't exist in our data, add it with zero pages
+        if (!periodSums[periodKey]) {
+          periodSums[periodKey] = {
+            period: displayLabel,
+            totalPages: 0,
+            sortKey: periodKey
+          };
+        }
+
+        // Move to next period
+        if (selectedPeriod === 'yearly') {
+          currentDate.setFullYear(currentDate.getFullYear() + 1);
+        }
+        else if (selectedPeriod === 'monthly') {
+          currentDate.setMonth(currentDate.getMonth() + 1);
+        }
+        else { // Daily
+          currentDate.setDate(currentDate.getDate() + 1);
+        }
+      }
+    }
+
     // Log the aggregated data
-    console.log("Period sums:", periodSums);
+    console.log("Period sums with zeros:", periodSums);
 
     // Convert to array, round values, and sort by date
     const chartDataArray = Object.values(periodSums).map(item => ({
@@ -100,7 +171,7 @@ const ReadingPaceChart = ({ data, dateRange, selectedPeriod, onPeriodChange }) =
     // Sort chronologically
     chartDataArray.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
-    console.log("Final chart data:", chartDataArray);
+    console.log("Final chart data with zeros:", chartDataArray);
 
     setChartData(chartDataArray);
   }, [data, selectedPeriod, dateRange]);
@@ -139,7 +210,7 @@ const ReadingPaceChart = ({ data, dateRange, selectedPeriod, onPeriodChange }) =
               angle={selectedPeriod === 'monthly' || selectedPeriod === 'daily' ? -45 : 0}
               textAnchor="end"
               height={80}
-              interval={selectedPeriod === 'daily' ? 30 : 0} // Skip some labels for daily view
+              interval={selectedPeriod === 'daily' ? 6 : (selectedPeriod === 'monthly' ? 1 : 0)} // Skip some labels for daily/monthly view
             />
             <YAxis
               label={{ value: 'Pages', angle: -90, position: 'insideLeft' }}

@@ -10,6 +10,8 @@ const ReadingAnalysisTab = ({ books, dateRange }) => {
   const [currentDateRange, setCurrentDateRange] = useState(dateRange);
   const [selectedTitles, setSelectedTitles] = useState([]);
   const [selectedAuthors, setSelectedAuthors] = useState([]);
+  const [selectedGenres, setSelectedGenres] = useState([]);
+  const [selectedFictionTypes, setSelectedFictionTypes] = useState([]);
 
   // Apply all filters when filter criteria change
   useEffect(() => {
@@ -47,11 +49,36 @@ const ReadingAnalysisTab = ({ books, dateRange }) => {
         );
       }
 
+      // Apply genre filter
+      if (selectedGenres.length > 0) {
+        filtered = filtered.filter(entry => {
+          const entryGenre = entry.Genre || entry.genre;
+          return selectedGenres.includes(entryGenre);
+        });
+      }
+
+      // Apply fiction/non-fiction filter
+      if (selectedFictionTypes.length > 0) {
+        filtered = filtered.filter(entry => {
+          const fictionField = entry.Fiction_yn || entry.fiction || entry.fiction_yn;
+
+          // Determine the fiction type based on various possible field formats
+          let fictionType = null;
+          if (fictionField === true || fictionField === 'fiction' || fictionField === 'true') {
+            fictionType = 'Fiction';
+          } else if (fictionField === false || fictionField === 'non-fiction' || fictionField === 'false') {
+            fictionType = 'Non-Fiction';
+          }
+
+          return selectedFictionTypes.includes(fictionType);
+        });
+      }
+
       setFilteredData(filtered);
     };
 
     applyFilters();
-  }, [books, currentDateRange, selectedTitles, selectedAuthors]);
+  }, [books, currentDateRange, selectedTitles, selectedAuthors, selectedGenres, selectedFictionTypes]);
 
   // Initialize with passed date range
   useEffect(() => {
@@ -71,6 +98,14 @@ const ReadingAnalysisTab = ({ books, dateRange }) => {
 
   const handleAuthorChange = (authors) => {
     setSelectedAuthors(authors);
+  };
+
+  const handleGenreChange = (genres) => {
+    setSelectedGenres(genres);
+  };
+
+  const handleFictionTypeChange = (types) => {
+    setSelectedFictionTypes(types);
   };
 
   if (!books || books.length === 0) {
@@ -98,6 +133,10 @@ const ReadingAnalysisTab = ({ books, dateRange }) => {
         onTitleChange={handleTitleChange}
         selectedAuthors={selectedAuthors}
         onAuthorChange={handleAuthorChange}
+        selectedGenres={selectedGenres}
+        onGenreChange={handleGenreChange}
+        selectedFictionTypes={selectedFictionTypes}
+        onFictionTypeChange={handleFictionTypeChange}
       />
 
       <div className="analysis-grid">

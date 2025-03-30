@@ -4,7 +4,6 @@
   flex-direction: column;
   gap: 1.5rem;
   margin-bottom: 2rem;
-  /*width: 80%;*/
   margin-left: auto;
   margin-right: auto;
   background-color: var(--element-background-color, #D8DCFF);
@@ -33,14 +32,22 @@
 .filter-pane-grid {
   display: flex;
   flex-direction: row;
-  flex-wrap: nowrap;
-  gap: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
   width: 100%;
 }
 
 .filter-item {
-  flex: 1;
-  min-width: 0; /* Allows flex items to shrink below content size if needed */
+  flex: 1 1 calc(20% - 1rem); /* 5 items per row by default */
+  min-width: 180px;
+  /* Allows flex items to shrink below content size if needed */
+  min-width: 0;
+}
+
+/* Make the date range filter take up more space */
+.filter-item:first-child {
+  flex: 1 1 calc(30% - 1rem);
+  min-width: 240px;
 }
 
 /* Remove background color and padding from nested filter components */
@@ -63,9 +70,23 @@
 }
 
 /* Responsive adjustments */
+@media (max-width: 1400px) {
+  .filter-item {
+    flex: 1 1 calc(33.33% - 1rem); /* 3 items per row */
+  }
+
+  .filter-item:first-child {
+    flex: 1 1 calc(50% - 1rem);
+  }
+}
+
 @media (max-width: 1200px) {
   .analysis-filter-pane {
     width: 90%;
+  }
+
+  .filter-item {
+    flex: 1 1 calc(33.33% - 1rem); /* 3 items per row */
   }
 }
 
@@ -75,8 +96,12 @@
   }
 
   .filter-item {
-    flex: 1 1 calc(50% - 1rem);
+    flex: 1 1 calc(50% - 1rem); /* 2 items per row */
     min-width: calc(50% - 1rem);
+  }
+
+  .filter-item:first-child {
+    flex: 1 1 100%; /* Date range takes full width */
   }
 }
 

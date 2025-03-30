@@ -1,6 +1,6 @@
 // src/pages/Reading/components/AnalysisFilterPane.jsx
 import React, { useMemo } from 'react';
-import { Book, User, Calendar } from 'lucide-react';
+import { Book, User, Calendar, BookOpen, Tag } from 'lucide-react';
 import AdvancedDateRangeSlider from '../../../components/ui/Slicers/AdvancedDateRangeSlider/AdvancedDateRangeSlider';
 import MultiSelectDropdown from '../../../components/ui/Slicers/MultiSelectDropdown/MultiSelectDropdown';
 import './AnalysisFilterPane.css';
@@ -13,12 +13,21 @@ const AnalysisFilterPane = ({
   selectedTitles = [],
   onTitleChange,
   selectedAuthors = [],
-  onAuthorChange
+  onAuthorChange,
+  selectedGenres = [],
+  onGenreChange,
+  selectedFictionTypes = [],
+  onFictionTypeChange
 }) => {
-  // Extract unique titles and authors from data
-  const { uniqueTitles, uniqueAuthors } = useMemo(() => {
+  // Extract unique titles, authors, genres, and fiction/non-fiction types from data
+  const { uniqueTitles, uniqueAuthors, uniqueGenres, uniqueFictionTypes } = useMemo(() => {
     if (!Array.isArray(data) || data.length === 0) {
-      return { uniqueTitles: [], uniqueAuthors: [] };
+      return {
+        uniqueTitles: [],
+        uniqueAuthors: [],
+        uniqueGenres: [],
+        uniqueFictionTypes: []
+      };
     }
 
     // Extract and sort titles and authors
@@ -32,11 +41,43 @@ const AnalysisFilterPane = ({
       .filter(Boolean))]
       .sort((a, b) => a.localeCompare(b));
 
-    return { uniqueTitles: titles, uniqueAuthors: authors };
+    // Extract and sort genres
+    const genres = [...new Set(data
+      .map(item => item.Genre || item.genre)
+      .filter(Boolean))]
+      .sort((a, b) => a.localeCompare(b));
+
+    // Extract fiction/non-fiction types
+    // Look for Fiction_yn, fiction, or fiction_yn fields
+    const fictionValues = data.map(item => {
+      // Handle different possible field names
+      const fictionField = item.Fiction_yn || item.fiction || item.fiction_yn;
+
+      if (fictionField === true || fictionField === 'fiction' || fictionField === 'true') {
+        return 'Fiction';
+      } else if (fictionField === false || fictionField === 'non-fiction' || fictionField === 'false') {
+        return 'Non-Fiction';
+      }
+
+      return null;
+    }).filter(Boolean);
+
+    const fictionTypes = [...new Set(fictionValues)];
+
+    return {
+      uniqueTitles: titles,
+      uniqueAuthors: authors,
+      uniqueGenres: genres,
+      uniqueFictionTypes: fictionTypes
+    };
   }, [data]);
 
   return (
     <div className="analysis-filter-pane">
+      <div className="filter-pane-header">
+        <h3>Analysis Filters</h3>
+        <p>Filter your reading data for more targeted analysis</p>
+      </div>
 
       <div className="filter-pane-grid">
         <div className="filter-item">
@@ -71,6 +112,30 @@ const AnalysisFilterPane = ({
             label="Filter by Author"
             searchPlaceholder="Search authors..."
             icon={<User size={16} />}
+          />
+        </div>
+
+        <div className="filter-item">
+          <MultiSelectDropdown
+            options={uniqueGenres}
+            selectedValues={selectedGenres}
+            onChange={onGenreChange}
+            placeholder="Select genres..."
+            label="Filter by Genre"
+            searchPlaceholder="Search genres..."
+            icon={<Tag size={16} />}
+          />
+        </div>
+
+        <div className="filter-item">
+          <MultiSelectDropdown
+            options={uniqueFictionTypes}
+            selectedValues={selectedFictionTypes}
+            onChange={onFictionTypeChange}
+            placeholder="Select type..."
+            label="Filter by Type"
+            searchPlaceholder="Fiction or Non-Fiction..."
+            icon={<BookOpen size={16} />}
           />
         </div>
       </div>
