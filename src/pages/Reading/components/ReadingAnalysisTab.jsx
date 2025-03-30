@@ -1,9 +1,53 @@
-import React, { useState } from 'react';
+// src/pages/Reading/components/ReadingAnalysisTab.jsx
+import React, { useState, useEffect } from 'react';
 import ReadingPaceChart from './ReadingPaceChart';
+import AnalysisFilterPane from './AnalysisFilterPane';
 import './ReadingAnalysisTab.css';
 
 const ReadingAnalysisTab = ({ books, dateRange }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('monthly');
+  const [filteredData, setFilteredData] = useState([]);
+  const [currentDateRange, setCurrentDateRange] = useState(dateRange);
+
+  // Filter data when date range changes
+  useEffect(() => {
+    if (!books || books.length === 0) return;
+
+    const filterData = () => {
+      if (!currentDateRange || !currentDateRange.startDate || !currentDateRange.endDate) {
+        setFilteredData(books);
+        return;
+      }
+
+      const startDate = new Date(currentDateRange.startDate);
+      const endDate = new Date(currentDateRange.endDate);
+
+      // Set time to include the full day
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
+
+      const filtered = books.filter(entry => {
+        const entryDate = new Date(entry.Timestamp || entry.timestamp);
+        return entryDate >= startDate && entryDate <= endDate;
+      });
+
+      setFilteredData(filtered);
+    };
+
+    filterData();
+  }, [books, currentDateRange]);
+
+  // Initialize with passed date range
+  useEffect(() => {
+    if (dateRange) {
+      setCurrentDateRange(dateRange);
+    }
+  }, [dateRange]);
+
+  // Handle date range changes from the filter
+  const handleDateRangeChange = (newRange) => {
+    setCurrentDateRange(newRange);
+  };
 
   if (!books || books.length === 0) {
     return (
@@ -20,12 +64,20 @@ const ReadingAnalysisTab = ({ books, dateRange }) => {
         Discover patterns and trends in your reading habits
       </p>
 
+      {/* Add the filter pane at the top */}
+      <AnalysisFilterPane
+        data={books}
+        dateColumnName="Timestamp"
+        dateRange={currentDateRange}
+        onDateRangeChange={handleDateRangeChange}
+      />
+
       <div className="analysis-grid">
         {/* Reading Pace Analysis */}
         <div className="analysis-section">
           <ReadingPaceChart
-            data={books}
-            dateRange={dateRange}
+            data={filteredData}
+            dateRange={currentDateRange}
             selectedPeriod={selectedPeriod}
             onPeriodChange={setSelectedPeriod}
           />

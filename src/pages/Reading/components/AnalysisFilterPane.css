@@ -1,0 +1,15 @@
+/* src/pages/Reading/components/AnalysisFilterPane.css */
+.analysis-filter-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .analysis-filter-pane {
+    margin-bottom: 1.5rem;
+  }
+}

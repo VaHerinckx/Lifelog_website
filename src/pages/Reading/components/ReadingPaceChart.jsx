@@ -139,7 +139,7 @@ const ReadingPaceChart = ({ data, dateRange, selectedPeriod, onPeriodChange }) =
               angle={selectedPeriod === 'monthly' || selectedPeriod === 'daily' ? -45 : 0}
               textAnchor="end"
               height={80}
-              interval={selectedPeriod === 'daily' ? 6 : 0} // Skip some labels for daily view
+              interval={selectedPeriod === 'daily' ? 30 : 0} // Skip some labels for daily view
             />
             <YAxis
               label={{ value: 'Pages', angle: -90, position: 'insideLeft' }}
