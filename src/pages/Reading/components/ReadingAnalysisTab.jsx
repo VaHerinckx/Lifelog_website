@@ -8,34 +8,50 @@ const ReadingAnalysisTab = ({ books, dateRange }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('monthly');
   const [filteredData, setFilteredData] = useState([]);
   const [currentDateRange, setCurrentDateRange] = useState(dateRange);
+  const [selectedTitles, setSelectedTitles] = useState([]);
+  const [selectedAuthors, setSelectedAuthors] = useState([]);
 
-  // Filter data when date range changes
+  // Apply all filters when filter criteria change
   useEffect(() => {
     if (!books || books.length === 0) return;
 
-    const filterData = () => {
-      if (!currentDateRange || !currentDateRange.startDate || !currentDateRange.endDate) {
-        setFilteredData(books);
-        return;
+    const applyFilters = () => {
+      let filtered = [...books];
+
+      // Apply date range filter
+      if (currentDateRange && currentDateRange.startDate && currentDateRange.endDate) {
+        const startDate = new Date(currentDateRange.startDate);
+        const endDate = new Date(currentDateRange.endDate);
+
+        // Set time to include the full day
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+
+        filtered = filtered.filter(entry => {
+          const entryDate = new Date(entry.Timestamp || entry.timestamp);
+          return entryDate >= startDate && entryDate <= endDate;
+        });
       }
 
-      const startDate = new Date(currentDateRange.startDate);
-      const endDate = new Date(currentDateRange.endDate);
+      // Apply title filter
+      if (selectedTitles.length > 0) {
+        filtered = filtered.filter(entry =>
+          selectedTitles.includes(entry.Title || entry.title)
+        );
+      }
 
-      // Set time to include the full day
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(23, 59, 59, 999);
-
-      const filtered = books.filter(entry => {
-        const entryDate = new Date(entry.Timestamp || entry.timestamp);
-        return entryDate >= startDate && entryDate <= endDate;
-      });
+      // Apply author filter
+      if (selectedAuthors.length > 0) {
+        filtered = filtered.filter(entry =>
+          selectedAuthors.includes(entry.Author || entry.author)
+        );
+      }
 
       setFilteredData(filtered);
     };
 
-    filterData();
-  }, [books, currentDateRange]);
+    applyFilters();
+  }, [books, currentDateRange, selectedTitles, selectedAuthors]);
 
   // Initialize with passed date range
   useEffect(() => {
@@ -44,9 +60,17 @@ const ReadingAnalysisTab = ({ books, dateRange }) => {
     }
   }, [dateRange]);
 
-  // Handle date range changes from the filter
+  // Handle filter changes
   const handleDateRangeChange = (newRange) => {
     setCurrentDateRange(newRange);
+  };
+
+  const handleTitleChange = (titles) => {
+    setSelectedTitles(titles);
+  };
+
+  const handleAuthorChange = (authors) => {
+    setSelectedAuthors(authors);
   };
 
   if (!books || books.length === 0) {
@@ -64,12 +88,16 @@ const ReadingAnalysisTab = ({ books, dateRange }) => {
         Discover patterns and trends in your reading habits
       </p>
 
-      {/* Add the filter pane at the top */}
+      {/* Filter pane with all filters */}
       <AnalysisFilterPane
         data={books}
         dateColumnName="Timestamp"
         dateRange={currentDateRange}
         onDateRangeChange={handleDateRangeChange}
+        selectedTitles={selectedTitles}
+        onTitleChange={handleTitleChange}
+        selectedAuthors={selectedAuthors}
+        onAuthorChange={handleAuthorChange}
       />
 
       <div className="analysis-grid">
@@ -83,7 +111,7 @@ const ReadingAnalysisTab = ({ books, dateRange }) => {
           />
         </div>
 
-        {/* Additional analysis sections will go here */}
+        {/* Additional analysis sections can be added here */}
         {/* <div className="analysis-section">
           Future analysis component
         </div> */}
