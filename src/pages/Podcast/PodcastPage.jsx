@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import _ from 'lodash';
 import './PodcastPage.css';
-import { Podcast } from 'lucide-react';
+import { Podcast, Tag } from 'lucide-react';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useData } from '../../context/DataContext';
 import ListeningHeatmap from '../../components/charts/ListeningHeatmap';
 import TopPodcastsChart from '../../components/charts/TopPodcastsChart';
 import TreemapGenre from '../../components/charts/TreemapGenre';
-import DateRangeSlider from '../../components/ui/DateRangeSlider';
+import AdvancedDateRangeSlider from '../../components/ui/Slicers/AdvancedDateRangeSlider/AdvancedDateRangeSlider';
+import MultiSelectDropdown from '../../components/ui/Slicers/MultiSelectDropdown/MultiSelectDropdown';
 
 const PodcastPage = () => {
   // Get data and functions from context
@@ -17,8 +18,8 @@ const PodcastPage = () => {
   // Local state
   const [uniquePodcasts, setUniquePodcasts] = useState([]);
   const [uniqueGenres, setUniqueGenres] = useState([]);
-  const [selectedPodcast, setSelectedPodcast] = useState('all');
-  const [selectedGenre, setSelectedGenre] = useState('all');
+  const [selectedPodcasts, setSelectedPodcasts] = useState([]);
+  const [selectedGenres, setSelectedGenres] = useState([]);
   const [selectedPodcastInfo, setSelectedPodcastInfo] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState('yearly');
   const [chartData, setChartData] = useState([]);
@@ -70,6 +71,36 @@ const PodcastPage = () => {
       }
     }
   }, [data.podcast]);
+
+  // Handle podcast selection changes
+  const handlePodcastChange = (podcasts) => {
+    setSelectedPodcasts(podcasts);
+
+    // Set the selected podcast info for display if only one podcast is selected
+    if (podcasts.length === 1 && data.podcast) {
+      const podcastInfo = data.podcast.find(item => item.podcast_name === podcasts[0]);
+      if (podcastInfo) {
+        setSelectedPodcastInfo({
+          name: podcastInfo.podcast_name,
+          artist: podcastInfo.artist,
+          artwork: podcastInfo.artwork_large,
+          genre: podcastInfo.genre
+        });
+      }
+    } else {
+      setSelectedPodcastInfo(null);
+    }
+  };
+
+  // Handle genre selection changes
+  const handleGenreChange = (genres) => {
+    setSelectedGenres(genres);
+  };
+
+  // Handle date range changes
+  const handleDateRangeChange = (newRange) => {
+    setDateRange(newRange);
+  };
 
   // Function to get period key for grouping
   const getPeriodKey = (dateStr, period) => {
@@ -145,30 +176,23 @@ const PodcastPage = () => {
       }
 
       // Filter by podcast if selected
-      if (selectedPodcast !== 'all' && item['podcast_name'] !== selectedPodcast) {
+      if (selectedPodcasts.length > 0 && !selectedPodcasts.includes(item['podcast_name'])) {
         return false;
       }
 
       // Filter by genre if selected
-      if (selectedGenre !== 'all') {
-        const formattedGenre = selectedGenre === 'Unknown' ? null : selectedGenre;
-
-        // Match against cleaned genre values
-        let matchGenre = false;
-        const itemGenre = item.genre;
-
-        if (!itemGenre && selectedGenre === 'Unknown') {
-          matchGenre = true;
-        } else if (itemGenre && itemGenre.includes('https://') ||
-                  itemGenre && itemGenre.includes('image/thumb') ||
-                  itemGenre && itemGenre.length > 30) {
-          // This is an invalid genre that should match "Unknown"
-          matchGenre = (selectedGenre === 'Unknown');
-        } else {
-          matchGenre = (itemGenre === formattedGenre);
+      if (selectedGenres.length > 0) {
+        // Clean up genre value for matching
+        let itemGenre = item.genre;
+        if (itemGenre && (itemGenre.includes('https://') ||
+                          itemGenre.includes('image/thumb') ||
+                          itemGenre.length > 30)) {
+          itemGenre = 'Unknown';
         }
 
-        if (!matchGenre) return false;
+        if (!selectedGenres.includes(itemGenre)) {
+          return false;
+        }
       }
 
       // Filter by date range
@@ -186,19 +210,6 @@ const PodcastPage = () => {
 
     // Apply the general filters first
     const filtered = filterData(podcastData);
-
-    // Update podcast info if needed
-    if (selectedPodcast !== 'all' && filtered.length > 0) {
-      const podcastInfo = filtered[0];
-      setSelectedPodcastInfo({
-        name: podcastInfo.podcast_name,
-        artist: podcastInfo.artist,
-        artwork: podcastInfo.artwork_large,
-        genre: podcastInfo.genre
-      });
-    } else {
-      setSelectedPodcastInfo(null);
-    }
 
     // Group the filtered data by period
     const grouped = _.groupBy(filtered, item => getPeriodKey(item['modified at'], period));
@@ -225,7 +236,7 @@ const PodcastPage = () => {
       const newChartData = processListeningData(data.podcast, selectedPeriod);
       setChartData(newChartData);
     }
-  }, [selectedPodcast, selectedGenre, selectedPeriod, dateRange, data.podcast]);
+  }, [selectedPodcasts, selectedGenres, selectedPeriod, dateRange, data.podcast]);
 
   if (loading.podcast) {
     return <LoadingSpinner centerIcon={Podcast} />;
@@ -241,46 +252,44 @@ const PodcastPage = () => {
       <p className="page-description">Monitor your podcast listening habits and discover insights</p>
 
       <div className="filters-section">
-        <div className="filters-selections">
-          <div className="filter-group">
-            <label htmlFor="podcast-select">Podcast:</label>
-            <select
-              id="podcast-select"
-              value={selectedPodcast}
-              onChange={(e) => setSelectedPodcast(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Podcasts</option>
-              {uniquePodcasts.map(podcast => (
-                <option key={podcast} value={podcast}>{podcast}</option>
-              ))}
-            </select>
+
+        <div className="filter-pane-grid">
+          {/* Date Range Filter on the left */}
+          <div className="filter-item date-filter">
+            <AdvancedDateRangeSlider
+              data={data.podcast}
+              dateColumnName="modified at"
+              onChange={handleDateRangeChange}
+              initialStartDate={dateRange.startDate}
+              initialEndDate={dateRange.endDate}
+              title="Filter by Date"
+            />
           </div>
 
-          <div className="filter-group">
-            <label htmlFor="genre-select">Genre:</label>
-            <select
-              id="genre-select"
-              value={selectedGenre}
-              onChange={(e) => setSelectedGenre(e.target.value)}
-              className="filter-select"
-            >
-              <option value="all">All Genres</option>
-              {uniqueGenres.map(genre => (
-                <option key={genre} value={genre}>{genre}</option>
-              ))}
-            </select>
+          {/* Podcast MultiSelect Filter */}
+          <div className="filter-item">
+            <MultiSelectDropdown
+              options={uniquePodcasts}
+              selectedValues={selectedPodcasts}
+              onChange={handlePodcastChange}
+              placeholder="Select podcasts..."
+              label="Filter by Podcast"
+              searchPlaceholder="Search podcasts..."
+              icon={<Podcast size={16} />}
+            />
           </div>
 
-          <div className="filter-group date-range">
-            <label>Date Range:</label>
-            <div className="date-slider-container">
-              <DateRangeSlider
-                startDate={dateRange.startDate}
-                endDate={dateRange.endDate}
-                onChange={(newRange) => setDateRange(newRange)}
-              />
-            </div>
+          {/* Genre MultiSelect Filter */}
+          <div className="filter-item">
+            <MultiSelectDropdown
+              options={uniqueGenres}
+              selectedValues={selectedGenres}
+              onChange={handleGenreChange}
+              placeholder="Select genres..."
+              label="Filter by Genre"
+              searchPlaceholder="Search genres..."
+              icon={<Tag size={16} />}
+            />
           </div>
         </div>
 
@@ -354,7 +363,7 @@ const PodcastPage = () => {
         <div className="chart-container">
           <ListeningHeatmap
             data={filterData(data.podcast)}
-            selectedPodcast={selectedPodcast}
+            selectedPodcast={selectedPodcasts.length === 1 ? selectedPodcasts[0] : 'all'}
             dateRange={dateRange}
           />
         </div>
@@ -366,7 +375,7 @@ const PodcastPage = () => {
         <div className="chart-container">
           <TreemapGenre
             data={filterData(data.podcast)}
-            selectedPodcast={selectedPodcast}
+            selectedPodcast={selectedPodcasts.length === 1 ? selectedPodcasts[0] : 'all'}
             dateRange={dateRange}
           />
         </div>
