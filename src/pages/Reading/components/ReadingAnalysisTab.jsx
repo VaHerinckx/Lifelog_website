@@ -1,11 +1,11 @@
 // src/pages/Reading/components/ReadingAnalysisTab.jsx
 import React, { useState, useEffect } from 'react';
-import ReadingPaceChart from './ReadingPaceChart';
+import TimeSeriesBarChart from '../../../components/charts/TimeSeriesBarChart';
+import IntensityHeatmap from '../../../components/charts/IntensityHeatmap';
 import AnalysisFilterPane from './AnalysisFilterPane';
 import './ReadingAnalysisTab.css';
 
 const ReadingAnalysisTab = ({ books, dateRange }) => {
-  const [selectedPeriod, setSelectedPeriod] = useState('monthly');
   const [filteredData, setFilteredData] = useState([]);
   const [currentDateRange, setCurrentDateRange] = useState(dateRange);
   const [selectedTitles, setSelectedTitles] = useState([]);
@@ -140,20 +140,27 @@ const ReadingAnalysisTab = ({ books, dateRange }) => {
       />
 
       <div className="analysis-grid">
-        {/* Reading Pace Analysis */}
+        {/* Reading Pace Analysis using the reusable component */}
         <div className="analysis-section">
-          <ReadingPaceChart
+          <TimeSeriesBarChart
             data={filteredData}
-            dateRange={currentDateRange}
-            selectedPeriod={selectedPeriod}
-            onPeriodChange={setSelectedPeriod}
+            dateColumnName="Timestamp"
+            metricColumnName="page_split"
+            title="Total Pages Read by Period"
+            yAxisLabel="Pages"
           />
         </div>
 
-        {/* Additional analysis sections can be added here */}
-        {/* <div className="analysis-section">
-          Future analysis component
-        </div> */}
+        {/* Reading Activity Heatmap using the reusable component */}
+        <div className="analysis-section">
+          <IntensityHeatmap
+            data={filteredData}
+            dateColumnName="Timestamp"
+            valueColumnName="page_split"
+            title="Reading Activity by Day and Time"
+            treatMidnightAsUnknown={true} // optional, this is the default
+          />
+        </div>
       </div>
     </div>
   );

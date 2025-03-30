@@ -1,0 +1,117 @@
+/* src/components/charts/IntensityHeatmap/IntensityHeatmap.css */
+.heatmap-container {
+  width: 100%;
+  background-color: var(--element-background-color, #D8DCFF);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.heatmap-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--text-element, #171738);
+}
+
+.heatmap-table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.heatmap-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+.heatmap-table th,
+.heatmap-table td {
+  padding: 1rem;
+  border: 1px solid rgba(52, 35, 166, 0.1);
+}
+
+.heatmap-table th {
+  font-weight: 600;
+  color: var(--text-element, #171738);
+  background-color: rgba(52, 35, 166, 0.05);
+}
+
+.day-label {
+  font-weight: 600;
+  color: var(--text-element, #171738);
+  text-align: left;
+  background-color: rgba(52, 35, 166, 0.05);
+}
+
+.heatmap-cell {
+  transition: all 0.3s ease;
+  font-size: 0.875rem;
+  min-width: 80px;
+}
+
+.heatmap-cell:hover {
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.heatmap-cell:hover {
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+/* Styling for the totals */
+.total-header,
+.total-label {
+  font-weight: 700;
+  background-color: rgba(52, 35, 166, 0.15);
+  color: #171738;
+}
+
+.total-cell {
+  font-weight: 700;
+  background-color: rgba(52, 35, 166, 0.08);
+  color: #171738;
+  min-width: 80px;
+}
+
+.grand-total-cell {
+  font-weight: 700;
+  font-size: 1.1rem;
+  background-color: rgba(52, 35, 166, 0.2);
+  color: #171738;
+}
+
+.total-row {
+  border-top: 2px solid rgba(52, 35, 166, 0.4);
+}
+
+.grand-total-cell {
+  font-weight: 700;
+  font-size: 1.1rem;
+  background-color: rgba(52, 35, 166, 0.2);
+  color: #171738;
+}
+
+.total-row {
+  border-top: 2px solid rgba(52, 35, 166, 0.4);
+}
+
+/* Styling for percentage text */
+.percentage {
+  font-size: 0.9em;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .heatmap-table th,
+  .heatmap-table td {
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .heatmap-cell {
+    min-width: 60px;
+  }
+}
