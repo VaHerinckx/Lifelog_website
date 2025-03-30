@@ -31,6 +31,9 @@ const StarRating = ({ rating, size = 16 }) => {
   );
 };
 
+
+
+
 // Component to display a book card
 const BookCard = ({ book, onClick }) => {
   // Format the timestamp to a readable date
@@ -93,6 +96,7 @@ const ReadingPage = () => {
   const { data, loading, error, fetchData } = useData();
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
+  const [readingEntries, setReadingEntries] = useState([]);
   const [selectedGenre, setSelectedGenre] = useState('all');
   const [selectedFiction, setSelectedFiction] = useState('all');
   const [selectedTimeframe, setSelectedTimeframe] = useState('all');
@@ -167,6 +171,7 @@ const ReadingPage = () => {
     if (!readingData || readingData.length === 0) return;
 
     // Process the books data: group by title to get unique books
+    setReadingEntries(readingData);
     const processedBooks = _.chain(readingData)
       .groupBy('Title')
       .map((entries, title) => {
@@ -626,7 +631,7 @@ const ReadingPage = () => {
 
         {/* Analysis Tab Content */}
         {activeTab === 'analysis' && (
-          <ReadingAnalysisTab books={books} dateRange={dateRange} />
+          <ReadingAnalysisTab books={readingEntries} dateRange={dateRange} />
         )}
 
         {/* Book Details Modal */}
