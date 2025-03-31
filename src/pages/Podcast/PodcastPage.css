@@ -91,3 +91,46 @@
   text-align: center;
   padding: 2rem;
 }
+
+/* Add these styles to your PodcastPage.css file */
+
+.podcasts-content {
+  padding: 1rem 0;
+}
+
+.podcast-stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.coming-soon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background-color: rgba(52, 35, 166, 0.1);
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+.coming-soon-message {
+  color: white;
+  font-size: 1.2rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .podcast-stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .podcast-stats-cards {
+    grid-template-columns: 1fr;
+  }
+}

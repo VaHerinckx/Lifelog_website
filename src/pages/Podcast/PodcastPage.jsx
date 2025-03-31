@@ -1,21 +1,31 @@
-// src/pages/Podcast/PodcastPage.jsx
+// PodcastPage.jsx with added debugging logs
+
 import React, { useState, useEffect } from 'react';
 import _ from 'lodash';
 import './PodcastPage.css';
 import './components/PodcastPageTabs.css';
-import { Podcast, BarChart2 } from 'lucide-react';
+import { Podcast, BarChart2, Headphones, Clock, Music, Percent } from 'lucide-react';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useData } from '../../context/DataContext';
 import PodcastAnalysisTab from './components/PodcastAnalysisTab';
+import KpiCard from '../../components/charts/KpiCard';
 
 const PodcastPage = () => {
   // Get data and functions from context
   const { data, loading, error, fetchData } = useData();
 
   // State for active tab
-  const [activeTab, setActiveTab] = useState('analysis'); // Default to analysis tab
+  const [activeTab, setActiveTab] = useState('podcasts'); // Default to podcasts tab
 
-  // Local state
+  // State to store podcast stats
+  const [podcastStats, setPodcastStats] = useState({
+    totalEpisodes: 0,
+    totalListeningTime: 0,
+    uniquePodcasts: 0,
+    avgCompletion: 0
+  });
+
+  // Local state (from original component)
   const [uniquePodcasts, setUniquePodcasts] = useState([]);
   const [uniqueGenres, setUniqueGenres] = useState([]);
   const [selectedPodcasts, setSelectedPodcasts] = useState([]);
@@ -30,9 +40,11 @@ const PodcastPage = () => {
     fetchData('podcast');
   }, [fetchData]);
 
-  // Process dates, podcasts, and genres when data is loaded
+  // Process podcast data when it's loaded
   useEffect(() => {
-    if (data.podcast) {
+    if (data.podcast && data.podcast.length > 0) {
+      // DEBUG: Log first few podcast entries to inspect data structure
+
       // Get unique podcasts
       const podcasts = _.uniq(data.podcast.map(item => item['podcast_name'])).filter(Boolean);
       setUniquePodcasts(podcasts);
@@ -66,6 +78,89 @@ const PodcastPage = () => {
         const endDate = validDates[validDates.length - 1].toISOString().split('T')[0];
         setDateRange({ startDate, endDate });
       }
+
+      // Calculate stats for KPI cards
+      // Total episodes
+      const totalEpisodes = data.podcast.length;
+
+      // DEBUG: Log information about duration field
+      const durationSamples = data.podcast.slice(0, 10).map(ep => ({
+        duration: ep.duration,
+        type: typeof ep.duration,
+        parsed: parseFloat(ep.duration),
+        minutes: parseFloat(ep.duration) / 60
+      }));
+
+      // Total listening time in minutes with more careful parsing
+      const durations = data.podcast.map(episode => {
+        const duration = episode.duration;
+        // Check if duration exists and is a valid number
+        if (duration !== undefined && duration !== null) {
+          const parsedDuration = parseFloat(duration);
+          if (!isNaN(parsedDuration)) {
+            return parsedDuration / 60; // Convert seconds to minutes
+          }
+        }
+        return 0; // Return 0 for invalid durations
+      });
+
+      const totalMinutes = Math.round(_.sum(durations));
+
+      // Unique podcast count
+      const uniquePodcastCount = podcasts.length;
+
+      // DEBUG: Log information about completion fields
+      const completionSamples = data.podcast.slice(0, 10).map(ep => ({
+        completion_percent: ep['completion_%'],
+        completion: ep.completion,
+        type_percent: typeof ep['completion_%'],
+        type_completion: typeof ep.completion
+      }));
+
+      // Average completion rate - with more careful calculation
+      const completionValues = data.podcast.map(episode => {
+        // Using bracket notation for properties with special characters
+        const completionPercent = episode['completion_%'];
+        const completion = episode.completion;
+
+        if (completionPercent !== undefined && completionPercent !== null) {
+          const parsedValue = parseFloat(completionPercent);
+          if (!isNaN(parsedValue)) {
+            // DEBUG: Log high values
+            if (parsedValue > 100) {
+              console.log("Abnormal completion_%:", episode);
+            }
+            return Math.min(parsedValue, 100); // Cap at 100%
+          }
+        }
+
+        if (completion !== undefined && completion !== null) {
+          const parsedValue = parseFloat(completion);
+          if (!isNaN(parsedValue)) {
+            // Assuming it's stored as a decimal
+            const percentage = parsedValue * 100;
+            // DEBUG: Log high values
+            if (percentage > 100) {
+              console.log("Abnormal completion:", episode);
+            }
+            return Math.min(percentage, 100); // Cap at 100%
+          }
+        }
+
+        return 100; // Default to 100% if we can't determine
+      });
+
+
+      const avgCompletion = Math.round(_.mean(completionValues));
+
+      // Update stats state
+      setPodcastStats({
+        totalEpisodes,
+        totalListeningTime: totalMinutes,
+        uniquePodcasts: uniquePodcastCount,
+        avgCompletion
+      });
+
     }
   }, [data.podcast]);
 
@@ -102,9 +197,38 @@ const PodcastPage = () => {
 
       {/* Podcasts Tab Content */}
       {activeTab === 'podcasts' && (
-        <div className="podcasts-tab-content">
-          <p className="coming-soon-message">Podcast listing functionality coming soon!</p>
-          {/* This tab will be implemented later */}
+        <div className="podcasts-content">
+          {/* KPI Cards */}
+          <div className="podcast-stats-cards">
+            <KpiCard
+              value={podcastStats.totalEpisodes.toLocaleString()}
+              label="Episodes Listened"
+              icon={<Headphones size={24} />}
+            />
+
+            <KpiCard
+              value={podcastStats.totalListeningTime.toLocaleString() || "0"}
+              label="Total Minutes"
+              icon={<Clock size={24} />}
+            />
+
+            <KpiCard
+              value={podcastStats.uniquePodcasts.toLocaleString()}
+              label="Unique Podcasts"
+              icon={<Music size={24} />}
+            />
+
+            <KpiCard
+              value={`${Math.min(podcastStats.avgCompletion, 100)}%`}
+              label="Avg. Completion"
+              icon={<Percent size={24} />}
+            />
+          </div>
+
+          {/* Coming Soon Message (to be replaced with actual podcast list) */}
+          <div className="coming-soon-container">
+            <p className="coming-soon-message">Podcast listing functionality coming soon!</p>
+          </div>
         </div>
       )}
 

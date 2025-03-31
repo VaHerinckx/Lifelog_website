@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Book as BookIcon, Star, StarHalf, BookOpen, List, Grid, Clock, BarChart } from 'lucide-react';
+import { Book, Book as BookIcon, Star, StarHalf, BookOpen, List, Grid, Clock, BarChart } from 'lucide-react';
 import Papa from 'papaparse';
 import _ from 'lodash';
 import './ReadingPage.css';
@@ -11,6 +11,7 @@ import { useData } from '../../context/DataContext';
 import BookDetails from './components/BookDetails';
 import ReadingTimeline from './components/ReadingTimeline';
 import ReadingAnalysisTab from './components/ReadingAnalysisTab';
+import KpiCard from '../../components/charts/KpiCard';
 
 // Component to display star ratings
 const StarRating = ({ rating, size = 16 }) => {
@@ -522,28 +523,33 @@ const ReadingPage = () => {
 
             {/* Reading Stats */}
             <div className="stats-cards">
-              <div className="stat-card">
-                <div className="stat-value">{readingStats.totalBooks}</div>
-                <div className="stat-label">Books Read</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-value">{readingStats.totalPages.toLocaleString()}</div>
-                <div className="stat-label">Total Pages</div>
-              </div>
-              <div className="stat-card">
-                <div className="stat-value">{readingStats.avgRating}</div>
-                <div className="stat-label">Average Rating</div>
-              </div>
+              <KpiCard
+                value={readingStats.totalBooks.toLocaleString()}
+                label="Books Read"
+                icon={<Book size={24} />}
+              />
+              <KpiCard
+                value={readingStats.totalPages.toLocaleString()}
+                label="Total Pages"
+                icon={<BookOpen size={24} />}
+              />
+              <KpiCard
+                value={readingStats.avgRating}
+                label="Average Rating"
+                icon={<Star size={24} />}
+              />
               {readingStats.avgReadingDuration > 0 && (
-                <div className="stat-card">
-                  <div className="stat-value">{readingStats.avgReadingDuration}</div>
-                  <div className="stat-label">Avg. Days to Read</div>
-                </div>
+                <KpiCard
+                  value={readingStats.avgReadingDuration}
+                  label="Avg. Days to Read"
+                  icon={<Clock size={24} />}
+                />
               )}
-              <div className="stat-card">
-                <div className="stat-value">{readingStats.recentBooks}</div>
-                <div className="stat-label">Books Last Month</div>
-              </div>
+              <KpiCard
+                value={readingStats.recentBooks}
+                label="Books Last Month"
+                icon={<BookOpen size={24} />}
+              />
             </div>
 
             {/* Books Display - conditional rendering based on view mode */}
