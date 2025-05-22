@@ -1,0 +1,180 @@
+/* src/components/ui/Filters/FilteringPanel/FilteringPanel.css */
+.filtering-panel {
+  width: 100%;
+  background-color: var(--element-background-color, #D8DCFF);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  color: var(--text-element, #171738);
+}
+
+.filtering-panel.loading {
+  opacity: 0.7;
+}
+
+.filtering-panel-header {
+  margin-bottom: 1.5rem;
+}
+
+.filtering-panel-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-element, #171738);
+}
+
+.filtering-panel-description {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-element, #171738);
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+.filtering-panel-content {
+  width: 100%;
+}
+
+/* Grid layout for filters */
+.filters-grid {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
+  width: 100%;
+}
+
+.filter-item {
+  flex: 1 1 calc(20% - 1rem); /* 5 items per row by default */
+  min-width: 180px;
+  min-width: 0; /* Allow shrinking below content size */
+}
+
+/* Make the first filter (usually date range) take more space */
+.filter-item:first-child {
+  flex: 1 1 calc(30% - 1rem);
+  min-width: 240px;
+}
+
+/* Loading skeleton styles */
+.filter-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.skeleton-label {
+  height: 14px;
+  background-color: rgba(23, 23, 56, 0.2);
+  border-radius: 4px;
+  width: 60%;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-filter {
+  height: 38px;
+  background-color: rgba(23, 23, 56, 0.2);
+  border-radius: 4px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Debug info styling */
+.filter-debug {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: rgba(23, 23, 56, 0.05);
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.filter-debug summary {
+  cursor: pointer;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.filter-debug pre {
+  margin: 0;
+  font-family: 'Courier New', monospace;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Responsive design */
+@media (max-width: 1400px) {
+  .filter-item {
+    flex: 1 1 calc(33.33% - 1rem); /* 3 items per row */
+  }
+
+  .filter-item:first-child {
+    flex: 1 1 calc(50% - 1rem);
+  }
+}
+
+@media (max-width: 1200px) {
+  .filtering-panel {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .filter-item {
+    flex: 1 1 calc(33.33% - 1rem); /* 3 items per row */
+  }
+}
+
+@media (max-width: 992px) {
+  .filters-grid {
+    flex-wrap: wrap;
+  }
+
+  .filter-item {
+    flex: 1 1 calc(50% - 1rem); /* 2 items per row */
+    min-width: calc(50% - 1rem);
+  }
+
+  .filter-item:first-child {
+    flex: 1 1 100%; /* Date range takes full width */
+  }
+}
+
+@media (max-width: 768px) {
+  .filtering-panel {
+    width: 95%;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+  }
+
+  .filters-grid {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .filter-item {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+}
+
+/* Ensure filters work well together visually */
+.filter-item .filter-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-item .filter-header {
+  margin-top: auto;
+}

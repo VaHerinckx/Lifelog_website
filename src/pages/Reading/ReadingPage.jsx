@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Book, Book as BookIcon, Star, StarHalf, BookOpen, List, Grid, Clock, BarChart } from 'lucide-react';
+import { Book, Book as BookIcon, Star, StarHalf, BookOpen, List, Grid, Clock, BarChart, Tag, User } from 'lucide-react';
 import Papa from 'papaparse';
 import _ from 'lodash';
 import './ReadingPage.css';
@@ -11,7 +11,8 @@ import { useData } from '../../context/DataContext';
 import BookDetails from './components/BookDetails';
 import ReadingTimeline from './components/ReadingTimeline';
 import ReadingAnalysisTab from './components/ReadingAnalysisTab';
-import KpiCard from '../../components/charts/KpiCard';
+import CardsPanel from '../../components/ui/CardsPanel/CardsPanel';
+import Filter from '../../components/ui/Filters/Filter/Filter'; // NEW: Import Filter component for testing
 
 // Component to display star ratings
 const StarRating = ({ rating, size = 16 }) => {
@@ -31,9 +32,6 @@ const StarRating = ({ rating, size = 16 }) => {
     </div>
   );
 };
-
-
-
 
 // Component to display a book card
 const BookCard = ({ book, onClick }) => {
@@ -74,13 +72,11 @@ const BookCard = ({ book, onClick }) => {
           </div>
         </div>
 
-        {/* Add reading date information */}
         <div className="reading-dates">
           <span className="date-label">Read on:</span>
           <span className="date-value">{formatDate(book.timestamp)}</span>
         </div>
 
-        {/* If you have reading duration, you can show a calculated start date */}
         {book.readingDuration && book.timestamp && (
           <div className="reading-duration">
             <span className="duration-value">
@@ -98,12 +94,21 @@ const ReadingPage = () => {
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [readingEntries, setReadingEntries] = useState([]);
-  const [selectedGenre, setSelectedGenre] = useState('all');
-  const [selectedFiction, setSelectedFiction] = useState('all');
-  const [selectedTimeframe, setSelectedTimeframe] = useState('all');
-  const [sortOrder, setSortOrder] = useState('recent');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid', 'list', or 'timeline'
+
+  // UPDATED: Replace individual filter states with centralized filter state
+  const [filters, setFilters] = useState({
+    genre: 'all',
+    fictionType: 'all',
+    timeframe: 'all',
+    sortOrder: 'recent',
+    // NEW: Test filters for the new Filter component
+    authors: [], // Multi-select
+    selectedGenres: [] // Multi-select
+  });
+
+  const [viewMode, setViewMode] = useState('grid');
   const [genres, setGenres] = useState([]);
+  const [authors, setAuthors] = useState([]); // NEW: For testing multi-select
   const [selectedBook, setSelectedBook] = useState(null);
   const [readingStats, setReadingStats] = useState({
     totalBooks: 0,
@@ -112,7 +117,7 @@ const ReadingPage = () => {
     avgReadingDuration: 0,
     recentBooks: 0
   });
-  const [activeTab, setActiveTab] = useState('books'); // Added state for active tab
+  const [activeTab, setActiveTab] = useState('books');
   const [dateRange, setDateRange] = useState({
     startDate: null,
     endDate: null
@@ -120,16 +125,13 @@ const ReadingPage = () => {
 
   // Function to process books data from the API response
   const processRawData = (rawData) => {
-    // Remove null bytes and process the data
     const processedData = rawData.map(item => {
       return Object.entries(item).reduce((acc, [key, value]) => {
-        // Clean up keys by removing null bytes
         const cleanKey = key.replace(/\u0000/g, '');
         acc[cleanKey] = value;
         return acc;
       }, {});
     });
-
     return processedData;
   };
 
@@ -146,7 +148,6 @@ const ReadingPage = () => {
         delimiter: '|'
       });
 
-      // Here we assume our data context would normally handle this
       if (data) {
         data.reading = parsedData.data;
       }
@@ -164,23 +165,19 @@ const ReadingPage = () => {
     } else {
       fetchReadingData();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchData]);
 
   // Process the books data
   const processBooks = (readingData) => {
     if (!readingData || readingData.length === 0) return;
 
-    // Process the books data: group by title to get unique books
     setReadingEntries(readingData);
     const processedBooks = _.chain(readingData)
       .groupBy('Title')
       .map((entries, title) => {
-        // Use the latest entry data for each book
         const latestEntry = _.maxBy(entries, entry => new Date(entry['Timestamp'] || entry.Timestamp));
         if (!latestEntry) return null;
 
-        // Handle different possible data structures
         const bookId = latestEntry['Book Id'] || latestEntry['��Book Id'] || '';
         const originalYear = latestEntry['Original Publication Year'] || '';
         const myRating = latestEntry['My Rating'] || 0;
@@ -203,19 +200,17 @@ const ReadingPage = () => {
           coverUrl: coverUrl,
           readingDuration: readingDuration ? parseInt(readingDuration) : null,
           timestamp: new Date(latestEntry.Timestamp || ''),
-          page_split: latestEntry.page_split || 0 // Important for reading pace analysis
+          page_split: latestEntry.page_split || 0
         };
       })
-      .filter(Boolean) // Remove null entries
+      .filter(Boolean)
       .value();
 
-    // Sort books by most recently read
     const sortedBooks = _.sortBy(processedBooks, book => book.timestamp).reverse();
-
     setBooks(sortedBooks);
     setFilteredBooks(sortedBooks);
 
-    // Extract unique genres
+    // Extract unique genres and authors for filter options
     const uniqueGenres = _.uniq(
       processedBooks
         .map(book => book.genre)
@@ -223,12 +218,19 @@ const ReadingPage = () => {
     );
     setGenres(uniqueGenres);
 
-    // Calculate reading stats
+    // NEW: Extract unique authors for testing multi-select
+    const uniqueAuthors = _.uniq(
+      processedBooks
+        .map(book => book.author)
+        .filter(author => author && author.trim() !== '')
+    ).sort();
+    setAuthors(uniqueAuthors);
+
+    // Calculate stats and date range
     const now = new Date();
     const lastMonthDate = new Date();
     lastMonthDate.setMonth(now.getMonth() - 1);
 
-    // Find date range for analysis tab
     if (sortedBooks.length > 0) {
       const validDates = sortedBooks
         .map(book => book.timestamp)
@@ -266,28 +268,38 @@ const ReadingPage = () => {
     }
   }, [data]);
 
-  // Filter and sort books when criteria change
+  // UPDATED: Apply filters based on centralized filter state
   useEffect(() => {
     if (books.length > 0) {
       let filtered = [...books];
 
-      // Apply genre filter
-      if (selectedGenre !== 'all') {
-        filtered = filtered.filter(book => book.genre === selectedGenre);
+      // Apply genre filter (single select)
+      if (filters.genre !== 'all') {
+        filtered = filtered.filter(book => book.genre === filters.genre);
       }
 
-      // Apply fiction/non-fiction filter
-      if (selectedFiction !== 'all') {
-        const isFiction = selectedFiction === 'fiction';
+      // Apply fiction/non-fiction filter (single select)
+      if (filters.fictionType !== 'all') {
+        const isFiction = filters.fictionType === 'fiction';
         filtered = filtered.filter(book => book.fiction === isFiction);
       }
 
+      // NEW: Apply multi-select author filter
+      if (filters.authors.length > 0) {
+        filtered = filtered.filter(book => filters.authors.includes(book.author));
+      }
+
+      // NEW: Apply multi-select genre filter (for testing)
+      if (filters.selectedGenres.length > 0) {
+        filtered = filtered.filter(book => filters.selectedGenres.includes(book.genre));
+      }
+
       // Apply timeframe filter
-      if (selectedTimeframe !== 'all') {
+      if (filters.timeframe !== 'all') {
         const now = new Date();
         let cutoffDate = new Date();
 
-        switch (selectedTimeframe) {
+        switch (filters.timeframe) {
           case 'month':
             cutoffDate.setMonth(now.getMonth() - 1);
             break;
@@ -305,24 +317,23 @@ const ReadingPage = () => {
       }
 
       // Apply sorting
-      if (sortOrder === 'recent') {
+      if (filters.sortOrder === 'recent') {
         filtered = _.sortBy(filtered, book => {
-          // Check if timestamp is a valid date
           return book.timestamp instanceof Date && !isNaN(book.timestamp.getTime())
-            ? book.timestamp.getTime()  // Use getTime() for valid dates
-            : -Infinity;  // Push invalid dates to the end
+            ? book.timestamp.getTime()
+            : -Infinity;
         }).reverse();
-      } else if (sortOrder === 'rating') {
+      } else if (filters.sortOrder === 'rating') {
         filtered = _.sortBy(filtered, book => book.myRating).reverse();
-      } else if (sortOrder === 'title') {
+      } else if (filters.sortOrder === 'title') {
         filtered = _.sortBy(filtered, book => book.title.toLowerCase());
       }
 
       setFilteredBooks(filtered);
     }
-  }, [books, selectedGenre, selectedFiction, selectedTimeframe, sortOrder]);
+  }, [books, filters]);
 
-  // Add this effect to update stats when filtered books change
+  // Update stats when filtered books change
   useEffect(() => {
     if (filteredBooks.length > 0) {
       const now = new Date();
@@ -348,6 +359,14 @@ const ReadingPage = () => {
     }
   }, [filteredBooks]);
 
+  // NEW: Helper function to update specific filter
+  const updateFilter = (key, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
   // Handle file upload directly
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
@@ -361,24 +380,56 @@ const ReadingPage = () => {
       encoding: 'UTF-8',
       complete: (results) => {
         const cleanedData = processRawData(results.data);
-
         if (data) {
           data.reading = cleanedData;
         }
-
         processBooks(cleanedData);
       }
     });
   };
 
-  // Handle book selection for detailed view
   const handleBookClick = (book) => {
     setSelectedBook(book);
   };
 
-  // Handle closing the book details modal
   const handleCloseDetails = () => {
     setSelectedBook(null);
+  };
+
+  // Prepare cards data for CardsPanel
+  const prepareStatsCards = () => {
+    const cards = [
+      {
+        value: readingStats.totalBooks.toLocaleString(),
+        label: "Books Read",
+        icon: <Book size={24} />
+      },
+      {
+        value: readingStats.totalPages.toLocaleString(),
+        label: "Total Pages",
+        icon: <BookOpen size={24} />
+      },
+      {
+        value: readingStats.avgRating,
+        label: "Average Rating",
+        icon: <Star size={24} />
+      },
+      {
+        value: readingStats.recentBooks.toLocaleString(),
+        label: "Books Last Month",
+        icon: <BookOpen size={24} />
+      }
+    ];
+
+    if (readingStats.avgReadingDuration > 0) {
+      cards.splice(3, 0, {
+        value: readingStats.avgReadingDuration.toLocaleString(),
+        label: "Avg. Days to Read",
+        icon: <Clock size={24} />
+      });
+    }
+
+    return cards;
   };
 
   if (loading && loading.reading) {
@@ -431,15 +482,16 @@ const ReadingPage = () => {
         {/* Books Tab Content */}
         {activeTab === 'books' && (
           <>
-            {/* Enhanced Filters and Controls */}
+            {/* UPDATED: Test the new Filter components */}
             <div className="controls-container">
               <div className="filters-section">
+                {/* Original dropdown filters for comparison */}
                 <div className="filter-group">
-                  <label htmlFor="genre-select">Genre:</label>
+                  <label htmlFor="genre-select">Genre (Old):</label>
                   <select
                     id="genre-select"
-                    value={selectedGenre}
-                    onChange={(e) => setSelectedGenre(e.target.value)}
+                    value={filters.genre}
+                    onChange={(e) => updateFilter('genre', e.target.value)}
                     className="filter-select"
                   >
                     <option value="all">All Genres</option>
@@ -450,11 +502,11 @@ const ReadingPage = () => {
                 </div>
 
                 <div className="filter-group">
-                  <label htmlFor="fiction-select">Type:</label>
+                  <label htmlFor="fiction-select">Type (Old):</label>
                   <select
                     id="fiction-select"
-                    value={selectedFiction}
-                    onChange={(e) => setSelectedFiction(e.target.value)}
+                    value={filters.fictionType}
+                    onChange={(e) => updateFilter('fictionType', e.target.value)}
                     className="filter-select"
                   >
                     <option value="all">All Types</option>
@@ -464,32 +516,76 @@ const ReadingPage = () => {
                 </div>
 
                 <div className="filter-group">
-                  <label htmlFor="timeframe-select">Period:</label>
-                  <select
-                    id="timeframe-select"
-                    value={selectedTimeframe}
-                    onChange={(e) => setSelectedTimeframe(e.target.value)}
-                    className="filter-select"
-                  >
-                    <option value="all">All Time</option>
-                    <option value="month">Last Month</option>
-                    <option value="quarter">Last 3 Months</option>
-                    <option value="year">Last Year</option>
-                  </select>
-                </div>
-
-                <div className="filter-group">
                   <label htmlFor="sort-select">Sort By:</label>
                   <select
                     id="sort-select"
-                    value={sortOrder}
-                    onChange={(e) => setSortOrder(e.target.value)}
+                    value={filters.sortOrder}
+                    onChange={(e) => updateFilter('sortOrder', e.target.value)}
                     className="filter-select"
                   >
                     <option value="recent">Most Recent</option>
                     <option value="rating">Highest Rated</option>
                     <option value="title">Title (A-Z)</option>
                   </select>
+                </div>
+              </div>
+
+              {/* NEW: Test Filter components */}
+              <div className="new-filters-section" style={{
+                marginTop: '2rem',
+                padding: '1rem',
+                backgroundColor: 'rgba(52, 35, 166, 0.1)',
+                borderRadius: '8px'
+              }}>
+                <h3 style={{ color: 'var(--title-color)', marginBottom: '1rem' }}>
+                  NEW Filter Components (Testing)
+                </h3>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                  {/* Test Single Select Genre Filter */}
+                  <Filter
+                    type="singleselect"
+                    options={genres}
+                    value={filters.genre === 'all' ? genres[0] : filters.genre}
+                    onChange={(value) => updateFilter('genre', value)}
+                    defaultValue={genres[0]}
+                    label="Genre (Single Select)"
+                    icon={<Tag size={16} />}
+                    placeholder="Select a genre"
+                  />
+
+                  {/* Test Multi Select Authors Filter */}
+                  <Filter
+                    type="multiselect"
+                    options={authors}
+                    value={filters.authors}
+                    onChange={(value) => updateFilter('authors', value)}
+                    label="Authors (Multi Select)"
+                    icon={<User size={16} />}
+                    placeholder="Select authors"
+                  />
+
+                  {/* Test Multi Select Genres Filter */}
+                  <Filter
+                    type="multiselect"
+                    options={genres}
+                    value={filters.selectedGenres}
+                    onChange={(value) => updateFilter('selectedGenres', value)}
+                    label="Genres (Multi Select)"
+                    icon={<Tag size={16} />}
+                    placeholder="Select genres"
+                  />
+
+                  {/* Test Single Select Fiction Type */}
+                  <Filter
+                    type="singleselect"
+                    options={['Fiction', 'Non-Fiction']}
+                    value={filters.fictionType === 'all' ? 'Fiction' : filters.fictionType}
+                    onChange={(value) => updateFilter('fictionType', value)}
+                    defaultValue="Fiction"
+                    label="Fiction Type (Single Select)"
+                    icon={<BookIcon size={16} />}
+                  />
                 </div>
               </div>
 
@@ -521,41 +617,16 @@ const ReadingPage = () => {
               </div>
             </div>
 
-            {/* Reading Stats */}
-            <div className="stats-cards">
-              <KpiCard
-                value={readingStats.totalBooks.toLocaleString()}
-                label="Books Read"
-                icon={<Book size={24} />}
-              />
-              <KpiCard
-                value={readingStats.totalPages.toLocaleString()}
-                label="Total Pages"
-                icon={<BookOpen size={24} />}
-              />
-              <KpiCard
-                value={readingStats.avgRating}
-                label="Average Rating"
-                icon={<Star size={24} />}
-              />
-              {readingStats.avgReadingDuration > 0 && (
-                <KpiCard
-                  value={readingStats.avgReadingDuration}
-                  label="Avg. Days to Read"
-                  icon={<Clock size={24} />}
-                />
-              )}
-              <KpiCard
-                value={readingStats.recentBooks}
-                label="Books Last Month"
-                icon={<BookOpen size={24} />}
-              />
-            </div>
+            <CardsPanel
+              title="Reading Statistics"
+              description="Your reading progress at a glance"
+              cards={prepareStatsCards()}
+              loading={loading?.reading}
+            />
 
-            {/* Books Display - conditional rendering based on view mode */}
+            {/* Books Display */}
             {filteredBooks.length > 0 ? (
               <>
-                {/* Grid View */}
                 {viewMode === 'grid' && (
                   <div className="books-grid">
                     {filteredBooks.map(book => (
@@ -568,7 +639,6 @@ const ReadingPage = () => {
                   </div>
                 )}
 
-                {/* List View */}
                 {viewMode === 'list' && (
                   <div className="books-list">
                     {filteredBooks.map(book => (
@@ -619,7 +689,6 @@ const ReadingPage = () => {
                   </div>
                 )}
 
-                {/* Timeline View */}
                 {viewMode === 'timeline' && (
                   <ReadingTimeline books={filteredBooks} />
                 )}
