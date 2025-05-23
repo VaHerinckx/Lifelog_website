@@ -470,11 +470,7 @@ const ReadingPage = () => {
             Analysis
           </button>
         </div>
-
-        {/* Books Tab Content */}
-        {activeTab === 'books' && (
-          <>
-            {/* NEW: FilteringPanel replaces all the old filters */}
+        {/* NEW: FilteringPanel replaces all the old filters */}
             <FilteringPanel
               data={books}
               filterConfigs={filterConfigs}
@@ -482,6 +478,11 @@ const ReadingPage = () => {
               title="Book Filters"
               description="Filter and sort your reading collection"
             />
+
+        {/* Books Tab Content */}
+        {activeTab === 'books' && (
+          <>
+
 
             <div className="view-controls">
               <button

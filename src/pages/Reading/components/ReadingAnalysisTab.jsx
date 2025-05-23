@@ -17,67 +17,6 @@ const ReadingAnalysisTab = ({ books, dateRange }) => {
   useEffect(() => {
     if (!books || books.length === 0) return;
 
-    const applyFilters = () => {
-      let filtered = [...books];
-
-      // Apply date range filter
-      if (currentDateRange && currentDateRange.startDate && currentDateRange.endDate) {
-        const startDate = new Date(currentDateRange.startDate);
-        const endDate = new Date(currentDateRange.endDate);
-
-        // Set time to include the full day
-        startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(23, 59, 59, 999);
-
-        filtered = filtered.filter(entry => {
-          const entryDate = new Date(entry.Timestamp || entry.timestamp);
-          return entryDate >= startDate && entryDate <= endDate;
-        });
-      }
-
-      // Apply title filter
-      if (selectedTitles.length > 0) {
-        filtered = filtered.filter(entry =>
-          selectedTitles.includes(entry.Title || entry.title)
-        );
-      }
-
-      // Apply author filter
-      if (selectedAuthors.length > 0) {
-        filtered = filtered.filter(entry =>
-          selectedAuthors.includes(entry.Author || entry.author)
-        );
-      }
-
-      // Apply genre filter
-      if (selectedGenres.length > 0) {
-        filtered = filtered.filter(entry => {
-          const entryGenre = entry.Genre || entry.genre;
-          return selectedGenres.includes(entryGenre);
-        });
-      }
-
-      // Apply fiction/non-fiction filter
-      if (selectedFictionTypes.length > 0) {
-        filtered = filtered.filter(entry => {
-          const fictionField = entry.Fiction_yn || entry.fiction || entry.fiction_yn;
-
-          // Determine the fiction type based on various possible field formats
-          let fictionType = null;
-          if (fictionField === true || fictionField === 'fiction' || fictionField === 'true') {
-            fictionType = 'Fiction';
-          } else if (fictionField === false || fictionField === 'non-fiction' || fictionField === 'false') {
-            fictionType = 'Non-Fiction';
-          }
-
-          return selectedFictionTypes.includes(fictionType);
-        });
-      }
-
-      setFilteredData(filtered);
-    };
-
-    applyFilters();
   }, [books, currentDateRange, selectedTitles, selectedAuthors, selectedGenres, selectedFictionTypes]);
 
   // Initialize with passed date range
