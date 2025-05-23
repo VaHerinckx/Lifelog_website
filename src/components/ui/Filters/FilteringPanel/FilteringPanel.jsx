@@ -5,8 +5,8 @@ import Filter from '../Filter/Filter';
 import './FilteringPanel.css';
 
 /**
- * A comprehensive filtering panel that manages interconnected filters
- * and automatically updates filter options based on current selections
+ * A comprehensive filtering panel that manages filters and automatically
+ * updates filter options based on data
  *
  * @param {Object} props
  * @param {Array} props.data - The raw data to filter
@@ -16,7 +16,6 @@ import './FilteringPanel.css';
  * @param {string} [props.title] - Optional title for the filter panel
  * @param {string} [props.description] - Optional description
  * @param {boolean} [props.loading] - Loading state
- * @param {boolean} [props.persistFilters] - Whether to persist filters across tabs
  */
 const FilteringPanel = ({
   data = [],
@@ -25,200 +24,133 @@ const FilteringPanel = ({
   onFiltersChange,
   title,
   description,
-  loading = false,
-  persistFilters = true
+  loading = false
 }) => {
-  const [filters, setFilters] = useState(initialFilters);
-
-  // Extract unique values from data for filter options
-  const extractUniqueValues = useMemo(() => {
-    if (!data || data.length === 0) return {};
-
-    const extracted = {};
+  // Initialize filters state with proper defaults
+  const [filters, setFilters] = useState(() => {
+    const initialState = {};
 
     filterConfigs.forEach(config => {
-      if (config.optionsSource && config.optionsSource !== 'static') {
-        // Extract from data using the field mapping
-        const fieldName = config.dataField || config.optionsSource;
-        let values = [];
-
-        if (fieldName) {
-          values = _.uniq(
-            data
-              .map(item => {
-                // Handle nested properties (e.g., 'author.name')
-                const value = fieldName.includes('.')
-                  ? _.get(item, fieldName)
-                  : item[fieldName];
-                return value;
-              })
-              .filter(value => value && value !== 'Unknown' && value.toString().trim() !== '')
-          ).sort();
-        }
-
-        extracted[config.key] = values;
-      } else if (config.options) {
-        // Use static options from config
-        extracted[config.key] = config.options;
+      if (config.type === 'multiselect') {
+        // For multiselect, always start with empty array
+        initialState[config.key] = initialFilters[config.key] || [];
+      } else if (config.type === 'singleselect') {
+        // For singleselect, use provided initial value or first option
+        initialState[config.key] = initialFilters[config.key] || config.defaultValue || 'all';
       }
     });
 
-    return extracted;
-  }, [data, filterConfigs]);
+    return initialState;
+  });
 
-  // Get filtered options based on current filter selections
-  const getFilteredOptions = useMemo(() => {
-    return (targetFilterKey) => {
-      if (!data || data.length === 0) return [];
+  // Calculate filtered options based on current filter selections (bi-directional cascading)
+  const filterOptions = useMemo(() => {
+    if (!data || data.length === 0) return {};
 
-      const targetConfig = filterConfigs.find(config => config.key === targetFilterKey);
-      if (!targetConfig) return [];
+    const options = {};
 
-      // If options are static, return them as-is
-      if (targetConfig.optionsSource === 'static' || targetConfig.options) {
-        return targetConfig.options || [];
-      }
+    filterConfigs.forEach(config => {
+      if (config.optionsSource === 'static' && config.options) {
+        // Use static options as-is
+        options[config.key] = config.options;
+      } else if (config.dataField || config.optionsSource) {
+        // For each filter, apply all OTHER active filters to determine available options
+        let filteredData = [...data];
 
-      // Start with all data
-      let relevantData = [...data];
-
-      // Apply all other active filters to determine available options
-      filterConfigs.forEach(config => {
-        if (config.key === targetFilterKey) return; // Skip the target filter
-
-        const filterValue = filters[config.key];
-        const dataField = config.dataField || config.optionsSource;
-
-        if (!filterValue || !dataField) return;
-
-        if (config.type === 'multiselect') {
-          // Multi-select filter
-          if (Array.isArray(filterValue) && filterValue.length > 0) {
-            relevantData = relevantData.filter(item => {
-              const itemValue = dataField.includes('.')
-                ? _.get(item, dataField)
-                : item[dataField];
-              return filterValue.includes(itemValue);
-            });
-          }
-        } else if (config.type === 'singleselect') {
-          // Single-select filter
-          if (filterValue && filterValue !== 'all') {
-            relevantData = relevantData.filter(item => {
-              const itemValue = dataField.includes('.')
-                ? _.get(item, dataField)
-                : item[dataField];
-              return itemValue === filterValue;
-            });
-          }
-        }
-      });
-
-      // Extract unique values from the filtered data for the target filter
-      const targetDataField = targetConfig.dataField || targetConfig.optionsSource;
-      const availableOptions = _.uniq(
-        relevantData
-          .map(item => {
-            const value = targetDataField.includes('.')
-              ? _.get(item, targetDataField)
-              : item[targetDataField];
-            return value;
-          })
-          .filter(value => value && value !== 'Unknown' && value.toString().trim() !== '')
-      ).sort();
-
-      return availableOptions;
-    };
-  }, [data, filterConfigs, filters]);
-
-  // Handle filter changes with smart interconnection logic
-  const handleFilterChange = (filterKey, newValue) => {
-    setFilters(prevFilters => {
-      const newFilters = { ...prevFilters, [filterKey]: newValue };
-      const changedConfig = filterConfigs.find(config => config.key === filterKey);
-
-      // Smart interconnection logic
-      if (changedConfig) {
-        // Clear conflicting selections in other filters
+        // Apply all other filters (not the current one we're calculating options for)
         filterConfigs.forEach(otherConfig => {
-          if (otherConfig.key === filterKey) return; // Skip self
+          if (otherConfig.key === config.key) return; // Skip the current filter
 
-          const otherValue = newFilters[otherConfig.key];
+          const filterValue = filters[otherConfig.key];
+          const dataField = otherConfig.dataField || otherConfig.optionsSource;
 
-          // If this is a single select being set to a specific value
-          if (changedConfig.type === 'singleselect' && newValue && newValue !== 'all') {
-            // Check if the new value is still available for multi-select filters of the same data type
-            if (otherConfig.type === 'multiselect' &&
-                otherConfig.optionsSource === changedConfig.optionsSource) {
+          if (!filterValue || !dataField) return;
 
-              // Filter out incompatible selections
-              if (Array.isArray(otherValue)) {
-                const compatibleOptions = getFilteredOptions(otherConfig.key);
-                newFilters[otherConfig.key] = otherValue.filter(val =>
-                  compatibleOptions.includes(val)
-                );
-              }
+          if (otherConfig.type === 'multiselect') {
+            // Multi-select filter: item must match at least one selected value
+            if (Array.isArray(filterValue) && filterValue.length > 0) {
+              filteredData = filteredData.filter(item => {
+                const itemValue = dataField.includes('.')
+                  ? _.get(item, dataField)
+                  : item[dataField];
+                return filterValue.includes(itemValue);
+              });
             }
-          }
-
-          // If this is a multi-select being changed
-          if (changedConfig.type === 'multiselect' && Array.isArray(newValue)) {
-            // Update related single-select filters
-            if (otherConfig.type === 'singleselect' &&
-                otherConfig.optionsSource === changedConfig.optionsSource) {
-
-              const availableOptions = getFilteredOptions(otherConfig.key);
-
-              // If current single-select value is no longer available, reset it
-              if (otherValue && otherValue !== 'all' && !availableOptions.includes(otherValue)) {
-                newFilters[otherConfig.key] = availableOptions[0] || otherConfig.defaultValue || 'all';
-              }
+          } else if (otherConfig.type === 'singleselect') {
+            // Single-select filter: exact match (excluding 'all' or default values)
+            if (filterValue && filterValue !== 'all' && filterValue !== otherConfig.defaultValue) {
+              filteredData = filteredData.filter(item => {
+                const itemValue = dataField.includes('.')
+                  ? _.get(item, dataField)
+                  : item[dataField];
+                return itemValue === filterValue;
+              });
             }
           }
         });
-      }
 
-      return newFilters;
+        // Extract unique values from the filtered data for the current filter
+        const fieldName = config.dataField || config.optionsSource;
+
+        let values = filteredData
+          .map(item => {
+            const value = fieldName.includes('.')
+              ? _.get(item, fieldName)
+              : item[fieldName];
+            return value;
+          })
+          .filter(value =>
+            value &&
+            value !== 'Unknown' &&
+            value.toString().trim() !== ''
+          );
+
+        // Remove duplicates and sort
+        values = _.uniq(values).sort();
+        options[config.key] = values;
+
+        // Debug logging
+        console.log(`🔍 Filter "${config.key}" options:`, values.length, 'items after applying other filters');
+      }
+    });
+
+    return options;
+  }, [data, filterConfigs, filters]); // Important: depends on current filters state
+
+  // Handle individual filter changes
+  const handleFilterChange = (filterKey, newValue) => {
+    console.log(`🔧 Filter "${filterKey}" changing to:`, newValue);
+
+    setFilters(prevFilters => {
+      const updatedFilters = {
+        ...prevFilters,
+        [filterKey]: newValue
+      };
+
+      console.log('📋 Updated filters state:', updatedFilters);
+      return updatedFilters;
     });
   };
 
-  // Notify parent when filters change
+  // Notify parent component when filters change
   useEffect(() => {
+    console.log('📤 Sending filters to parent:', filters);
     if (onFiltersChange) {
       onFiltersChange(filters);
     }
   }, [filters, onFiltersChange]);
 
-  // Initialize filters when data or configs change
-  useEffect(() => {
-    if (data.length > 0 && filterConfigs.length > 0) {
-      const initializedFilters = { ...initialFilters };
-
-      filterConfigs.forEach(config => {
-        if (!(config.key in initializedFilters)) {
-          if (config.type === 'multiselect') {
-            initializedFilters[config.key] = [];
-          } else if (config.type === 'singleselect') {
-            const availableOptions = extractUniqueValues[config.key] || [];
-            initializedFilters[config.key] = config.defaultValue || availableOptions[0] || 'all';
-          }
-        }
-      });
-
-      setFilters(initializedFilters);
-    }
-  }, [data, filterConfigs, extractUniqueValues, initialFilters]);
-
+  // Loading state
   if (loading) {
     return (
       <div className="filtering-panel loading">
         <div className="filtering-panel-header">
-          <h3>{title || "Filters"}</h3>
-          {description && <p>{description}</p>}
+          <h3 className="filtering-panel-title">{title || "Filters"}</h3>
+          {description && <p className="filtering-panel-description">{description}</p>}
         </div>
         <div className="filtering-panel-content">
           <div className="filters-grid">
-            {[1, 2, 3, 4].map(index => (
+            {[1, 2, 3].map(index => (
               <div key={index} className="filter-skeleton">
                 <div className="skeleton-label"></div>
                 <div className="skeleton-filter"></div>
@@ -242,10 +174,10 @@ const FilteringPanel = ({
       <div className="filtering-panel-content">
         <div className="filters-grid">
           {filterConfigs.map(config => {
-            const availableOptions = getFilteredOptions(config.key);
+            const availableOptions = filterOptions[config.key] || [];
             const currentValue = filters[config.key];
 
-            // Skip rendering if no options available (unless it's a static filter)
+            // Skip rendering if no options available for data-driven filters
             if (availableOptions.length === 0 && config.optionsSource !== 'static') {
               return null;
             }
@@ -261,7 +193,7 @@ const FilteringPanel = ({
                   icon={config.icon}
                   placeholder={config.placeholder}
                   searchPlaceholder={config.searchPlaceholder}
-                  searchable={config.searchable !== false} // Default to true
+                  searchable={config.searchable !== false}
                   allLabel={config.allLabel}
                   defaultValue={config.defaultValue}
                 />
@@ -270,11 +202,23 @@ const FilteringPanel = ({
           })}
         </div>
 
-        {/* Debug information (remove in production) */}
+        {/* Debug information in development */}
         {process.env.NODE_ENV === 'development' && (
           <details className="filter-debug">
-            <summary>Filter Debug Info</summary>
-            <pre>{JSON.stringify(filters, null, 2)}</pre>
+            <summary>🐛 Filter Debug Info</summary>
+            <div>
+              <strong>Current Filters:</strong>
+              <pre>{JSON.stringify(filters, null, 2)}</pre>
+              <strong>Available Options:</strong>
+              <pre>{JSON.stringify(filterOptions, null, 2)}</pre>
+              <strong>Filter Configs:</strong>
+              <pre>{JSON.stringify(filterConfigs.map(c => ({
+                key: c.key,
+                type: c.type,
+                dataField: c.dataField,
+                optionsSource: c.optionsSource
+              })), null, 2)}</pre>
+            </div>
           </details>
         )}
       </div>

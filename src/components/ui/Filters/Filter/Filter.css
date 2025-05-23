@@ -10,7 +10,7 @@
   font-size: 0.9rem;
   font-weight: 600; /* Make it bolder */
   margin-bottom: 0.5rem;
-  color: var(--text-primary, #FFFFFF); /* Use white text for better contrast */
+  color: var(--text-element, #171738); /* Use white text for better contrast */
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1); /* Add subtle shadow for readability */
 }
 

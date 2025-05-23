@@ -12,7 +12,7 @@ import BookDetails from './components/BookDetails';
 import ReadingTimeline from './components/ReadingTimeline';
 import ReadingAnalysisTab from './components/ReadingAnalysisTab';
 import CardsPanel from '../../components/ui/CardsPanel/CardsPanel';
-import Filter from '../../components/ui/Filters/Filter/Filter'; // NEW: Import Filter component for testing
+import FilteringPanel from '../../components/ui/Filters/FilteringPanel/FilteringPanel';
 
 // Component to display star ratings
 const StarRating = ({ rating, size = 16 }) => {
@@ -95,20 +95,10 @@ const ReadingPage = () => {
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [readingEntries, setReadingEntries] = useState([]);
 
-  // UPDATED: Replace individual filter states with centralized filter state
-  const [filters, setFilters] = useState({
-    genre: 'all',
-    fictionType: 'all',
-    timeframe: 'all',
-    sortOrder: 'recent',
-    // NEW: Test filters for the new Filter component
-    authors: [], // Multi-select
-    selectedGenres: [] // Multi-select
-  });
+  // Simplified filter state - now managed by FilteringPanel
+  const [filters, setFilters] = useState({});
 
   const [viewMode, setViewMode] = useState('grid');
-  const [genres, setGenres] = useState([]);
-  const [authors, setAuthors] = useState([]); // NEW: For testing multi-select
   const [selectedBook, setSelectedBook] = useState(null);
   const [readingStats, setReadingStats] = useState({
     totalBooks: 0,
@@ -122,6 +112,40 @@ const ReadingPage = () => {
     startDate: null,
     endDate: null
   });
+
+  // Define filter configurations for FilteringPanel
+  const filterConfigs = [
+    {
+      key: 'genres',
+      type: 'multiselect',
+      label: 'Genres',
+      optionsSource: 'genre',
+      dataField: 'genre',
+      icon: <Tag size={16} />,
+      placeholder: 'Select genres',
+      searchPlaceholder: 'Search genres...'
+    },
+    {
+      key: 'authors',
+      type: 'multiselect',
+      label: 'Authors',
+      optionsSource: 'author',
+      dataField: 'author',
+      icon: <User size={16} />,
+      placeholder: 'Select authors',
+      searchPlaceholder: 'Search authors...'
+    },
+    {
+      key: 'books',
+      type: 'multiselect',
+      label: 'Books',
+      optionsSource: 'title',
+      dataField: 'title',
+      icon: <Book size={16} />,
+      placeholder: 'Select books',
+      searchPlaceholder: 'Search books...'
+    }
+  ];
 
   // Function to process books data from the API response
   const processRawData = (rawData) => {
@@ -210,22 +234,6 @@ const ReadingPage = () => {
     setBooks(sortedBooks);
     setFilteredBooks(sortedBooks);
 
-    // Extract unique genres and authors for filter options
-    const uniqueGenres = _.uniq(
-      processedBooks
-        .map(book => book.genre)
-        .filter(genre => genre && genre !== 'Unknown')
-    );
-    setGenres(uniqueGenres);
-
-    // NEW: Extract unique authors for testing multi-select
-    const uniqueAuthors = _.uniq(
-      processedBooks
-        .map(book => book.author)
-        .filter(author => author && author.trim() !== '')
-    ).sort();
-    setAuthors(uniqueAuthors);
-
     // Calculate stats and date range
     const now = new Date();
     const lastMonthDate = new Date();
@@ -268,70 +276,38 @@ const ReadingPage = () => {
     }
   }, [data]);
 
-  // UPDATED: Apply filters based on centralized filter state
-  useEffect(() => {
+  // Apply filters when FilteringPanel filters change
+  const handleFiltersChange = (newFilters) => {
+    setFilters(newFilters);
+
     if (books.length > 0) {
       let filtered = [...books];
 
-      // Apply genre filter (single select)
-      if (filters.genre !== 'all') {
-        filtered = filtered.filter(book => book.genre === filters.genre);
+      // Apply genres filter (multi-select)
+      if (newFilters.genres && Array.isArray(newFilters.genres) && newFilters.genres.length > 0) {
+        filtered = filtered.filter(book => newFilters.genres.includes(book.genre));
       }
 
-      // Apply fiction/non-fiction filter (single select)
-      if (filters.fictionType !== 'all') {
-        const isFiction = filters.fictionType === 'fiction';
-        filtered = filtered.filter(book => book.fiction === isFiction);
+      // Apply authors filter (multi-select)
+      if (newFilters.authors && Array.isArray(newFilters.authors) && newFilters.authors.length > 0) {
+        filtered = filtered.filter(book => newFilters.authors.includes(book.author));
       }
 
-      // NEW: Apply multi-select author filter
-      if (filters.authors.length > 0) {
-        filtered = filtered.filter(book => filters.authors.includes(book.author));
+      // Apply books filter (multi-select)
+      if (newFilters.books && Array.isArray(newFilters.books) && newFilters.books.length > 0) {
+        filtered = filtered.filter(book => newFilters.books.includes(book.title));
       }
 
-      // NEW: Apply multi-select genre filter (for testing)
-      if (filters.selectedGenres.length > 0) {
-        filtered = filtered.filter(book => filters.selectedGenres.includes(book.genre));
-      }
-
-      // Apply timeframe filter
-      if (filters.timeframe !== 'all') {
-        const now = new Date();
-        let cutoffDate = new Date();
-
-        switch (filters.timeframe) {
-          case 'month':
-            cutoffDate.setMonth(now.getMonth() - 1);
-            break;
-          case 'quarter':
-            cutoffDate.setMonth(now.getMonth() - 3);
-            break;
-          case 'year':
-            cutoffDate.setFullYear(now.getFullYear() - 1);
-            break;
-          default:
-            break;
-        }
-
-        filtered = filtered.filter(book => book.timestamp >= cutoffDate);
-      }
-
-      // Apply sorting
-      if (filters.sortOrder === 'recent') {
-        filtered = _.sortBy(filtered, book => {
-          return book.timestamp instanceof Date && !isNaN(book.timestamp.getTime())
-            ? book.timestamp.getTime()
-            : -Infinity;
-        }).reverse();
-      } else if (filters.sortOrder === 'rating') {
-        filtered = _.sortBy(filtered, book => book.myRating).reverse();
-      } else if (filters.sortOrder === 'title') {
-        filtered = _.sortBy(filtered, book => book.title.toLowerCase());
-      }
+      // Default sorting by most recent
+      filtered = _.sortBy(filtered, book => {
+        return book.timestamp instanceof Date && !isNaN(book.timestamp.getTime())
+          ? book.timestamp.getTime()
+          : -Infinity;
+      }).reverse();
 
       setFilteredBooks(filtered);
     }
-  }, [books, filters]);
+  };
 
   // Update stats when filtered books change
   useEffect(() => {
@@ -358,14 +334,6 @@ const ReadingPage = () => {
       });
     }
   }, [filteredBooks]);
-
-  // NEW: Helper function to update specific filter
-  const updateFilter = (key, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value
-    }));
-  };
 
   // Handle file upload directly
   const handleFileUpload = async (event) => {
@@ -482,138 +450,39 @@ const ReadingPage = () => {
         {/* Books Tab Content */}
         {activeTab === 'books' && (
           <>
-            {/* UPDATED: Test the new Filter components */}
-            <div className="controls-container">
-              <div className="filters-section">
-                {/* Original dropdown filters for comparison */}
-                <div className="filter-group">
-                  <label htmlFor="genre-select">Genre (Old):</label>
-                  <select
-                    id="genre-select"
-                    value={filters.genre}
-                    onChange={(e) => updateFilter('genre', e.target.value)}
-                    className="filter-select"
-                  >
-                    <option value="all">All Genres</option>
-                    {genres.map(genre => (
-                      <option key={genre} value={genre}>{genre}</option>
-                    ))}
-                  </select>
-                </div>
+            {/* NEW: FilteringPanel replaces all the old filters */}
+            <FilteringPanel
+              data={books}
+              filterConfigs={filterConfigs}
+              onFiltersChange={handleFiltersChange}
+              title="Book Filters"
+              description="Filter and sort your reading collection"
+            />
 
-                <div className="filter-group">
-                  <label htmlFor="fiction-select">Type (Old):</label>
-                  <select
-                    id="fiction-select"
-                    value={filters.fictionType}
-                    onChange={(e) => updateFilter('fictionType', e.target.value)}
-                    className="filter-select"
-                  >
-                    <option value="all">All Types</option>
-                    <option value="fiction">Fiction</option>
-                    <option value="non-fiction">Non-Fiction</option>
-                  </select>
-                </div>
-
-                <div className="filter-group">
-                  <label htmlFor="sort-select">Sort By:</label>
-                  <select
-                    id="sort-select"
-                    value={filters.sortOrder}
-                    onChange={(e) => updateFilter('sortOrder', e.target.value)}
-                    className="filter-select"
-                  >
-                    <option value="recent">Most Recent</option>
-                    <option value="rating">Highest Rated</option>
-                    <option value="title">Title (A-Z)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* NEW: Test Filter components */}
-              <div className="new-filters-section" style={{
-                marginTop: '2rem',
-                padding: '1rem',
-                backgroundColor: 'rgba(52, 35, 166, 0.1)',
-                borderRadius: '8px'
-              }}>
-                <h3 style={{ color: 'var(--title-color)', marginBottom: '1rem' }}>
-                  NEW Filter Components (Testing)
-                </h3>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
-                  {/* Test Single Select Genre Filter */}
-                  <Filter
-                    type="singleselect"
-                    options={genres}
-                    value={filters.genre === 'all' ? genres[0] : filters.genre}
-                    onChange={(value) => updateFilter('genre', value)}
-                    defaultValue={genres[0]}
-                    label="Genre (Single Select)"
-                    icon={<Tag size={16} />}
-                    placeholder="Select a genre"
-                  />
-
-                  {/* Test Multi Select Authors Filter */}
-                  <Filter
-                    type="multiselect"
-                    options={authors}
-                    value={filters.authors}
-                    onChange={(value) => updateFilter('authors', value)}
-                    label="Authors (Multi Select)"
-                    icon={<User size={16} />}
-                    placeholder="Select authors"
-                  />
-
-                  {/* Test Multi Select Genres Filter */}
-                  <Filter
-                    type="multiselect"
-                    options={genres}
-                    value={filters.selectedGenres}
-                    onChange={(value) => updateFilter('selectedGenres', value)}
-                    label="Genres (Multi Select)"
-                    icon={<Tag size={16} />}
-                    placeholder="Select genres"
-                  />
-
-                  {/* Test Single Select Fiction Type */}
-                  <Filter
-                    type="singleselect"
-                    options={['Fiction', 'Non-Fiction']}
-                    value={filters.fictionType === 'all' ? 'Fiction' : filters.fictionType}
-                    onChange={(value) => updateFilter('fictionType', value)}
-                    defaultValue="Fiction"
-                    label="Fiction Type (Single Select)"
-                    icon={<BookIcon size={16} />}
-                  />
-                </div>
-              </div>
-
-              <div className="view-controls">
-                <button
-                  className={`view-control-btn ${viewMode === 'grid' ? 'active' : ''}`}
-                  onClick={() => setViewMode('grid')}
-                  title="Grid View"
-                >
-                  <Grid size={20} />
-                </button>
-                <button
-                  className={`view-control-btn ${viewMode === 'list' ? 'active' : ''}`}
-                  onClick={() => setViewMode('list')}
-                  title="List View"
-                >
-                  <List size={20} />
-                </button>
-                <button
-                  className={`view-control-btn ${viewMode === 'timeline' ? 'active' : ''}`}
-                  onClick={() => setViewMode('timeline')}
-                  title="Timeline View"
-                >
-                  <Clock size={20} />
-                </button>
-                <div className="book-count">
-                  {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'} found
-                </div>
+            <div className="view-controls">
+              <button
+                className={`view-control-btn ${viewMode === 'grid' ? 'active' : ''}`}
+                onClick={() => setViewMode('grid')}
+                title="Grid View"
+              >
+                <Grid size={20} />
+              </button>
+              <button
+                className={`view-control-btn ${viewMode === 'list' ? 'active' : ''}`}
+                onClick={() => setViewMode('list')}
+                title="List View"
+              >
+                <List size={20} />
+              </button>
+              <button
+                className={`view-control-btn ${viewMode === 'timeline' ? 'active' : ''}`}
+                onClick={() => setViewMode('timeline')}
+                title="Timeline View"
+              >
+                <Clock size={20} />
+              </button>
+              <div className="book-count">
+                {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'} found
               </div>
             </div>
 
