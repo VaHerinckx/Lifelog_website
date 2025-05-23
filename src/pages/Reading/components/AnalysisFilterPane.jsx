@@ -1,8 +1,7 @@
 // src/pages/Reading/components/AnalysisFilterPane.jsx
 import React, { useMemo } from 'react';
 import { Book, User, Calendar, BookOpen, Tag } from 'lucide-react';
-import AdvancedDateRangeSlider from '../../../components/ui/Slicers/AdvancedDateRangeSlider/AdvancedDateRangeSlider';
-import MultiSelectDropdown from '../../../components/ui/Slicers/MultiSelectDropdown/MultiSelectDropdown';
+
 import './AnalysisFilterPane.css';
 
 const AnalysisFilterPane = ({

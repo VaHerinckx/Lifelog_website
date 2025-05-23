@@ -1,4 +1,4 @@
-// PodcastPage.jsx with added debugging logs
+// src/pages/Podcast/PodcastPage.jsx
 
 import React, { useState, useEffect } from 'react';
 import _ from 'lodash';
@@ -8,7 +8,7 @@ import { Podcast, BarChart2, Headphones, Clock, Music, Percent } from 'lucide-re
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useData } from '../../context/DataContext';
 import PodcastAnalysisTab from './components/PodcastAnalysisTab';
-import KpiCard from '../../components/charts/KpiCard';
+import CardsPanel from '../../components/ui/CardsPanel/CardsPanel';
 
 const PodcastPage = () => {
   // Get data and functions from context
@@ -25,16 +25,6 @@ const PodcastPage = () => {
     avgCompletion: 0
   });
 
-  // Local state (from original component)
-  const [uniquePodcasts, setUniquePodcasts] = useState([]);
-  const [uniqueGenres, setUniqueGenres] = useState([]);
-  const [selectedPodcasts, setSelectedPodcasts] = useState([]);
-  const [selectedGenres, setSelectedGenres] = useState([]);
-  const [dateRange, setDateRange] = useState({
-    startDate: null,
-    endDate: null
-  });
-
   // Fetch podcast data when component mounts
   useEffect(() => {
     fetchData('podcast');
@@ -43,55 +33,10 @@ const PodcastPage = () => {
   // Process podcast data when it's loaded
   useEffect(() => {
     if (data.podcast && data.podcast.length > 0) {
-      // DEBUG: Log first few podcast entries to inspect data structure
-
-      // Get unique podcasts
-      const podcasts = _.uniq(data.podcast.map(item => item['podcast_name'])).filter(Boolean);
-      setUniquePodcasts(podcasts);
-
-      // Get unique genres with proper filtering for problematic entries
-      const cleanedGenres = data.podcast
-        .map(item => {
-          // Clean up invalid genre entries (URLs, image paths, etc.)
-          if (!item.genre) return null;
-          if (item.genre.includes('https://') ||
-              item.genre.includes('image/thumb') ||
-              item.genre.length > 30) {
-            return 'Unknown';
-          }
-          return item.genre;
-        })
-        .filter(Boolean); // Filter out null/undefined/empty values
-
-      // Get unique cleaned genres
-      const genres = _.uniq(cleanedGenres).sort();
-      setUniqueGenres(genres);
-
-      // Process and filter dates
-      const validDates = data.podcast
-        .map(item => new Date(item['modified at']))
-        .filter(date => !isNaN(date.getTime()) && date.getFullYear() > 1970)
-        .sort((a, b) => a - b);
-
-      if (validDates.length > 0) {
-        const startDate = validDates[0].toISOString().split('T')[0];
-        const endDate = validDates[validDates.length - 1].toISOString().split('T')[0];
-        setDateRange({ startDate, endDate });
-      }
-
       // Calculate stats for KPI cards
-      // Total episodes
       const totalEpisodes = data.podcast.length;
 
-      // DEBUG: Log information about duration field
-      const durationSamples = data.podcast.slice(0, 10).map(ep => ({
-        duration: ep.duration,
-        type: typeof ep.duration,
-        parsed: parseFloat(ep.duration),
-        minutes: parseFloat(ep.duration) / 60
-      }));
-
-      // Total listening time in minutes with more careful parsing
+      // Total listening time in minutes with careful parsing
       const durations = data.podcast.map(episode => {
         const duration = episode.duration;
         // Check if duration exists and is a valid number
@@ -107,17 +52,9 @@ const PodcastPage = () => {
       const totalMinutes = Math.round(_.sum(durations));
 
       // Unique podcast count
-      const uniquePodcastCount = podcasts.length;
+      const uniquePodcastCount = _.uniq(data.podcast.map(item => item['podcast_name'])).filter(Boolean).length;
 
-      // DEBUG: Log information about completion fields
-      const completionSamples = data.podcast.slice(0, 10).map(ep => ({
-        completion_percent: ep['completion_%'],
-        completion: ep.completion,
-        type_percent: typeof ep['completion_%'],
-        type_completion: typeof ep.completion
-      }));
-
-      // Average completion rate - with more careful calculation
+      // Average completion rate - with careful calculation
       const completionValues = data.podcast.map(episode => {
         // Using bracket notation for properties with special characters
         const completionPercent = episode['completion_%'];
@@ -126,10 +63,6 @@ const PodcastPage = () => {
         if (completionPercent !== undefined && completionPercent !== null) {
           const parsedValue = parseFloat(completionPercent);
           if (!isNaN(parsedValue)) {
-            // DEBUG: Log high values
-            if (parsedValue > 100) {
-              console.log("Abnormal completion_%:", episode);
-            }
             return Math.min(parsedValue, 100); // Cap at 100%
           }
         }
@@ -139,17 +72,12 @@ const PodcastPage = () => {
           if (!isNaN(parsedValue)) {
             // Assuming it's stored as a decimal
             const percentage = parsedValue * 100;
-            // DEBUG: Log high values
-            if (percentage > 100) {
-              console.log("Abnormal completion:", episode);
-            }
             return Math.min(percentage, 100); // Cap at 100%
           }
         }
 
         return 100; // Default to 100% if we can't determine
       });
-
 
       const avgCompletion = Math.round(_.mean(completionValues));
 
@@ -160,9 +88,34 @@ const PodcastPage = () => {
         uniquePodcasts: uniquePodcastCount,
         avgCompletion
       });
-
     }
   }, [data.podcast]);
+
+  // Prepare cards data for CardsPanel
+  const prepareStatsCards = () => {
+    return [
+      {
+        value: podcastStats.totalEpisodes.toLocaleString(),
+        label: "Episodes Listened",
+        icon: <Headphones size={24} />
+      },
+      {
+        value: podcastStats.totalListeningTime.toLocaleString() || "0",
+        label: "Total Minutes",
+        icon: <Clock size={24} />
+      },
+      {
+        value: podcastStats.uniquePodcasts.toLocaleString(),
+        label: "Unique Podcasts",
+        icon: <Music size={24} />
+      },
+      {
+        value: `${Math.min(podcastStats.avgCompletion, 100)}%`,
+        label: "Avg. Completion",
+        icon: <Percent size={24} />
+      }
+    ];
+  };
 
   if (loading.podcast) {
     return <LoadingSpinner centerIcon={Podcast} />;
@@ -198,32 +151,13 @@ const PodcastPage = () => {
       {/* Podcasts Tab Content */}
       {activeTab === 'podcasts' && (
         <div className="podcasts-content">
-          {/* KPI Cards */}
-          <div className="podcast-stats-cards">
-            <KpiCard
-              value={podcastStats.totalEpisodes.toLocaleString()}
-              label="Episodes Listened"
-              icon={<Headphones size={24} />}
-            />
-
-            <KpiCard
-              value={podcastStats.totalListeningTime.toLocaleString() || "0"}
-              label="Total Minutes"
-              icon={<Clock size={24} />}
-            />
-
-            <KpiCard
-              value={podcastStats.uniquePodcasts.toLocaleString()}
-              label="Unique Podcasts"
-              icon={<Music size={24} />}
-            />
-
-            <KpiCard
-              value={`${Math.min(podcastStats.avgCompletion, 100)}%`}
-              label="Avg. Completion"
-              icon={<Percent size={24} />}
-            />
-          </div>
+          {/* KPI Cards using CardsPanel */}
+          <CardsPanel
+            title="Podcast Statistics"
+            description="Your listening progress at a glance"
+            cards={prepareStatsCards()}
+            loading={loading?.podcast}
+          />
 
           {/* Coming Soon Message (to be replaced with actual podcast list) */}
           <div className="coming-soon-container">
@@ -234,17 +168,7 @@ const PodcastPage = () => {
 
       {/* Analysis Tab Content */}
       {activeTab === 'analysis' && (
-        <PodcastAnalysisTab
-          podcastData={data.podcast}
-          uniquePodcasts={uniquePodcasts}
-          uniqueGenres={uniqueGenres}
-          selectedPodcasts={selectedPodcasts}
-          setSelectedPodcasts={setSelectedPodcasts}
-          selectedGenres={selectedGenres}
-          setSelectedGenres={setSelectedGenres}
-          dateRange={dateRange}
-          setDateRange={setDateRange}
-        />
+        <PodcastAnalysisTab podcastData={data.podcast} />
       )}
     </div>
   );

@@ -116,6 +116,14 @@ const ReadingPage = () => {
   // Define filter configurations for FilteringPanel
   const filterConfigs = [
     {
+      key: 'dateRange',
+      type: 'daterange',
+      label: 'Reading Date',
+      dataField: 'timestamp',
+      icon: <Clock size={16} />,
+      placeholder: 'Select date range'
+    },
+    {
       key: 'genres',
       type: 'multiselect',
       label: 'Genres',
@@ -282,6 +290,22 @@ const ReadingPage = () => {
 
     if (books.length > 0) {
       let filtered = [...books];
+
+      // Apply date range filter
+      if (newFilters.dateRange && (newFilters.dateRange.startDate || newFilters.dateRange.endDate)) {
+        filtered = filtered.filter(book => {
+          if (!book.timestamp || isNaN(book.timestamp.getTime())) return false;
+
+          const bookDate = book.timestamp;
+          const startDate = newFilters.dateRange.startDate ? new Date(newFilters.dateRange.startDate) : null;
+          const endDate = newFilters.dateRange.endDate ? new Date(newFilters.dateRange.endDate) : null;
+
+          if (startDate && bookDate < startDate) return false;
+          if (endDate && bookDate > endDate) return false;
+
+          return true;
+        });
+      }
 
       // Apply genres filter (multi-select)
       if (newFilters.genres && Array.isArray(newFilters.genres) && newFilters.genres.length > 0) {

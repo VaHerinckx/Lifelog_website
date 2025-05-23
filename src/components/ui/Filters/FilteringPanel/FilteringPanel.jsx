@@ -48,13 +48,67 @@ const FilteringPanel = ({
     if (!data || data.length === 0) return {};
 
     const options = {};
+    const dateBoundaries = {};
 
     filterConfigs.forEach(config => {
       if (config.optionsSource === 'static' && config.options) {
         // Use static options as-is
         options[config.key] = config.options;
+      } else if (config.type === 'daterange') {
+        // Handle date range boundaries
+        let filteredData = [...data];
+
+        // Apply all other filters to determine date boundaries
+        filterConfigs.forEach(otherConfig => {
+          if (otherConfig.key === config.key || otherConfig.type === 'daterange') return;
+
+          const filterValue = filters[otherConfig.key];
+          const dataField = otherConfig.dataField || otherConfig.optionsSource;
+
+          if (!filterValue || !dataField) return;
+
+          if (otherConfig.type === 'multiselect') {
+            if (Array.isArray(filterValue) && filterValue.length > 0) {
+              filteredData = filteredData.filter(item => {
+                const itemValue = dataField.includes('.')
+                  ? _.get(item, dataField)
+                  : item[dataField];
+                return filterValue.includes(itemValue);
+              });
+            }
+          } else if (otherConfig.type === 'singleselect') {
+            if (filterValue && filterValue !== 'all' && filterValue !== otherConfig.defaultValue) {
+              filteredData = filteredData.filter(item => {
+                const itemValue = dataField.includes('.')
+                  ? _.get(item, dataField)
+                  : item[dataField];
+                return itemValue === filterValue;
+              });
+            }
+          }
+        });
+
+        // Extract date boundaries from filtered data
+        const fieldName = config.dataField || config.optionsSource;
+        const validDates = filteredData
+          .map(item => {
+            const value = fieldName.includes('.')
+              ? _.get(item, fieldName)
+              : item[fieldName];
+            return value ? new Date(value) : null;
+          })
+          .filter(date => date && !isNaN(date.getTime()) && date.getFullYear() > 1900)
+          .sort((a, b) => a - b);
+
+        if (validDates.length > 0) {
+          dateBoundaries[config.key] = {
+            minDate: validDates[0],
+            maxDate: validDates[validDates.length - 1]
+          };
+        }
+
       } else if (config.dataField || config.optionsSource) {
-        // For each filter, apply all OTHER active filters to determine available options
+        // For regular filters, apply all OTHER active filters to determine available options
         let filteredData = [...data];
 
         // Apply all other filters (not the current one we're calculating options for)
@@ -86,6 +140,28 @@ const FilteringPanel = ({
                 return itemValue === filterValue;
               });
             }
+          } else if (otherConfig.type === 'daterange') {
+            // Date range filter: item must be within the selected date range
+            if (filterValue && (filterValue.startDate || filterValue.endDate)) {
+              filteredData = filteredData.filter(item => {
+                const itemValue = dataField.includes('.')
+                  ? _.get(item, dataField)
+                  : item[dataField];
+
+                if (!itemValue) return false;
+
+                const itemDate = new Date(itemValue);
+                if (isNaN(itemDate.getTime())) return false;
+
+                const startDate = filterValue.startDate ? new Date(filterValue.startDate) : null;
+                const endDate = filterValue.endDate ? new Date(filterValue.endDate) : null;
+
+                if (startDate && itemDate < startDate) return false;
+                if (endDate && itemDate > endDate) return false;
+
+                return true;
+              });
+            }
           }
         });
 
@@ -114,7 +190,7 @@ const FilteringPanel = ({
       }
     });
 
-    return options;
+    return { options, dateBoundaries };
   }, [data, filterConfigs, filters]); // Important: depends on current filters state
 
   // Handle individual filter changes
@@ -174,11 +250,17 @@ const FilteringPanel = ({
       <div className="filtering-panel-content">
         <div className="filters-grid">
           {filterConfigs.map(config => {
-            const availableOptions = filterOptions[config.key] || [];
+            const availableOptions = filterOptions.options?.[config.key] || [];
+            const boundaries = filterOptions.dateBoundaries?.[config.key];
             const currentValue = filters[config.key];
 
-            // Skip rendering if no options available for data-driven filters
-            if (availableOptions.length === 0 && config.optionsSource !== 'static') {
+            // Skip rendering if no options available for data-driven filters (except daterange)
+            if (config.type !== 'daterange' && availableOptions.length === 0 && config.optionsSource !== 'static') {
+              return null;
+            }
+
+            // Skip rendering daterange if no date boundaries found
+            if (config.type === 'daterange' && !boundaries) {
               return null;
             }
 
@@ -196,6 +278,8 @@ const FilteringPanel = ({
                   searchable={config.searchable !== false}
                   allLabel={config.allLabel}
                   defaultValue={config.defaultValue}
+                  minDate={boundaries?.minDate}
+                  maxDate={boundaries?.maxDate}
                 />
               </div>
             );
@@ -210,7 +294,9 @@ const FilteringPanel = ({
               <strong>Current Filters:</strong>
               <pre>{JSON.stringify(filters, null, 2)}</pre>
               <strong>Available Options:</strong>
-              <pre>{JSON.stringify(filterOptions, null, 2)}</pre>
+              <pre>{JSON.stringify(filterOptions.options, null, 2)}</pre>
+              <strong>Date Boundaries:</strong>
+              <pre>{JSON.stringify(filterOptions.dateBoundaries, null, 2)}</pre>
               <strong>Filter Configs:</strong>
               <pre>{JSON.stringify(filterConfigs.map(c => ({
                 key: c.key,

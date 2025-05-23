@@ -1,35 +1,116 @@
 // src/pages/Podcast/components/PodcastAnalysisTab.jsx
-import React, { useState } from 'react';
-import { Podcast, Tag } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Podcast, Tag, Calendar } from 'lucide-react';
 import TimeSeriesBarChart from '../../../components/charts/TimeSeriesBarChart';
 import IntensityHeatmap from '../../../components/charts/IntensityHeatmap';
 import TopPodcastsChart from '../../../components/charts/TopPodcastsChart';
 import TreemapGenre from '../../../components/charts/TreemapGenre';
-import AdvancedDateRangeSlider from '../../../components/ui/Slicers/AdvancedDateRangeSlider/AdvancedDateRangeSlider';
-import MultiSelectDropdown from '../../../components/ui/Slicers/MultiSelectDropdown/MultiSelectDropdown';
+import FilteringPanel from '../../../components/ui/Filters/FilteringPanel/FilteringPanel';
 import './PodcastAnalysisTab.css';
 
-const PodcastAnalysisTab = ({
-  podcastData,
-  uniquePodcasts,
-  uniqueGenres,
-  selectedPodcasts,
-  setSelectedPodcasts,
-  selectedGenres,
-  setSelectedGenres,
-  dateRange,
-  setDateRange
-}) => {
-  // Local state
+const PodcastAnalysisTab = ({ podcastData }) => {
+  // Local state for filtered data and selected podcast info
+  const [filteredData, setFilteredData] = useState([]);
   const [selectedPodcastInfo, setSelectedPodcastInfo] = useState(null);
+  const [filters, setFilters] = useState({});
 
-  // Handle podcast selection changes
-  const handlePodcastChange = (podcasts) => {
-    setSelectedPodcasts(podcasts);
+  // Define filter configurations for FilteringPanel
+  const filterConfigs = [
+    {
+      key: 'dateRange',
+      type: 'daterange',
+      label: 'Listening Date',
+      dataField: 'modified at',
+      icon: <Calendar size={16} />,
+      placeholder: 'Select date range'
+    },
+    {
+      key: 'podcasts',
+      type: 'multiselect',
+      label: 'Podcasts',
+      optionsSource: 'podcast_name',
+      dataField: 'podcast_name',
+      icon: <Podcast size={16} />,
+      placeholder: 'Select podcasts',
+      searchPlaceholder: 'Search podcasts...'
+    },
+    {
+      key: 'genres',
+      type: 'multiselect',
+      label: 'Genres',
+      optionsSource: 'genre',
+      dataField: 'genre',
+      icon: <Tag size={16} />,
+      placeholder: 'Select genres',
+      searchPlaceholder: 'Search genres...'
+    }
+  ];
 
-    // Set the selected podcast info for display if only one podcast is selected
-    if (podcasts.length === 1 && podcastData) {
-      const podcastInfo = podcastData.find(item => item.podcast_name === podcasts[0]);
+  // Handle filter changes from FilteringPanel
+  const handleFiltersChange = (newFilters) => {
+    console.log('🎧 Podcast filters changed:', newFilters);
+    setFilters(newFilters);
+  };
+
+  // Apply filters whenever filters or data change
+  useEffect(() => {
+    if (!podcastData || podcastData.length === 0) {
+      setFilteredData([]);
+      return;
+    }
+
+    let filtered = [...podcastData];
+
+    // Apply date range filter
+    if (filters.dateRange && (filters.dateRange.startDate || filters.dateRange.endDate)) {
+      filtered = filtered.filter(item => {
+        const itemDate = new Date(item['modified at']);
+        if (isNaN(itemDate.getTime()) || itemDate.getFullYear() <= 1970) {
+          return false;
+        }
+
+        const startDate = filters.dateRange.startDate ? new Date(filters.dateRange.startDate) : null;
+        const endDate = filters.dateRange.endDate ? new Date(filters.dateRange.endDate) : null;
+
+        if (startDate) {
+          startDate.setHours(0, 0, 0, 0);
+          if (itemDate < startDate) return false;
+        }
+
+        if (endDate) {
+          endDate.setHours(23, 59, 59, 999);
+          if (itemDate > endDate) return false;
+        }
+
+        return true;
+      });
+    }
+
+    // Apply podcast filter (multi-select)
+    if (filters.podcasts && Array.isArray(filters.podcasts) && filters.podcasts.length > 0) {
+      filtered = filtered.filter(item => filters.podcasts.includes(item['podcast_name']));
+    }
+
+    // Apply genre filter (multi-select)
+    if (filters.genres && Array.isArray(filters.genres) && filters.genres.length > 0) {
+      filtered = filtered.filter(item => {
+        // Clean up genre value for matching
+        let itemGenre = item.genre;
+        if (itemGenre && (itemGenre.includes('https://') ||
+                          itemGenre.includes('image/thumb') ||
+                          itemGenre.length > 30)) {
+          itemGenre = 'Unknown';
+        }
+
+        return filters.genres.includes(itemGenre);
+      });
+    }
+
+    setFilteredData(filtered);
+
+    // Handle selected podcast info display
+    if (filters.podcasts && filters.podcasts.length === 1) {
+      const podcastInfo = podcastData.find(item => item.podcast_name === filters.podcasts[0]);
       if (podcastInfo) {
         setSelectedPodcastInfo({
           name: podcastInfo.podcast_name,
@@ -41,60 +122,7 @@ const PodcastAnalysisTab = ({
     } else {
       setSelectedPodcastInfo(null);
     }
-  };
-
-  // Handle genre selection changes
-  const handleGenreChange = (genres) => {
-    setSelectedGenres(genres);
-  };
-
-  // Handle date range changes
-  const handleDateRangeChange = (newRange) => {
-    setDateRange(newRange);
-  };
-
-  // Main filter function for data
-  const filterData = () => {
-    if (!podcastData || !dateRange.startDate || !dateRange.endDate) return [];
-
-    return podcastData.filter(item => {
-      const itemDate = new Date(item['modified at']);
-      if (isNaN(itemDate.getTime()) || itemDate.getFullYear() <= 1970) {
-        return false;
-      }
-
-      // Filter by podcast if selected
-      if (selectedPodcasts.length > 0 && !selectedPodcasts.includes(item['podcast_name'])) {
-        return false;
-      }
-
-      // Filter by genre if selected
-      if (selectedGenres.length > 0) {
-        // Clean up genre value for matching
-        let itemGenre = item.genre;
-        if (itemGenre && (itemGenre.includes('https://') ||
-                          itemGenre.includes('image/thumb') ||
-                          itemGenre.length > 30)) {
-          itemGenre = 'Unknown';
-        }
-
-        if (!selectedGenres.includes(itemGenre)) {
-          return false;
-        }
-      }
-
-      // Filter by date range
-      const start = new Date(dateRange.startDate);
-      const end = new Date(dateRange.endDate);
-      start.setHours(0, 0, 0, 0);
-      end.setHours(23, 59, 59, 999);
-
-      return itemDate >= start && itemDate <= end;
-    });
-  };
-
-  // Get filtered data
-  const filteredData = filterData();
+  }, [filters, podcastData]);
 
   return (
     <div className="podcast-analysis-container">
@@ -103,68 +131,35 @@ const PodcastAnalysisTab = ({
         Discover patterns and insights in your podcast listening habits
       </p>
 
-      <div className="filters-section">
-        <div className="filter-pane-grid">
-          {/* Date Range Filter on the left */}
-          <div className="filter-item date-filter">
-            <AdvancedDateRangeSlider
-              data={podcastData}
-              dateColumnName="modified at"
-              onChange={handleDateRangeChange}
-              initialStartDate={dateRange.startDate}
-              initialEndDate={dateRange.endDate}
-              title="Filter by Date"
-            />
-          </div>
+      {/* FilteringPanel handles all filter logic internally */}
+      <FilteringPanel
+        data={podcastData}
+        filterConfigs={filterConfigs}
+        onFiltersChange={handleFiltersChange}
+        title="Podcast Filters"
+        description="Filter your podcast data for detailed analysis"
+      />
 
-          {/* Podcast MultiSelect Filter */}
-          <div className="filter-item">
-            <MultiSelectDropdown
-              options={uniquePodcasts}
-              selectedValues={selectedPodcasts}
-              onChange={handlePodcastChange}
-              placeholder="Select podcasts..."
-              label="Filter by Podcast"
-              searchPlaceholder="Search podcasts..."
-              icon={<Podcast size={16} />}
+      {/* Selected podcast info display */}
+      {selectedPodcastInfo && (
+        <div className="podcast-info">
+          <div className="podcast-header">
+            <img
+              src={selectedPodcastInfo.artwork}
+              alt={`${selectedPodcastInfo.name} artwork`}
+              className="podcast-large-artwork"
             />
-          </div>
-
-          {/* Genre MultiSelect Filter */}
-          <div className="filter-item">
-            <MultiSelectDropdown
-              options={uniqueGenres}
-              selectedValues={selectedGenres}
-              onChange={handleGenreChange}
-              placeholder="Select genres..."
-              label="Filter by Genre"
-              searchPlaceholder="Search genres..."
-              icon={<Tag size={16} />}
-            />
-          </div>
-        </div>
-
-        {selectedPodcastInfo && (
-          <div className="podcast-info">
-            <div className="podcast-header">
-              <img
-                src={selectedPodcastInfo.artwork}
-                alt={`${selectedPodcastInfo.name} artwork`}
-                className="podcast-large-artwork"
-              />
-              <div className="podcast-details">
-                <h2>{selectedPodcastInfo.name}</h2>
-                <p className="podcast-artist">{selectedPodcastInfo.artist}</p>
-                <p className="podcast-genre">{selectedPodcastInfo.genre}</p>
-              </div>
+            <div className="podcast-details">
+              <h2>{selectedPodcastInfo.name}</h2>
+              <p className="podcast-artist">{selectedPodcastInfo.artist}</p>
+              <p className="podcast-genre">{selectedPodcastInfo.genre}</p>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="charts-grid">
         <div className="chart-container">
-          {/* Using our reusable TimeSeriesBarChart component */}
           <TimeSeriesBarChart
             data={filteredData}
             dateColumnName="modified at"
@@ -185,14 +180,17 @@ const PodcastAnalysisTab = ({
         </div>
 
         <div className="chart-container">
-          <TopPodcastsChart data={filteredData} dateRange={dateRange} />
+          <TopPodcastsChart
+            data={filteredData}
+            dateRange={filters.dateRange || { startDate: null, endDate: null }}
+          />
         </div>
 
         <div className="chart-container">
           <TreemapGenre
             data={filteredData}
-            selectedPodcast={selectedPodcasts.length === 1 ? selectedPodcasts[0] : 'all'}
-            dateRange={dateRange}
+            selectedPodcast={filters.podcasts?.length === 1 ? filters.podcasts[0] : 'all'}
+            dateRange={filters.dateRange || { startDate: null, endDate: null }}
           />
         </div>
       </div>
