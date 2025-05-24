@@ -5,7 +5,11 @@ export const DRIVE_FILES = {
   },
   READING: {
     FILE_ID: import.meta.env.VITE_READING_FILE_ID
+  },
+  MOVIES: {
+    FILE_ID: import.meta.env.VITE_MOVIES_FILE_ID
   }
+
 };
 
 // Add debugging

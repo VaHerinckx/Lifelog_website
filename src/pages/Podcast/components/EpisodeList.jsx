@@ -125,17 +125,6 @@ const EpisodeListItem = ({ episode, onClick }) => {
               <span>{Math.round(completionPercent)}% completed</span>
             </div>
           </div>
-
-          {/* Completion progress bar */}
-          <div className="completion-progress">
-            <div className="progress-bar">
-              <div
-                className="progress-fill"
-                style={{ width: `${completionPercent}%` }}
-              ></div>
-            </div>
-            <span className="progress-text">{Math.round(completionPercent)}%</span>
-          </div>
         </div>
 
         {/* Genre tag if available */}
@@ -173,8 +162,6 @@ const EpisodeList = ({ episodes = [], onEpisodeClick = null }) => {
   return (
     <div className="episode-list-container">
       <div className="episode-list-header">
-        <h3>Episodes ({sortedEpisodes.length.toLocaleString()})</h3>
-        <p>Showing your podcast listening history, most recent first</p>
       </div>
 
       <div className="episode-list">

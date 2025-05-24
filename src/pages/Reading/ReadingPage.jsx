@@ -483,7 +483,6 @@ const ReadingPage = () => {
         {activeTab === 'books' && (
           <>
 
-
             <div className="view-controls">
               <button
                 className={`view-control-btn ${viewMode === 'grid' ? 'active' : ''}`}

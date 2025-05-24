@@ -6,6 +6,7 @@ import Layout from './components/ui/Layout';
 import Homepage from './pages/Home/Homepage';
 import PodcastPage from './pages/Podcast/PodcastPage';
 import ReadingPage from './pages/Reading/ReadingPage';
+import MoviesPage from './pages/Movies/MoviesPage';
 
 const App = () => {
   return (
@@ -51,14 +52,7 @@ const App = () => {
               }
             />
             <Route path="/reading" element={<ReadingPage />} />
-            <Route
-              path="/movies"
-              element={
-                <div className="page-container">
-                  <div>Movies & TV Page Coming Soon</div>
-                </div>
-              }
-            />
+            <Route path="/movies" element={<MoviesPage />} />
             <Route
               path="/finances"
               element={

@@ -285,28 +285,6 @@ const FilteringPanel = ({
             );
           })}
         </div>
-
-        {/* Debug information in development */}
-        {process.env.NODE_ENV === 'development' && (
-          <details className="filter-debug">
-            <summary>🐛 Filter Debug Info</summary>
-            <div>
-              <strong>Current Filters:</strong>
-              <pre>{JSON.stringify(filters, null, 2)}</pre>
-              <strong>Available Options:</strong>
-              <pre>{JSON.stringify(filterOptions.options, null, 2)}</pre>
-              <strong>Date Boundaries:</strong>
-              <pre>{JSON.stringify(filterOptions.dateBoundaries, null, 2)}</pre>
-              <strong>Filter Configs:</strong>
-              <pre>{JSON.stringify(filterConfigs.map(c => ({
-                key: c.key,
-                type: c.type,
-                dataField: c.dataField,
-                optionsSource: c.optionsSource
-              })), null, 2)}</pre>
-            </div>
-          </details>
-        )}
       </div>
     </div>
   );

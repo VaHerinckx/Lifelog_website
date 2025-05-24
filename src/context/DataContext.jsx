@@ -121,6 +121,9 @@ export const DataProvider = ({ children }) => {
         case 'music':
           fileId = DRIVE_FILES.MUSIC.FILE_ID;
           break;
+        case 'movies':
+          fileId = DRIVE_FILES.MOVIES.FILE_ID;
+          break;
         default:
           throw new Error(`Unknown data type: ${dataType}`);
       }
