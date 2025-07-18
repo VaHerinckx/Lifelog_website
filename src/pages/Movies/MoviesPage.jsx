@@ -1,6 +1,6 @@
 // src/pages/Movies/MoviesPage.jsx
 import React, { useState, useEffect } from 'react';
-import { Film, Star, StarHalf, Grid, List, Calendar, User, Tag, Clock, BarChart } from 'lucide-react';
+import { Film, Star, StarHalf, Grid, List, Calendar, User, Tag, Clock, BarChart, Tv } from 'lucide-react';
 import Papa from 'papaparse';
 import _ from 'lodash';
 import './MoviesPage.css';
@@ -87,12 +87,65 @@ const MovieCard = ({ movie, onClick }) => {
   );
 };
 
+// Component to display a TV show card
+const ShowCard = ({ show, onClick }) => {
+  const formatDate = (date) => {
+    if (!date || !(date instanceof Date) || isNaN(date)) return 'Unknown date';
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+  const getShowPosterUrl = (show) => {
+    if (show.seasonArtworkUrl && show.seasonArtworkUrl !== '' && show.seasonArtworkUrl !== 'No artwork found') {
+      return show.seasonArtworkUrl;
+    }
+    return "/api/placeholder/500/750";
+  };
+
+  return (
+    <div className="movie-card" onClick={() => onClick(show)}>
+      <div className="movie-poster-container">
+        <img
+          src={getShowPosterUrl(show)}
+          alt={`${show.name} Season ${show.season} poster`}
+          className="movie-poster"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = "/api/placeholder/500/750";
+          }}
+        />
+      </div>
+      <div className="movie-info">
+        <h3 className="movie-title" title={show.name}>{show.name}</h3>
+        <p className="movie-year">S{show.season}E{show.episode}</p>
+
+        <div className="movie-meta">
+          <div className="movie-date">
+            <span className="date-label">Watched:</span>
+            <span className="date-value">{formatDate(show.watchedDate)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MoviesPage = () => {
   const { data, loading, error, fetchData } = useData();
+  
+  // Add debugging logs
+  console.log('🎬 Movies Page - data object:', data);
+  console.log('🎬 Movies Page - data.movies:', data.movies);
+  console.log('🎬 Movies Page - loading object:', loading);
+  console.log('🎬 Movies Page - error object:', error);
+  
   const [movies, setMovies] = useState([]);
   const [filteredMovies, setFilteredMovies] = useState([]);
   const [movieEntries, setMovieEntries] = useState([]);
   const [uniqueGenres, setUniqueGenres] = useState([]);
+  const [shows, setShows] = useState([]);
+  const [filteredShows, setFilteredShows] = useState([]);
+  const [showEntries, setShowEntries] = useState([]);
+  const [contentType, setContentType] = useState('movies'); // 'movies' or 'shows'
 
   // Filter state - managed by FilteringPanel
   const [filters, setFilters] = useState({});
@@ -205,11 +258,30 @@ const MoviesPage = () => {
     }
   };
 
-  // Fetch movies data when component mounts
+  // Fetch movies and shows data when component mounts
   useEffect(() => {
+    console.log('🎬 Movies page useEffect triggered');
+    console.log('🎬 fetchData function:', typeof fetchData);
+    console.log('🎬 data object:', data);
+    console.log('🎬 loading state:', loading);
+    console.log('🎬 error state:', error);
+    
     if (typeof fetchData === 'function') {
-      fetchData('movies');
+      console.log('🎬 Calling fetchData("movies")');
+      fetchData('movies').then(result => {
+        console.log('🎬 fetchData success result:', result);
+      }).catch(err => {
+        console.error('🎬 fetchData error:', err);
+      });
+      
+      console.log('📺 Calling fetchData("shows")');
+      fetchData('shows').then(result => {
+        console.log('📺 fetchData shows success result:', result);
+      }).catch(err => {
+        console.error('📺 fetchData shows error:', err);
+      });
     } else {
+      console.log('🎬 fetchData not available, calling fallback fetchMoviesData');
       fetchMoviesData();
     }
   }, [fetchData]);
@@ -280,10 +352,74 @@ const MoviesPage = () => {
     });
   };
 
-  // Process movies data when it's loaded
+  // Process the shows data
+  const processShows = (showsData) => {
+    if (!showsData || showsData.length === 0) return;
+
+    setShowEntries(showsData);
+
+    // Process each show entry (each watch is separate)
+    const processedShows = showsData.map((entry, index) => {
+      const watchDate = new Date(entry.watched_at || entry.Timestamp || '');
+      const showName = entry.show_title || entry.show || 'Unknown Show';
+      const seasonNumber = entry.season || 1;
+      const episodeNumber = entry.episode_number || entry.episode || 1;
+      const episodeTitle = entry.episode_title || '';
+      const seasonArtworkUrl = entry.season_poster_url || '';
+
+      return {
+        id: `${showName}-S${seasonNumber}E${episodeNumber}-${index}`, // Unique ID for each watch
+        name: showName,
+        season: parseInt(seasonNumber) || 1,
+        episode: parseInt(episodeNumber) || 1,
+        episodeTitle: episodeTitle,
+        watchedDate: isNaN(watchDate.getTime()) ? null : watchDate,
+        seasonArtworkUrl: seasonArtworkUrl,
+        originalEntry: entry
+      };
+    }).filter(show => show.name !== 'Unknown Show');
+
+    // Sort by watch date (most recent first)
+    const sortedShows = _.sortBy(processedShows, show => show.watchedDate || new Date(0)).reverse();
+    setShows(sortedShows);
+    setFilteredShows(sortedShows);
+
+    // Calculate stats
+    const now = new Date();
+    const lastMonthDate = new Date();
+    lastMonthDate.setMonth(now.getMonth() - 1);
+
+    const recentShows = sortedShows.filter(show =>
+      show.watchedDate && show.watchedDate >= lastMonthDate
+    ).length;
+
+    const uniqueShows = new Set(sortedShows.map(show => show.name)).size;
+
+    setMovieStats({
+      totalMovies: sortedShows.length,
+      totalHours: 0, // We don't have duration data from Trakt
+      avgRating: 0, // Trakt doesn't provide ratings in the export
+      moviesThisMonth: recentShows,
+      totalRewatches: 0 // We'll calculate this differently for shows
+    });
+  };
+
+  // Process movies and shows data when it's loaded
   useEffect(() => {
+    console.log('🎬 Movies data processing useEffect triggered');
+    console.log('🎬 data.movies:', data?.movies?.length || 'undefined');
+    console.log('🎬 data.movies first item:', data?.movies?.[0]);
+    console.log('📺 data.shows:', data?.shows?.length || 'undefined');
+    console.log('📺 data.shows first item:', data?.shows?.[0]);
+    
     if (data && data.movies) {
+      console.log('🎬 Processing movies data...');
       processMovies(data.movies);
+    }
+    
+    if (data && data.shows) {
+      console.log('📺 Processing shows data...');
+      processShows(data.shows);
     }
   }, [data]);
 
@@ -291,7 +427,7 @@ const MoviesPage = () => {
   const handleFiltersChange = (newFilters) => {
     setFilters(newFilters);
 
-    if (movies.length > 0) {
+    if (contentType === 'movies' && movies.length > 0) {
       let filtered = [...movies];
 
       // Apply date range filter
@@ -353,12 +489,39 @@ const MoviesPage = () => {
       }).reverse();
 
       setFilteredMovies(filtered);
+    } else if (contentType === 'shows' && shows.length > 0) {
+      let filtered = [...shows];
+
+      // Apply date range filter
+      if (newFilters.dateRange && (newFilters.dateRange.startDate || newFilters.dateRange.endDate)) {
+        filtered = filtered.filter(show => {
+          if (!show.watchedDate || isNaN(show.watchedDate.getTime())) return false;
+
+          const showDate = show.watchedDate;
+          const startDate = newFilters.dateRange.startDate ? new Date(newFilters.dateRange.startDate) : null;
+          const endDate = newFilters.dateRange.endDate ? new Date(newFilters.dateRange.endDate) : null;
+
+          if (startDate && showDate < startDate) return false;
+          if (endDate && showDate > endDate) return false;
+
+          return true;
+        });
+      }
+
+      // Sort by most recent
+      filtered = _.sortBy(filtered, show => {
+        return show.watchedDate instanceof Date && !isNaN(show.watchedDate.getTime())
+          ? show.watchedDate.getTime()
+          : -Infinity;
+      }).reverse();
+
+      setFilteredShows(filtered);
     }
   };
 
   // Update stats when filtered movies change
   useEffect(() => {
-    if (filteredMovies.length > 0) {
+    if (contentType === 'movies' && filteredMovies.length > 0) {
       const now = new Date();
       const lastMonthDate = new Date();
       lastMonthDate.setMonth(now.getMonth() - 1);
@@ -377,8 +540,31 @@ const MoviesPage = () => {
         moviesThisMonth: recentMovies,
         totalRewatches: totalRewatches
       });
+    } else if (contentType === 'shows' && filteredShows.length > 0) {
+      const now = new Date();
+      const lastMonthDate = new Date();
+      lastMonthDate.setMonth(now.getMonth() - 1);
+
+      const recentShows = filteredShows.filter(show =>
+        show.watchedDate && show.watchedDate >= lastMonthDate
+      ).length;
+
+      const uniqueShows = new Set(filteredShows.map(show => show.name)).size;
+
+      setMovieStats({
+        totalMovies: filteredShows.length,
+        totalHours: 0, // We don't have duration data from Trakt
+        avgRating: 0, // Trakt doesn't provide ratings in the export
+        moviesThisMonth: recentShows,
+        totalRewatches: 0 // We'll calculate this differently for shows
+      });
     }
-  }, [filteredMovies]);
+  }, [filteredMovies, filteredShows, contentType]);
+
+  // Re-apply filters when content type changes
+  useEffect(() => {
+    handleFiltersChange(filters);
+  }, [contentType, movies, shows]);
 
   // Handle file upload directly
   const handleFileUpload = async (event) => {
@@ -434,22 +620,26 @@ const MoviesPage = () => {
     return cards;
   };
 
-  if (loading && loading.movies) {
-    return <LoadingSpinner centerIcon={Film} />;
+  if ((loading && loading.movies) || (loading && loading.shows)) {
+    return <LoadingSpinner centerIcon={contentType === 'movies' ? Film : Tv} />;
   }
 
-  if ((error && error.movies) || (!movies.length && !loading?.movies)) {
+  if ((error && (error.movies || error.shows)) || 
+      (contentType === 'movies' && !movies.length && !loading?.movies) ||
+      (contentType === 'shows' && !shows.length && !loading?.shows)) {
     return (
       <div className="page-container">
         <div className="page-content">
           <h1>Movies & TV Tracker</h1>
           <div className="error">
-            {error?.movies ?
+            {error?.movies && contentType === 'movies' ?
               `Error loading movies data: ${error.movies}` :
-              "No movies data available. Please upload your data."}
+              error?.shows && contentType === 'shows' ?
+                `Error loading TV shows data: ${error.shows}` :
+                `No ${contentType} data available. Please upload your data.`}
           </div>
           <div className="fallback-upload">
-            <p>You can manually upload your Letterboxd data CSV:</p>
+            <p>You can manually upload your {contentType === 'movies' ? 'Letterboxd' : 'Trakt'} data CSV:</p>
             <input type="file" accept=".csv" onChange={handleFileUpload} />
           </div>
         </div>
@@ -461,7 +651,25 @@ const MoviesPage = () => {
     <div className="page-container">
       <div className="page-content">
         <h1>Movies & TV Tracker</h1>
-        <p className="page-description">Track your viewing habits and discover insights about your movie preferences</p>
+        <p className="page-description">Track your viewing habits and discover insights about your movie and TV show preferences</p>
+
+        {/* Content Type Toggle */}
+        <div className="content-type-toggle">
+          <button
+            className={`content-toggle-btn ${contentType === 'movies' ? 'active' : ''}`}
+            onClick={() => setContentType('movies')}
+          >
+            <Film size={18} style={{ marginRight: '8px' }} />
+            Movies
+          </button>
+          <button
+            className={`content-toggle-btn ${contentType === 'shows' ? 'active' : ''}`}
+            onClick={() => setContentType('shows')}
+          >
+            <Tv size={18} style={{ marginRight: '8px' }} />
+            TV Shows
+          </button>
+        </div>
 
         {/* Tab Navigation */}
         <div className="page-tabs">
@@ -470,7 +678,7 @@ const MoviesPage = () => {
             onClick={() => setActiveTab('movies')}
           >
             <Film size={18} style={{ marginRight: '8px' }} />
-            Movies
+            {contentType === 'movies' ? 'Movies' : 'Shows'}
           </button>
           <button
             className={`page-tab ${activeTab === 'analysis' ? 'active' : ''}`}
@@ -483,21 +691,25 @@ const MoviesPage = () => {
 
         {/* FilteringPanel */}
         <FilteringPanel
-          data={movies}
+          data={contentType === 'movies' ? movies : shows}
           filterConfigs={filterConfigs.map(config => {
-            // For genres, override with our extracted unique genres
-            if (config.key === 'genres') {
+            // For genres, override with our extracted unique genres (only for movies)
+            if (config.key === 'genres' && contentType === 'movies') {
               return {
                 ...config,
                 optionsSource: 'static',
                 options: uniqueGenres
               };
             }
+            // Hide genres filter for shows since they don't have genre data
+            if (config.key === 'genres' && contentType === 'shows') {
+              return null;
+            }
             return config;
-          })}
+          }).filter(Boolean)}
           onFiltersChange={handleFiltersChange}
-          title="Movie Filters"
-          description="Filter and sort your movie collection"
+          title={contentType === 'movies' ? "Movie Filters" : "TV Show Filters"}
+          description={contentType === 'movies' ? "Filter and sort your movie collection" : "Filter and sort your TV show collection"}
         />
 
         {/* Movies Tab Content */}
@@ -519,101 +731,174 @@ const MoviesPage = () => {
                 <List size={20} />
               </button>
               <div className="movie-count">
-                {filteredMovies.length} {filteredMovies.length === 1 ? 'movie' : 'movies'} found
+                {contentType === 'movies' ? 
+                  `${filteredMovies.length} ${filteredMovies.length === 1 ? 'movie' : 'movies'} found` :
+                  `${filteredShows.length} ${filteredShows.length === 1 ? 'episode' : 'episodes'} found`
+                }
               </div>
             </div>
 
             <CardsPanel
-              title="Movie Statistics"
+              title={contentType === 'movies' ? "Movie Statistics" : "TV Show Statistics"}
               description="Your viewing progress at a glance"
               cards={prepareStatsCards()}
-              loading={loading?.movies}
+              loading={contentType === 'movies' ? loading?.movies : loading?.shows}
             />
 
-            {/* Movies Display */}
-            {filteredMovies.length > 0 ? (
-              <>
-                {viewMode === 'grid' && (
-                  <div className="movies-grid">
-                    {filteredMovies.map(movie => (
-                      <MovieCard
-                        key={movie.id}
-                        movie={movie}
-                        onClick={handleMovieClick}
-                      />
-                    ))}
-                  </div>
-                )}
+            {/* Content Display */}
+            {contentType === 'movies' ? (
+              filteredMovies.length > 0 ? (
+                <>
+                  {viewMode === 'grid' && (
+                    <div className="movies-grid">
+                      {filteredMovies.map(movie => (
+                        <MovieCard
+                          key={movie.id}
+                          movie={movie}
+                          onClick={handleMovieClick}
+                        />
+                      ))}
+                    </div>
+                  )}
 
-                {viewMode === 'list' && (
-                  <div className="movies-list">
-                    {filteredMovies.map(movie => (
-                      <div
-                        key={`list-${movie.id}`}
-                        className="movie-list-item"
-                        onClick={() => handleMovieClick(movie)}
-                      >
-                        <div className="movie-list-poster">
-                          <img
-                            src={getPosterUrl(movie)}
-                            alt={`${movie.name} poster`}
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = "/api/placeholder/80/120";
-                            }}
-                          />
-                          {movie.isRewatch && (
-                            <div className="rewatch-badge-small">R</div>
-                          )}
-                        </div>
-                        <div className="movie-list-info">
-                          <h3 className="movie-list-title">{movie.name}</h3>
-                          <p className="movie-list-year">{movie.year}</p>
-                          <div className="movie-list-meta">
-                            {movie.rating > 0 && (
-                              <div className="rating-container">
-                                <StarRating rating={movie.rating} />
-                                <span className="rating-value">{movie.rating.toFixed(1)}</span>
-                              </div>
+                  {viewMode === 'list' && (
+                    <div className="movies-list">
+                      {filteredMovies.map(movie => (
+                        <div
+                          key={`list-${movie.id}`}
+                          className="movie-list-item"
+                          onClick={() => handleMovieClick(movie)}
+                        >
+                          <div className="movie-list-poster">
+                            <img
+                              src={getPosterUrl(movie)}
+                              alt={`${movie.name} poster`}
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = "/api/placeholder/80/120";
+                              }}
+                            />
+                            {movie.isRewatch && (
+                              <div className="rewatch-badge-small">R</div>
                             )}
-                            <div className="movie-list-details">
-                              <Calendar size={16} />
-                              <span>
-                                {movie.watchedDate ?
-                                  movie.watchedDate.toLocaleDateString() :
-                                  'Unknown date'
-                                }
-                              </span>
+                          </div>
+                          <div className="movie-list-info">
+                            <h3 className="movie-list-title">{movie.name}</h3>
+                            <p className="movie-list-year">{movie.year}</p>
+                            <div className="movie-list-meta">
+                              {movie.rating > 0 && (
+                                <div className="rating-container">
+                                  <StarRating rating={movie.rating} />
+                                  <span className="rating-value">{movie.rating.toFixed(1)}</span>
+                                </div>
+                              )}
+                              <div className="movie-list-details">
+                                <Calendar size={16} />
+                                <span>
+                                  {movie.watchedDate ?
+                                    movie.watchedDate.toLocaleDateString() :
+                                    'Unknown date'
+                                  }
+                                </span>
+                              </div>
                             </div>
                           </div>
+                          <div className="movie-list-tags">
+                            {movie.isRewatch && (
+                              <span className="movie-list-tag rewatch-tag">Rewatch</span>
+                            )}
+                            {movie.year && (
+                              <span className="movie-list-tag year-tag">{movie.year}</span>
+                            )}
+                          </div>
                         </div>
-                        <div className="movie-list-tags">
-                          {movie.isRewatch && (
-                            <span className="movie-list-tag rewatch-tag">Rewatch</span>
-                          )}
-                          {movie.year && (
-                            <span className="movie-list-tag year-tag">{movie.year}</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="empty-state">
+                  <Film size={48} className="empty-state-icon" />
+                  <p className="empty-state-message">
+                    No movies match your current filters. Try adjusting your criteria.
+                  </p>
+                </div>
+              )
             ) : (
-              <div className="empty-state">
-                <Film size={48} className="empty-state-icon" />
-                <p className="empty-state-message">
-                  No movies match your current filters. Try adjusting your criteria.
-                </p>
-              </div>
+              filteredShows.length > 0 ? (
+                <>
+                  {viewMode === 'grid' && (
+                    <div className="movies-grid">
+                      {filteredShows.map(show => (
+                        <ShowCard
+                          key={show.id}
+                          show={show}
+                          onClick={handleMovieClick}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {viewMode === 'list' && (
+                    <div className="movies-list">
+                      {filteredShows.map(show => (
+                        <div
+                          key={`list-${show.id}`}
+                          className="movie-list-item"
+                          onClick={() => handleMovieClick(show)}
+                        >
+                          <div className="movie-list-poster">
+                            <img
+                              src={getShowPosterUrl(show)}
+                              alt={`${show.name} Season ${show.season} poster`}
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = "/api/placeholder/80/120";
+                              }}
+                            />
+                          </div>
+                          <div className="movie-list-info">
+                            <h3 className="movie-list-title">{show.name}</h3>
+                            <p className="movie-list-year">S{show.season}E{show.episode}</p>
+                            <div className="movie-list-meta">
+                              <div className="movie-list-details">
+                                <Calendar size={16} />
+                                <span>
+                                  {show.watchedDate ?
+                                    show.watchedDate.toLocaleDateString() :
+                                    'Unknown date'
+                                  }
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="movie-list-tags">
+                            <span className="movie-list-tag season-tag">Season {show.season}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="empty-state">
+                  <Tv size={48} className="empty-state-icon" />
+                  <p className="empty-state-message">
+                    No TV show episodes match your current filters. Try adjusting your criteria.
+                  </p>
+                </div>
+              )
             )}
           </>
         )}
 
         {/* Analysis Tab Content */}
         {activeTab === 'analysis' && (
-          <MoviesAnalysisTab movies={movieEntries} />
+          <MoviesAnalysisTab 
+            movies={movieEntries} 
+            shows={showEntries}
+            contentType={contentType}
+          />
         )}
       </div>
     </div>

@@ -7,10 +7,17 @@ export const DRIVE_FILES = {
     FILE_ID: import.meta.env.VITE_READING_FILE_ID
   },
   MOVIES: {
-    FILE_ID: import.meta.env.VITE_MOVIES_FILE_ID
+    FILE_ID: import.meta.env.VITE_MOVIES_FILE_ID || '1CRuCIYgpjFuGHnmi006ollOQrKO_4ewm'
+  },
+  TRAKT: {
+    FILE_ID: import.meta.env.VITE_TRAKT_FILE_ID
   }
-
 };
+
+console.log('🎬 MOVIES FILE_ID check:', {
+  env_var: import.meta.env.VITE_MOVIES_FILE_ID,
+  final_id: import.meta.env.VITE_MOVIES_FILE_ID || '1CRuCIYgpjFuGHnmi006ollOQrKO_4ewm'
+});
 
 // Add debugging
 console.log('Environment variables:', {
@@ -20,8 +27,10 @@ console.log('Environment variables:', {
 });
 
 export const getDriveDownloadUrl = (fileId) => {
-  console.log('Getting download URL for fileId:', fileId);
+  console.log('🔥 getDriveDownloadUrl called with fileId:', fileId);
+  console.log('🔥 fileId type:', typeof fileId);
+  console.log('🔥 Stack trace:', new Error().stack);
   const url = `http://localhost:3001/api/google-drive/${fileId}`;
-  console.log('Generated URL:', url);
+  console.log('🔥 Generated URL:', url);
   return url;
 };
