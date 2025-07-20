@@ -321,34 +321,122 @@ export const DataProvider = ({ children }) => {
             throw new Error(`HTTP error! status: ${response.status}`);
           }
 
-          const csvText = await response.text();
+          // Get the response as array buffer to handle encoding properly
+          const arrayBuffer = await response.arrayBuffer();
+          
+          // Try to decode as UTF-16 first, then fall back to UTF-8
+          let csvText;
+          try {
+            // Try UTF-16 LE first (common for Windows exports)
+            const decoder = new TextDecoder('utf-16le');
+            csvText = decoder.decode(arrayBuffer);
+            
+            // Check if it looks like UTF-16 (has null bytes between characters)
+            if (csvText.includes('\u0000')) {
+              console.log('Detected UTF-16 encoding for music data');
+            } else {
+              // If no null bytes, try UTF-8
+              const utf8Decoder = new TextDecoder('utf-8');
+              csvText = utf8Decoder.decode(arrayBuffer);
+              console.log('Using UTF-8 encoding for music data');
+            }
+          } catch (e) {
+            // Fall back to UTF-8
+            const utf8Decoder = new TextDecoder('utf-8');
+            csvText = utf8Decoder.decode(arrayBuffer);
+            console.log('Fallback to UTF-8 encoding for music data');
+          }
+          
           console.log(`Music CSV text length: ${csvText.length} characters`);
           
-          // Parse with Papa Parse but limit chunk size
+          // Parse with streaming aggregation - process ALL data for stats, keep sample for display
           return new Promise((resolve, reject) => {
             let processedRows = 0;
-            const maxRows = 2000; // Limit to 2000 rows to prevent browser freeze
-            const musicData = [];
+            const displaySample = []; // Keep first N tracks for display
+            const maxDisplaySample = 1000; // Keep 1000 tracks for display/filtering
+            
+            // Streaming aggregation variables
+            let totalTracks = 0;
+            let totalDurationMs = 0;
+            const artistSet = new Set();
+            const uniqueTracksSet = new Set(); // Track unique songs
+            let completionSum = 0;
+            let completionCount = 0;
             
             Papa.parse(csvText, {
               delimiter: "|",
               header: true,
               skipEmptyLines: true,
               step: (row) => {
-                if (processedRows < maxRows) {
-                  musicData.push(row.data);
-                  processedRows++;
-                } else {
-                  // Stop parsing after maxRows
-                  return false;
+                processedRows++;
+                const track = row.data;
+                
+                // Keep sample for display (first N tracks)
+                if (displaySample.length < maxDisplaySample) {
+                  displaySample.push(track);
+                }
+                
+                // Streaming aggregation for all tracks
+                totalTracks++;
+                
+                // Aggregate duration
+                const duration = parseFloat(track.track_duration);
+                if (!isNaN(duration)) {
+                  totalDurationMs += duration;
+                }
+                
+                // Aggregate unique artists
+                if (track.artist_name && track.artist_name.trim()) {
+                  artistSet.add(track.artist_name.trim());
+                }
+                
+                // Aggregate unique tracks (using song_key or combination of artist + track)
+                const trackKey = track.song_key || `${track.track_name} by ${track.artist_name}`;
+                if (trackKey && trackKey.trim()) {
+                  uniqueTracksSet.add(trackKey.trim());
+                }
+                
+                // Aggregate completion
+                const completion = parseFloat(track.completion);
+                if (!isNaN(completion)) {
+                  completionSum += completion;
+                  completionCount++;
+                }
+                
+                // Log progress every 10k rows
+                if (processedRows % 10000 === 0) {
+                  console.log(`🎵 Processed ${processedRows} tracks...`);
                 }
               },
               complete: () => {
-                console.log(`Music data processed: ${musicData.length} rows`);
-                const cleanedData = cleanData(musicData);
-                setData(prev => ({ ...prev, [dataType]: cleanedData }));
+                console.log(`🎵 Music data processing complete: ${totalTracks} total tracks processed`);
+                
+                // Clean the display sample
+                const cleanedDisplaySample = cleanData(displaySample);
+                
+                // Calculate aggregated stats
+                const aggregatedStats = {
+                  totalTracks,
+                  totalDurationMs,
+                  uniqueArtists: artistSet.size,
+                  uniqueTracks: uniqueTracksSet.size,
+                  avgCompletion: completionCount > 0 ? (completionSum / completionCount) : 0
+                };
+                
+                // For music, store both aggregated stats and display sample
+                const musicDataWithStats = {
+                  displayData: cleanedDisplaySample, // Sample for display/filtering
+                  totalTracks,
+                  aggregatedStats,
+                  fullDataAvailable: false, // We don't keep all data in memory
+                  csvText: csvText // Keep raw CSV for filtered aggregations
+                };
+                
+                console.log('🎵 Aggregated stats:', aggregatedStats);
+                
+                setData(prev => ({ ...prev, [dataType]: musicDataWithStats }));
                 setLoading(prev => ({ ...prev, [dataType]: false }));
-                resolve(cleanedData);
+                resolve(musicDataWithStats);
               },
               error: (error) => {
                 console.error(`Music data parsing error:`, error);
@@ -440,11 +528,143 @@ export const DataProvider = ({ children }) => {
     }
   }, [data]);
 
+  // Function to calculate filtered stats from full dataset
+  const calculateFilteredMusicStats = useCallback((filters) => {
+    return new Promise((resolve, reject) => {
+      if (!data.music?.csvText) {
+        reject(new Error('No CSV data available for filtering'));
+        return;
+      }
+
+      console.log('🎵 Starting filtered aggregation for all tracks...');
+      
+      let processedRows = 0;
+      let totalTracks = 0;
+      let totalDurationMs = 0;
+      const artistSet = new Set();
+      const uniqueTracksSet = new Set();
+      let completionSum = 0;
+      let completionCount = 0;
+
+      Papa.parse(data.music.csvText, {
+        delimiter: "|",
+        header: true,
+        skipEmptyLines: true,
+        step: (row) => {
+          processedRows++;
+          const track = row.data;
+          
+          // Apply filters to determine if track should be included
+          let includeTrack = true;
+
+          // Apply date range filter
+          if (filters.dateRange && (filters.dateRange.startDate || filters.dateRange.endDate)) {
+            const itemDate = new Date(track.timestamp);
+            if (isNaN(itemDate.getTime()) || itemDate.getFullYear() <= 1970) {
+              includeTrack = false;
+            } else {
+              const startDate = filters.dateRange.startDate ? new Date(filters.dateRange.startDate) : null;
+              const endDate = filters.dateRange.endDate ? new Date(filters.dateRange.endDate) : null;
+
+              if (startDate) {
+                startDate.setHours(0, 0, 0, 0);
+                if (itemDate < startDate) includeTrack = false;
+              }
+
+              if (endDate) {
+                endDate.setHours(23, 59, 59, 999);
+                if (itemDate > endDate) includeTrack = false;
+              }
+            }
+          }
+
+          // Apply artist filter
+          if (includeTrack && filters.artists && Array.isArray(filters.artists) && filters.artists.length > 0) {
+            if (!filters.artists.includes(track.artist_name)) {
+              includeTrack = false;
+            }
+          }
+
+          // Apply album filter
+          if (includeTrack && filters.albums && Array.isArray(filters.albums) && filters.albums.length > 0) {
+            if (!filters.albums.includes(track.album_name)) {
+              includeTrack = false;
+            }
+          }
+
+          // Apply genre filter
+          if (includeTrack && filters.genres && Array.isArray(filters.genres) && filters.genres.length > 0) {
+            const genres = [track.genre_1, track.genre_2, track.genre_3, track.genre_4, track.genre_5]
+              .filter(Boolean)
+              .filter(genre => genre !== 'Unknown' && genre.trim() !== '');
+            
+            if (!genres.some(genre => filters.genres.includes(genre))) {
+              includeTrack = false;
+            }
+          }
+
+          // If track passes filters, include in aggregation
+          if (includeTrack) {
+            totalTracks++;
+
+            // Aggregate duration
+            const duration = parseFloat(track.track_duration);
+            if (!isNaN(duration)) {
+              totalDurationMs += duration;
+            }
+
+            // Aggregate unique artists
+            if (track.artist_name && track.artist_name.trim()) {
+              artistSet.add(track.artist_name.trim());
+            }
+
+            // Aggregate unique tracks
+            const trackKey = track.song_key || `${track.track_name} by ${track.artist_name}`;
+            if (trackKey && trackKey.trim()) {
+              uniqueTracksSet.add(trackKey.trim());
+            }
+
+            // Aggregate completion
+            const completion = parseFloat(track.completion);
+            if (!isNaN(completion)) {
+              completionSum += completion;
+              completionCount++;
+            }
+          }
+
+          // Log progress every 20k rows
+          if (processedRows % 20000 === 0) {
+            console.log(`🎵 Filtered aggregation: processed ${processedRows} tracks, ${totalTracks} match filters`);
+          }
+        },
+        complete: () => {
+          const filteredStats = {
+            totalTracks,
+            totalDurationMs,
+            uniqueArtists: artistSet.size,
+            uniqueTracks: uniqueTracksSet.size,
+            avgCompletion: completionCount > 0 ? (completionSum / completionCount) : 0
+          };
+
+          console.log(`🎵 Filtered aggregation complete: ${totalTracks} tracks match filters out of ${processedRows} total`);
+          console.log('🎵 Filtered stats:', filteredStats);
+          
+          resolve(filteredStats);
+        },
+        error: (error) => {
+          console.error('🎵 Filtered aggregation error:', error);
+          reject(error);
+        }
+      });
+    });
+  }, [data.music]);
+
   const value = {
     data,
     loading,
     error,
-    fetchData
+    fetchData,
+    calculateFilteredMusicStats
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

@@ -1,0 +1,126 @@
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 1rem;
+  }
+
+  .filters-section {
+    flex-direction: column;
+  }
+
+  .filters-selections {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .filter-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group label {
+    margin-bottom: 5px;
+  }
+
+  .filter-select, .date-input {
+    width: 100%;
+  }
+
+  .date-inputs {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .date-separator {
+    text-align: center;
+    padding: 0.25rem 0;
+  }
+
+  .artist-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .chart-container {
+    overflow-x: auto;
+  }
+
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  select, input, button {
+    min-height: 44px;
+    font-size: 16px;
+    font-family: var(--font-primary);
+  }
+}
+
+/* Music tab specific styles */
+.tracks-tab-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background-color: rgba(52, 35, 166, 0.1);
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+.coming-soon-message {
+  color: white;
+  font-size: 1.2rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Add these styles to your MusicPage.css file */
+
+.tracks-content {
+  padding: 1rem 0;
+}
+
+.music-stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1.5rem;
+  margin: 1.5rem 0;
+}
+
+.coming-soon-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  background-color: rgba(52, 35, 166, 0.1);
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+.coming-soon-message {
+  color: white;
+  font-size: 1.2rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .music-stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .music-stats-cards {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,65 @@
+/* src/pages/Music/components/MusicAnalysisTab.css */
+.music-analysis-container {
+  width: 100%;
+  max-width: 100%;
+}
+
+.music-analysis-title {
+  color: var(--title-color);
+  margin-bottom: 10px;
+}
+
+.music-analysis-description {
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.filter-pane-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.filter-item {
+  flex: 1 1 calc(33.33% - 1rem);
+  min-width: 180px;
+  /* Allows flex items to shrink below content size if needed */
+  min-width: 0;
+}
+
+.filter-item.date-filter {
+  flex: 1 1 calc(40% - 1rem);
+  min-width: 240px;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+/* For larger screens, we can show multiple columns */
+@media (min-width: 992px) {
+  .charts-grid {
+    grid-template-columns: 3fr 2fr;
+  }
+}
+
+@media (min-width: 1200px) {
+  .charts-grid {
+    grid-template-columns: 3fr 2fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .filter-pane-grid {
+    flex-direction: column;
+  }
+
+  .filter-item,
+  .filter-item.date-filter {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+}

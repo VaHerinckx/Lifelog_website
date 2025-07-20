@@ -5,6 +5,7 @@ import { DataProvider } from './context/DataContext';
 import Layout from './components/ui/Layout';
 import Homepage from './pages/Home/Homepage';
 import PodcastPage from './pages/Podcast/PodcastPage';
+import MusicPage from './pages/Music/Musicpage';
 import ReadingPage from './pages/Reading/ReadingPage';
 import MoviesPage from './pages/Movies/MoviesPage';
 
@@ -19,14 +20,7 @@ const App = () => {
           {/* All other pages wrapped in Layout */}
           <Route element={<Layout />}>
             <Route path="/podcast" element={<PodcastPage />} />
-            <Route
-              path="/music"
-              element={
-                <div className="page-container">
-                  <div>Music Page Coming Soon</div>
-                </div>
-              }
-            />
+            <Route path="/music" element={<MusicPage />} />
             <Route
               path="/nutrition"
               element={

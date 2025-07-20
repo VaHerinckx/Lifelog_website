@@ -6,6 +6,9 @@ export const DRIVE_FILES = {
   READING: {
     FILE_ID: import.meta.env.VITE_READING_FILE_ID
   },
+  MUSIC: {
+    FILE_ID: import.meta.env.VITE_MUSIC_FILE_ID
+  },
   MOVIES: {
     FILE_ID: import.meta.env.VITE_MOVIES_FILE_ID || '1CRuCIYgpjFuGHnmi006ollOQrKO_4ewm'
   },
@@ -13,6 +16,11 @@ export const DRIVE_FILES = {
     FILE_ID: import.meta.env.VITE_TRAKT_FILE_ID
   }
 };
+
+// Add debugging after object declaration
+console.log('🎵 DRIVE_FILES object:', DRIVE_FILES);
+console.log('🎵 MUSIC config:', DRIVE_FILES.MUSIC);
+console.log('🎵 MUSIC FILE_ID:', DRIVE_FILES.MUSIC?.FILE_ID);
 
 console.log('🎬 MOVIES FILE_ID check:', {
   env_var: import.meta.env.VITE_MOVIES_FILE_ID,
@@ -23,6 +31,7 @@ console.log('🎬 MOVIES FILE_ID check:', {
 console.log('Environment variables:', {
   podcast_id: import.meta.env.VITE_PODCAST_FILE_ID,
   reading_id: import.meta.env.VITE_READING_FILE_ID,
+  music_id: import.meta.env.VITE_MUSIC_FILE_ID,
   all_env: import.meta.env
 });
 
