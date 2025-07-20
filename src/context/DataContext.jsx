@@ -403,14 +403,8 @@ export const DataProvider = ({ children }) => {
                   completionCount++;
                 }
                 
-                // Log progress every 10k rows
-                if (processedRows % 10000 === 0) {
-                  console.log(`🎵 Processed ${processedRows} tracks...`);
-                }
               },
               complete: () => {
-                console.log(`🎵 Music data processing complete: ${totalTracks} total tracks processed`);
-                
                 // Clean the display sample
                 const cleanedDisplaySample = cleanData(displaySample);
                 
@@ -432,7 +426,6 @@ export const DataProvider = ({ children }) => {
                   csvText: csvText // Keep raw CSV for filtered aggregations
                 };
                 
-                console.log('🎵 Aggregated stats:', aggregatedStats);
                 
                 setData(prev => ({ ...prev, [dataType]: musicDataWithStats }));
                 setLoading(prev => ({ ...prev, [dataType]: false }));
@@ -536,7 +529,6 @@ export const DataProvider = ({ children }) => {
         return;
       }
 
-      console.log('🎵 Starting filtered aggregation for all tracks...');
       
       let processedRows = 0;
       let totalTracks = 0;
@@ -632,10 +624,6 @@ export const DataProvider = ({ children }) => {
             }
           }
 
-          // Log progress every 20k rows
-          if (processedRows % 20000 === 0) {
-            console.log(`🎵 Filtered aggregation: processed ${processedRows} tracks, ${totalTracks} match filters`);
-          }
         },
         complete: () => {
           const filteredStats = {
@@ -646,13 +634,10 @@ export const DataProvider = ({ children }) => {
             avgCompletion: completionCount > 0 ? (completionSum / completionCount) : 0
           };
 
-          console.log(`🎵 Filtered aggregation complete: ${totalTracks} tracks match filters out of ${processedRows} total`);
-          console.log('🎵 Filtered stats:', filteredStats);
           
           resolve(filteredStats);
         },
         error: (error) => {
-          console.error('🎵 Filtered aggregation error:', error);
           reject(error);
         }
       });

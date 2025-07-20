@@ -55,28 +55,6 @@ const IntensityHeatmap = ({
 
     const processDataForHeatmap = () => {
       try {
-        // Debug information about the data
-        console.log("Processing data for heatmap with", data.length, "records");
-        console.log("Date column name:", dateColumnName);
-        console.log("Value column name:", valueColumnName);
-        console.log("Treat midnight as unknown:", treatMidnightAsUnknown);
-        console.log("Time periods:", Object.keys(TIME_PERIODS));
-
-        // Extract sample of actual timestamp values
-        const timestampSamples = data.slice(0, 10).map(item => {
-          const rawValue = item[dateColumnName];
-          const parsedDate = rawValue ? new Date(rawValue) : null;
-
-          return {
-            raw: rawValue,
-            parsed: parsedDate ? parsedDate.toString() : 'Invalid Date',
-            hour: parsedDate ? parsedDate.getHours() : 'N/A',
-            minutes: parsedDate ? parsedDate.getMinutes() : 'N/A',
-            isValid: parsedDate ? !isNaN(parsedDate.getTime()) : false
-          };
-        });
-
-        console.log("Timestamp samples:", timestampSamples);
 
         // Create a matrix for time periods and days
         const activityMatrix = {};
@@ -134,32 +112,16 @@ const IntensityHeatmap = ({
           // Convert from JS day (0=Sunday) to our ordering (0=Monday)
           const adjustedDayIndex = day === 0 ? 6 : day - 1;
 
-          // Debug information for the first 10 records
-          if (index < 10) {
-            console.log(`Record #${index}:`, {
-              rawTimestamp,
-              parsedDate: date.toString(),
-              hour,
-              minutes,
-              day,
-              adjustedDayIndex,
-              valueField: valueColumnName,
-              value: parseFloat(item[valueColumnName]) || 0,
-              treatMidnightAsUnknown
-            });
-          }
 
           // Determine time period based on hour and treatMidnightAsUnknown setting
           let period;
           if (treatMidnightAsUnknown && hour === 0 && minutes === 0) {
             period = 'UNKNOWN';
-            if (index < 10) console.log(`  → Categorized as UNKNOWN (midnight reading)`);
           } else {
             period = Object.keys(BASE_TIME_PERIODS).find(p => {
               const { start, end } = BASE_TIME_PERIODS[p];
               return hour >= start && hour <= end;
             });
-            if (index < 10) console.log(`  → Categorized as ${period}`);
           }
 
           if (!period) return;

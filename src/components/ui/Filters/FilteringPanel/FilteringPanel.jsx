@@ -1,6 +1,7 @@
 // src/components/ui/Filters/FilteringPanel/FilteringPanel.jsx
 import React, { useState, useEffect, useMemo } from 'react';
 import _ from 'lodash';
+import Papa from 'papaparse';
 import Filter from '../Filter/Filter';
 import './FilteringPanel.css';
 
@@ -19,6 +20,7 @@ import './FilteringPanel.css';
  */
 const FilteringPanel = ({
   data = [],
+  fullDataset = '',
   filterConfigs = [],
   initialFilters = {},
   onFiltersChange,
@@ -55,56 +57,128 @@ const FilteringPanel = ({
         // Use static options as-is
         options[config.key] = config.options;
       } else if (config.type === 'daterange') {
-        // Handle date range boundaries
-        let filteredData = [...data];
-
-        // Apply all other filters to determine date boundaries
-        filterConfigs.forEach(otherConfig => {
-          if (otherConfig.key === config.key || otherConfig.type === 'daterange') return;
-
-          const filterValue = filters[otherConfig.key];
-          const dataField = otherConfig.dataField || otherConfig.optionsSource;
-
-          if (!filterValue || !dataField) return;
-
-          if (otherConfig.type === 'multiselect') {
-            if (Array.isArray(filterValue) && filterValue.length > 0) {
-              filteredData = filteredData.filter(item => {
-                const itemValue = dataField.includes('.')
-                  ? _.get(item, dataField)
-                  : item[dataField];
-                return filterValue.includes(itemValue);
-              });
-            }
-          } else if (otherConfig.type === 'singleselect') {
-            if (filterValue && filterValue !== 'all' && filterValue !== otherConfig.defaultValue) {
-              filteredData = filteredData.filter(item => {
-                const itemValue = dataField.includes('.')
-                  ? _.get(item, dataField)
-                  : item[dataField];
-                return itemValue === filterValue;
-              });
-            }
-          }
-        });
-
-        // Extract date boundaries from filtered data
+        // Handle date range boundaries - use full dataset if available for music data
         const fieldName = config.dataField || config.optionsSource;
-        const validDates = filteredData
-          .map(item => {
-            const value = fieldName.includes('.')
-              ? _.get(item, fieldName)
-              : item[fieldName];
-            return value ? new Date(value) : null;
-          })
-          .filter(date => date && !isNaN(date.getTime()) && date.getFullYear() > 1900)
-          .sort((a, b) => a - b);
+        
+        if (fullDataset && typeof fullDataset === 'string' && fullDataset.length > 0) {
+          // Use full dataset to calculate date boundaries
+          console.log(`🎵 Calculating date boundaries from full dataset for ${config.key}`);
+          
+          const allDates = [];
+          let processedRows = 0;
+          
+          Papa.parse(fullDataset, {
+            delimiter: "|",
+            header: true,
+            skipEmptyLines: true,
+            step: (row) => {
+              processedRows++;
+              const track = row.data;
+              const dateValue = track[fieldName];
+              
+              if (dateValue) {
+                const date = new Date(dateValue);
+                if (!isNaN(date.getTime()) && date.getFullYear() > 1900) {
+                  allDates.push(date);
+                }
+              }
+              
+              // Log progress every 50k rows
+              if (processedRows % 50000 === 0) {
+                console.log(`🎵 Date boundary calculation: processed ${processedRows} rows, found ${allDates.length} valid dates`);
+              }
+            },
+            complete: () => {
+              if (allDates.length > 0) {
+                allDates.sort((a, b) => a - b);
+                dateBoundaries[config.key] = {
+                  minDate: allDates[0],
+                  maxDate: allDates[allDates.length - 1]
+                };
+                
+                console.log(`🎵 Full dataset date boundaries for ${config.key}:`, {
+                  totalDates: allDates.length,
+                  minDate: allDates[0].toISOString(),
+                  maxDate: allDates[allDates.length - 1].toISOString(),
+                  dateRange: {
+                    earliest: allDates[0].getFullYear(),
+                    latest: allDates[allDates.length - 1].getFullYear()
+                  }
+                });
+              }
+            }
+          });
+        } else {
+          // Fallback to display data if full dataset not available
+          let filteredData = [...data];
 
-        if (validDates.length > 0) {
-          dateBoundaries[config.key] = {
-            minDate: validDates[0],
-            maxDate: validDates[validDates.length - 1]
-          };
+          // Apply all other filters to determine date boundaries
+          filterConfigs.forEach(otherConfig => {
+            if (otherConfig.key === config.key || otherConfig.type === 'daterange') return;
+
+            const filterValue = filters[otherConfig.key];
+            const dataField = otherConfig.dataField || otherConfig.optionsSource;
+
+            if (!filterValue || !dataField) return;
+
+            if (otherConfig.type === 'multiselect') {
+              if (Array.isArray(filterValue) && filterValue.length > 0) {
+                filteredData = filteredData.filter(item => {
+                  const itemValue = dataField.includes('.')
+                    ? _.get(item, dataField)
+                    : item[dataField];
+                  return filterValue.includes(itemValue);
+                });
+              }
+            } else if (otherConfig.type === 'singleselect') {
+              if (filterValue && filterValue !== 'all' && filterValue !== otherConfig.defaultValue) {
+                filteredData = filteredData.filter(item => {
+                  const itemValue = dataField.includes('.')
+                    ? _.get(item, dataField)
+                    : item[dataField];
+                  return itemValue === filterValue;
+                });
+              }
+            }
+          });
+
+          // Extract date boundaries from filtered display data
+          const allDateValues = filteredData
+            .map(item => {
+              const value = fieldName.includes('.')
+                ? _.get(item, fieldName)
+                : item[fieldName];
+              return value;
+            })
+            .filter(Boolean);
+          
+          const validDates = allDateValues
+            .map(value => {
+              const date = new Date(value);
+              if (!isNaN(date.getTime()) && date.getFullYear() > 1900) {
+                return date;
+              }
+              return null;
+            })
+            .filter(Boolean)
+            .sort((a, b) => a - b);
+
+          if (validDates.length > 0) {
+            dateBoundaries[config.key] = {
+              minDate: validDates[0],
+              maxDate: validDates[validDates.length - 1]
+            };
+            
+            console.log(`🎵 Display data date boundaries for ${config.key}:`, {
+              validDatesCount: validDates.length,
+              minDate: validDates[0]?.toISOString(),
+              maxDate: validDates[validDates.length - 1]?.toISOString(),
+              dateRange: {
+                earliest: validDates[0].getFullYear(),
+                latest: validDates[validDates.length - 1].getFullYear()
+              }
+            });
+          }
         }
 
       } else if (config.dataField || config.optionsSource) {

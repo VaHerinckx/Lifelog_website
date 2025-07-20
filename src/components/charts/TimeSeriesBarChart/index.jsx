@@ -25,9 +25,8 @@ const TimeSeriesBarChart = ({
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
-    // Basic validation with detailed logging
+    // Basic validation
     if (!Array.isArray(data) || data.length === 0) {
-      console.log("Empty or invalid data array");
       setChartData([]);
       return;
     }
@@ -49,7 +48,6 @@ const TimeSeriesBarChart = ({
 
       // Skip invalid entries
       if (!rawTimestamp || metricValue === 0) {
-        if (index < 5) console.log("Skipping invalid entry:", { rawTimestamp, metricValue, entry });
         return;
       }
 
@@ -60,14 +58,8 @@ const TimeSeriesBarChart = ({
 
       // Skip invalid dates
       if (isNaN(date.getTime())) {
-        if (index < 5) console.log("Invalid date:", rawTimestamp);
         return;
       }
-
-      if (index < 5) console.log(`Processing entry ${index}:`, {
-        date: date.toISOString(),
-        metric: metricValue
-      });
 
       // Update min and max dates
       if (!minDate || date < minDate) minDate = new Date(date);

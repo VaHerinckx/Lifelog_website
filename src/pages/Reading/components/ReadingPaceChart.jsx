@@ -6,9 +6,8 @@ const ReadingPaceChart = ({ data, dateRange, selectedPeriod, onPeriodChange }) =
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
-    // Basic validation with detailed logging
+    // Basic validation
     if (!Array.isArray(data) || data.length === 0) {
-      console.log("Empty or invalid data array");
       setChartData([]);
       return;
     }
@@ -30,7 +29,6 @@ const ReadingPaceChart = ({ data, dateRange, selectedPeriod, onPeriodChange }) =
 
       // Skip invalid entries
       if (!rawTimestamp || pageSplit === 0) {
-        if (index < 5) console.log("Skipping invalid entry:", { rawTimestamp, pageSplit, entry });
         return;
       }
 
@@ -41,14 +39,8 @@ const ReadingPaceChart = ({ data, dateRange, selectedPeriod, onPeriodChange }) =
 
       // Skip invalid dates
       if (isNaN(date.getTime())) {
-        if (index < 5) console.log("Invalid date:", rawTimestamp);
         return;
       }
-
-      if (index < 5) console.log(`Processing entry ${index}:`, {
-        date: date.toISOString(),
-        pages: pageSplit
-      });
 
       // Update min and max dates
       if (!minDate || date < minDate) minDate = new Date(date);
@@ -158,8 +150,6 @@ const ReadingPaceChart = ({ data, dateRange, selectedPeriod, onPeriodChange }) =
       }
     }
 
-    // Log the aggregated data
-    console.log("Period sums with zeros:", periodSums);
 
     // Convert to array, round values, and sort by date
     const chartDataArray = Object.values(periodSums).map(item => ({
@@ -171,7 +161,6 @@ const ReadingPaceChart = ({ data, dateRange, selectedPeriod, onPeriodChange }) =
     // Sort chronologically
     chartDataArray.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
 
-    console.log("Final chart data with zeros:", chartDataArray);
 
     setChartData(chartDataArray);
   }, [data, selectedPeriod, dateRange]);

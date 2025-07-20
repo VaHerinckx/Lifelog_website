@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import _ from 'lodash';
 import './MusicPage.css';
-import './components/MusicPageTabs.css';
 import { Music, BarChart2, Headphones, Clock, User, Percent, Calendar, Tag, Album } from 'lucide-react';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useData } from '../../context/DataContext';
 import MusicAnalysisTab from './components/MusicAnalysisTab';
-import TrackList from './components/TrackList';
 import CardsPanel from '../../components/ui/CardsPanel/CardsPanel';
 import FilteringPanel from '../../components/ui/Filters/FilteringPanel/FilteringPanel';
 
@@ -14,15 +12,12 @@ const MusicPage = () => {
   // Get data and functions from context
   const { data, loading, error, fetchData, calculateFilteredMusicStats } = useData();
 
-  // State for active tab
-  const [activeTab, setActiveTab] = useState('tracks');
-
-  // State for filters - now managed at the page level
+  // State for filters
   const [filters, setFilters] = useState({});
   const [filteredData, setFilteredData] = useState([]);
   const [selectedArtistInfo, setSelectedArtistInfo] = useState(null);
 
-  // State to store music stats (calculated from filtered data)
+  // State to store music stats (calculated from filtered or all data)
   const [musicStats, setMusicStats] = useState({
     totalTracks: 0,
     uniqueTracks: 0,
@@ -76,40 +71,14 @@ const MusicPage = () => {
     }
   ];
 
+
   // Fetch music data when component mounts
   useEffect(() => {
     fetchData('music');
   }, [fetchData]);
 
-  // Debug logging (reduced to prevent freeze)
-  useEffect(() => {
-    if (data.music) {
-      console.log('🎵 Music data structure:', {
-        displayDataLength: data.music.displayData?.length,
-        totalTracks: data.music.totalTracks,
-        aggregatedStats: data.music.aggregatedStats,
-        fullDataAvailable: data.music.fullDataAvailable
-      });
-      
-      if (data.music.displayData && data.music.displayData.length > 0) {
-        console.log('🎵 First track keys:', Object.keys(data.music.displayData[0]));
-        
-        // Check for null/undefined values that might cause filtering issues
-        const firstTrack = data.music.displayData[0];
-        console.log('🎵 Key field analysis:', {
-          artist_name: firstTrack.artist_name,
-          track_name: firstTrack.track_name,
-          timestamp: firstTrack.timestamp,
-          track_duration: firstTrack.track_duration,
-          completion: firstTrack.completion
-        });
-      }
-    }
-  }, [data.music]);
-
   // Handle filter changes from FilteringPanel
   const handleFiltersChange = (newFilters) => {
-    console.log('🎵 Music filters changed:', newFilters);
     setFilters(newFilters);
   };
 
@@ -121,13 +90,9 @@ const MusicPage = () => {
     }
 
     let filtered = [...data.music.displayData];
-    console.log('🎵 Starting with:', filtered.length, 'display tracks, filters:', Object.keys(filters).length);
 
     // Apply date range filter
     if (filters.dateRange && (filters.dateRange.startDate || filters.dateRange.endDate)) {
-      console.log('🎵 Applying date filter:', filters.dateRange);
-      const beforeFilter = filtered.length;
-      
       filtered = filtered.filter(item => {
         const itemDate = new Date(item.timestamp);
         if (isNaN(itemDate.getTime()) || itemDate.getFullYear() <= 1970) {
@@ -149,8 +114,6 @@ const MusicPage = () => {
 
         return true;
       });
-      
-      console.log(`🎵 Date filter: ${beforeFilter} -> ${filtered.length} tracks`);
     }
 
     // Apply artist filter (multi-select)
@@ -175,7 +138,6 @@ const MusicPage = () => {
       });
     }
 
-    console.log('🎵 Filtered data length:', filtered.length);
     setFilteredData(filtered);
 
     // Handle selected artist info display (use displayData for artist info)
@@ -196,6 +158,7 @@ const MusicPage = () => {
     }
   }, [filters, data.music]);
 
+
   // Calculate music stats - use aggregated stats for all data, filtered stats from ALL data when filters applied
   useEffect(() => {
     // Check if any meaningful filters are applied (not just empty objects)
@@ -206,8 +169,6 @@ const MusicPage = () => {
       return Array.isArray(value) ? value.length > 0 : value !== null && value !== undefined && value !== '';
     });
     
-    console.log('🎵 Calculating stats for:', hasActiveFilters ? 'filtered' : 'all', 'data');
-    console.log('🎵 Active filters detected:', hasActiveFilters, 'Filter keys:', Object.keys(filters));
     
     if (hasActiveFilters && calculateFilteredMusicStats) {
       // Calculate filtered stats from ALL data, not just sample
@@ -222,49 +183,11 @@ const MusicPage = () => {
             avgCompletion: Math.round(filteredStats.avgCompletion * 100) // Convert to percentage
           };
           
-          console.log('🎵 Calculated filtered stats from ALL data:', stats);
           setMusicStats(stats);
           setFilteredStatsLoading(false);
         })
         .catch(error => {
-          console.error('🎵 Error calculating filtered stats:', error);
           setFilteredStatsLoading(false);
-          // Fallback to sample-based calculation
-          if (filteredData.length > 0) {
-            const totalTracks = filteredData.length;
-            const durations = filteredData.map(track => {
-              const duration = track.track_duration;
-              if (duration !== undefined && duration !== null) {
-                const parsedDuration = parseFloat(duration);
-                if (!isNaN(parsedDuration)) {
-                  return parsedDuration / 1000 / 60;
-                }
-              }
-              return 0;
-            });
-            const totalMinutes = Math.round(_.sum(durations));
-            const uniqueArtistCount = _.uniq(filteredData.map(item => item.artist_name)).filter(Boolean).length;
-            const uniqueTrackCount = _.uniq(filteredData.map(item => item.song_key || `${item.track_name} by ${item.artist_name}`)).filter(Boolean).length;
-            const completionValues = filteredData.map(track => {
-              const completion = track.completion;
-              if (completion !== undefined && completion !== null) {
-                const parsedValue = parseFloat(completion);
-                if (!isNaN(parsedValue)) {
-                  return Math.min(parsedValue * 100, 100);
-                }
-              }
-              return 100;
-            });
-            const avgCompletion = Math.round(_.mean(completionValues));
-
-            setMusicStats({
-              totalTracks,
-              uniqueTracks: uniqueTrackCount,
-              totalListeningTime: totalMinutes,
-              uniqueArtists: uniqueArtistCount,
-              avgCompletion
-            });
-          }
         });
     } else if (data.music?.aggregatedStats) {
       // Use pre-calculated aggregated stats for all data
@@ -277,11 +200,9 @@ const MusicPage = () => {
         avgCompletion: Math.round(aggregated.avgCompletion * 100) // Convert to percentage
       };
       
-      console.log('🎵 Using aggregated stats:', stats);
       setMusicStats(stats);
     } else {
       // Reset stats when no data
-      console.log('🎵 No data available, resetting stats');
       setMusicStats({
         totalTracks: 0,
         uniqueTracks: 0,
@@ -292,11 +213,6 @@ const MusicPage = () => {
     }
   }, [filteredData, filters, data.music, calculateFilteredMusicStats]);
 
-  // Handle track click (for future functionality like track details modal)
-  const handleTrackClick = (track) => {
-    console.log('Track clicked:', track);
-    // TODO: Implement track details modal or actions
-  };
 
 
   // Prepare cards data for CardsPanel
@@ -330,6 +246,7 @@ const MusicPage = () => {
     ];
   };
 
+
   if (loading.music) {
     return <LoadingSpinner centerIcon={Music} />;
   }
@@ -338,18 +255,23 @@ const MusicPage = () => {
     return <div className="error">Error loading music data: {error.music}</div>;
   }
 
+  if (!data.music) {
+    return <div className="error">No music data available</div>;
+  }
+
   return (
     <div className="page-container">
-      <h1>Music Tracking</h1>
+      <h1>Music Analytics</h1>
       <p className="page-description">Explore your music listening habits and discover insights</p>
 
-      {/* FilteringPanel - now at the page level, affects all tabs */}
+      {/* FilteringPanel */}
       <FilteringPanel
         data={data.music?.displayData || []}
+        fullDataset={data.music?.csvText || ''}
         filterConfigs={filterConfigs}
         onFiltersChange={handleFiltersChange}
         title="Music Filters"
-        description="Filter your music data across all views (based on sample data)"
+        description="Filter your music data for analysis"
       />
 
       {/* Selected artist info display */}
@@ -376,56 +298,26 @@ const MusicPage = () => {
         </div>
       )}
 
-      {/* Tab Navigation */}
-      <div className="page-tabs">
-        <button
-          className={`page-tab ${activeTab === 'tracks' ? 'active' : ''}`}
-          onClick={() => setActiveTab('tracks')}
-        >
-          <Music size={18} style={{ marginRight: '8px' }} />
-          Tracks
-        </button>
-        <button
-          className={`page-tab ${activeTab === 'analysis' ? 'active' : ''}`}
-          onClick={() => setActiveTab('analysis')}
-        >
-          <BarChart2 size={18} style={{ marginRight: '8px' }} />
-          Analysis
-        </button>
-      </div>
+      {/* KPI Cards using CardsPanel - shows stats from filtered or all data */}
+      <CardsPanel
+        title="Music Statistics"
+        description={`Your listening progress at a glance ${Object.entries(filters).some(([key, value]) => {
+          if (key === 'dateRange') return value && (value.startDate || value.endDate);
+          return Array.isArray(value) ? value.length > 0 : value !== null && value !== undefined && value !== '';
+        }) ? '(filtered from ALL data)' : '(all data)'}`}
+        cards={prepareStatsCards()}
+        loading={loading?.music || filteredStatsLoading}
+      />
 
-      {/* Tracks Tab Content */}
-      {activeTab === 'tracks' && (
-        <div className="tracks-content">
-          {/* KPI Cards using CardsPanel - shows overall or filtered stats */}
-          <CardsPanel
-            title="Music Statistics"
-            description={`Your listening progress at a glance ${Object.entries(filters).some(([key, value]) => {
-              if (key === 'dateRange') return value && (value.startDate || value.endDate);
-              return Array.isArray(value) ? value.length > 0 : value !== null && value !== undefined && value !== '';
-            }) ? '(filtered from ALL data)' : '(all data)'}`}
-            cards={prepareStatsCards()}
-            loading={loading?.music || filteredStatsLoading}
-          />
-
-          {/* Track List */}
-          <TrackList
-            tracks={filteredData}
-            onTrackClick={handleTrackClick}
-            showSampleNote={true}
-            totalCount={data.music?.totalTracks || 0}
-          />
-        </div>
-      )}
-
-      {/* Analysis Tab Content - receives display data for analysis */}
-      {activeTab === 'analysis' && (
-        <MusicAnalysisTab
-          musicData={data.music?.displayData || []}
-          selectedArtistInfo={selectedArtistInfo}
-          currentFilters={filters}
-        />
-      )}
+      {/* Analysis Content - uses full dataset for comprehensive analysis */}
+      <MusicAnalysisTab
+        musicData={data.music?.csvText || ''}
+        allData={data.music?.csvText || ''}
+        displaySample={filteredData.length > 0 ? filteredData : (data.music?.displayData || [])}
+        selectedArtistInfo={selectedArtistInfo}
+        currentFilters={filters}
+        isFullDataset={true}
+      />
     </div>
   );
 };
