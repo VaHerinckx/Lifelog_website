@@ -352,8 +352,7 @@ export const DataProvider = ({ children }) => {
           // Parse with streaming aggregation - process ALL data for stats, keep sample for display
           return new Promise((resolve, reject) => {
             let processedRows = 0;
-            const displaySample = []; // Keep first N tracks for display
-            const maxDisplaySample = 1000; // Keep 1000 tracks for display/filtering
+            const allProcessedData = []; // Keep all tracks from 2017 onwards
             
             // Streaming aggregation variables
             let totalTracks = 0;
@@ -371,12 +370,19 @@ export const DataProvider = ({ children }) => {
                 processedRows++;
                 const track = row.data;
                 
-                // Keep sample for display (first N tracks)
-                if (displaySample.length < maxDisplaySample) {
-                  displaySample.push(track);
+                // Filter out tracks before 2017
+                const trackDate = new Date(track.timestamp);
+                if (isNaN(trackDate.getTime()) || trackDate < new Date('2017-01-01')) {
+                  return; // Skip this track
                 }
+
+                // Add listening year field for filtering
+                track.listening_year = trackDate.getFullYear().toString();
                 
-                // Streaming aggregation for all tracks
+                // Keep all tracks from 2017 onwards
+                allProcessedData.push(track);
+                
+                // Streaming aggregation for all tracks (from 2017 onwards)
                 totalTracks++;
                 
                 // Aggregate duration
@@ -405,8 +411,8 @@ export const DataProvider = ({ children }) => {
                 
               },
               complete: () => {
-                // Clean the display sample
-                const cleanedDisplaySample = cleanData(displaySample);
+                // Clean all processed data
+                const cleanedAllData = cleanData(allProcessedData);
                 
                 // Calculate aggregated stats
                 const aggregatedStats = {
@@ -417,12 +423,12 @@ export const DataProvider = ({ children }) => {
                   avgCompletion: completionCount > 0 ? (completionSum / completionCount) : 0
                 };
                 
-                // For music, store both aggregated stats and display sample
+                // For music, store all processed data and aggregated stats
                 const musicDataWithStats = {
-                  displayData: cleanedDisplaySample, // Sample for display/filtering
+                  displayData: cleanedAllData, // All data for display/filtering
                   totalTracks,
                   aggregatedStats,
-                  fullDataAvailable: false, // We don't keep all data in memory
+                  fullDataAvailable: true, // We keep all data in memory
                   csvText: csvText // Keep raw CSV for filtered aggregations
                 };
                 
@@ -546,8 +552,24 @@ export const DataProvider = ({ children }) => {
           processedRows++;
           const track = row.data;
           
+          // Filter out tracks before 2017
+          const trackDate = new Date(track.timestamp);
+          if (isNaN(trackDate.getTime()) || trackDate < new Date('2017-01-01')) {
+            return; // Skip this track
+          }
+          
+          // Add listening year field for filtering
+          track.listening_year = trackDate.getFullYear().toString();
+          
           // Apply filters to determine if track should be included
           let includeTrack = true;
+
+          // Apply listening year filter
+          if (filters.listeningYear && Array.isArray(filters.listeningYear) && filters.listeningYear.length > 0) {
+            if (!filters.listeningYear.includes(track.listening_year)) {
+              includeTrack = false;
+            }
+          }
 
           // Apply date range filter
           if (filters.dateRange && (filters.dateRange.startDate || filters.dateRange.endDate)) {

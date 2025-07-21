@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Papa from 'papaparse';
 import TimeSeriesBarChart from '../../../components/charts/TimeSeriesBarChart';
 import IntensityHeatmap from '../../../components/charts/IntensityHeatmap';
-import TopArtistsChart from '../../../components/charts/TopArtistsChart';
+import TopChart from '../../../components/charts/TopChart';
 import TreemapGenre from '../../../components/charts/TreemapGenre';
 import './MusicAnalysisTab.css';
 
@@ -18,100 +18,78 @@ const MusicAnalysisTab = ({
   const [processedData, setProcessedData] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Process full dataset with filters for chart analysis
+  // Use the already processed data directly and apply filters
   useEffect(() => {
-    if (!isFullDataset || !allData || typeof allData !== 'string') {
-      // Fallback to display sample if full dataset not available
-      console.log('🎵 MusicAnalysisTab using display sample data:', displaySample.length);
-      setProcessedData(displaySample);
+    if (!displaySample || displaySample.length === 0) {
+      setProcessedData([]);
       return;
     }
 
     setIsProcessing(true);
 
-    const processFullData = () => {
-      return new Promise((resolve) => {
-        const filteredResults = [];
-        let processedRows = 0;
+    // Apply filters to the full dataset
+    let filteredResults = [...displaySample];
 
-        Papa.parse(allData, {
-          delimiter: "|",
-          header: true,
-          skipEmptyLines: true,
-          step: (row) => {
-            processedRows++;
-            const track = row.data;
-            
-            // Apply filters to determine if track should be included
-            let includeTrack = true;
-
-            // Apply date range filter
-            if (currentFilters.dateRange && (currentFilters.dateRange.startDate || currentFilters.dateRange.endDate)) {
-              const itemDate = new Date(track.timestamp);
-              if (isNaN(itemDate.getTime()) || itemDate.getFullYear() <= 1970) {
-                includeTrack = false;
-              } else {
-                const startDate = currentFilters.dateRange.startDate ? new Date(currentFilters.dateRange.startDate) : null;
-                const endDate = currentFilters.dateRange.endDate ? new Date(currentFilters.dateRange.endDate) : null;
-
-                if (startDate) {
-                  startDate.setHours(0, 0, 0, 0);
-                  if (itemDate < startDate) includeTrack = false;
-                }
-
-                if (endDate) {
-                  endDate.setHours(23, 59, 59, 999);
-                  if (itemDate > endDate) includeTrack = false;
-                }
-              }
-            }
-
-            // Apply artist filter
-            if (includeTrack && currentFilters.artists && Array.isArray(currentFilters.artists) && currentFilters.artists.length > 0) {
-              if (!currentFilters.artists.includes(track.artist_name)) {
-                includeTrack = false;
-              }
-            }
-
-            // Apply album filter
-            if (includeTrack && currentFilters.albums && Array.isArray(currentFilters.albums) && currentFilters.albums.length > 0) {
-              if (!currentFilters.albums.includes(track.album_name)) {
-                includeTrack = false;
-              }
-            }
-
-            // Apply genre filter
-            if (includeTrack && currentFilters.genres && Array.isArray(currentFilters.genres) && currentFilters.genres.length > 0) {
-              const genres = [track.genre_1, track.genre_2, track.genre_3, track.genre_4, track.genre_5]
-                .filter(Boolean)
-                .filter(genre => genre !== 'Unknown' && genre.trim() !== '');
-              
-              if (!genres.some(genre => currentFilters.genres.includes(genre))) {
-                includeTrack = false;
-              }
-            }
-
-            // Include ALL tracks that pass filters - no limit!
-            if (includeTrack) {
-              filteredResults.push(track);
-            }
-
-          },
-          complete: () => {
-            resolve(filteredResults);
-          },
-          error: (error) => {
-            resolve([]);
-          }
-        });
+    // Apply listening year filter
+    if (currentFilters.listeningYear && Array.isArray(currentFilters.listeningYear) && currentFilters.listeningYear.length > 0) {
+      filteredResults = filteredResults.filter(track => {
+        return currentFilters.listeningYear.includes(track.listening_year);
       });
-    };
+    }
 
-    processFullData().then(results => {
-      setProcessedData(results);
-      setIsProcessing(false);
-    });
-  }, [allData, currentFilters, isFullDataset, displaySample]);
+    // Apply date range filter
+    if (currentFilters.dateRange && (currentFilters.dateRange.startDate || currentFilters.dateRange.endDate)) {
+      filteredResults = filteredResults.filter(track => {
+        const itemDate = new Date(track.timestamp);
+        if (isNaN(itemDate.getTime()) || itemDate.getFullYear() <= 1970) {
+          return false;
+        }
+
+        const startDate = currentFilters.dateRange.startDate ? new Date(currentFilters.dateRange.startDate) : null;
+        const endDate = currentFilters.dateRange.endDate ? new Date(currentFilters.dateRange.endDate) : null;
+
+        if (startDate) {
+          startDate.setHours(0, 0, 0, 0);
+          if (itemDate < startDate) return false;
+        }
+
+        if (endDate) {
+          endDate.setHours(23, 59, 59, 999);
+          if (itemDate > endDate) return false;
+        }
+
+        return true;
+      });
+    }
+
+    // Apply artist filter
+    if (currentFilters.artists && Array.isArray(currentFilters.artists) && currentFilters.artists.length > 0) {
+      filteredResults = filteredResults.filter(track => {
+        return currentFilters.artists.includes(track.artist_name);
+      });
+    }
+
+    // Apply album filter
+    if (currentFilters.albums && Array.isArray(currentFilters.albums) && currentFilters.albums.length > 0) {
+      filteredResults = filteredResults.filter(track => {
+        return currentFilters.albums.includes(track.album_name);
+      });
+    }
+
+    // Apply genre filter
+    if (currentFilters.genres && Array.isArray(currentFilters.genres) && currentFilters.genres.length > 0) {
+      filteredResults = filteredResults.filter(track => {
+        const genres = [track.genre_1, track.genre_2, track.genre_3, track.genre_4, track.genre_5]
+          .filter(Boolean)
+          .filter(genre => genre !== 'Unknown' && genre.trim() !== '');
+        
+        return genres.some(genre => currentFilters.genres.includes(genre));
+      });
+    }
+
+    setProcessedData(filteredResults);
+    setIsProcessing(false);
+  }, [displaySample, currentFilters]);
 
   // Get data count for display
   const dataCount = useMemo(() => {
@@ -146,6 +124,7 @@ const MusicAnalysisTab = ({
         </div>
       ) : (
         <div className="charts-grid">
+          {/* Time Series Chart First */}
           <div className="chart-container">
             <TimeSeriesBarChart
               data={processedData}
@@ -156,6 +135,32 @@ const MusicAnalysisTab = ({
             />
           </div>
 
+          {/* Top 10 Charts - Individual containers */}
+          <div className="chart-container">
+            <TopChart 
+              data={processedData}
+              dimension="artist"
+              metric="listeningTime"
+            />
+          </div>
+
+          <div className="chart-container">
+            <TopChart 
+              data={processedData}
+              dimension="track"
+              metric="listeningTime"
+            />
+          </div>
+
+          <div className="chart-container">
+            <TopChart 
+              data={processedData}
+              dimension="album"
+              metric="listeningTime"
+            />
+          </div>
+
+          {/* Other Charts */}
           <div className="chart-container">
             <IntensityHeatmap
               data={processedData}
@@ -163,13 +168,6 @@ const MusicAnalysisTab = ({
               valueColumnName="track_duration"
               title="Listening Activity by Day and Time"
               treatMidnightAsUnknown={false}
-            />
-          </div>
-
-          <div className="chart-container">
-            <TopArtistsChart 
-              data={processedData}
-              dateRange={currentFilters.dateRange || { startDate: null, endDate: null }}
             />
           </div>
 

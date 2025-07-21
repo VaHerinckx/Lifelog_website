@@ -1,0 +1,120 @@
+/* Generic styles for TopChart component - works for artists, tracks, and albums */
+.top-artists-container,
+.top-tracks-container,
+.top-albums-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background-color: var(--element-background-color);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+.top-artists-title,
+.top-tracks-title,
+.top-albums-title {
+  color: var(--title-color);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  text-align: center;
+}
+
+.top-artists-chart,
+.top-tracks-chart,
+.top-albums-chart {
+  width: 100%;
+  height: 500px;
+}
+
+/* Indicator styles */
+.popularity-indicator,
+.year-indicator {
+  stroke: #171738;
+  stroke-width: 1;
+}
+
+.popularity-text,
+.year-text {
+  font-weight: 600;
+}
+
+/* Name labels */
+.artist-name,
+.track-name,
+.album-name {
+  font-size: 12px;
+  font-weight: 500;
+  fill: var(--text-element);
+}
+
+.value-label {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--text-element);
+}
+
+/* Tooltip styling */
+.top-artists-tooltip,
+.top-tracks-tooltip,
+.top-albums-tooltip {
+  background-color: white;
+  padding: 0.75rem;
+  border: 1px solid #3423A6;
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.tooltip-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #171738;
+  margin-bottom: 0.25rem;
+}
+
+.tooltip-time {
+  font-size: 0.875rem;
+  color: #171738;
+}
+
+.tooltip-popularity {
+  font-size: 0.75rem;
+  color: #3423A6;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .top-artists-container,
+  .top-tracks-container,
+  .top-albums-container {
+    padding: 1rem;
+    margin: 1rem 0;
+  }
+  
+  .top-artists-title,
+  .top-tracks-title,
+  .top-albums-title {
+    font-size: 1.25rem;
+  }
+  
+  .top-artists-chart,
+  .top-tracks-chart,
+  .top-albums-chart {
+    height: 400px;
+  }
+  
+  .artist-name,
+  .track-name,
+  .album-name {
+    font-size: 10px;
+  }
+  
+  .value-label {
+    font-size: 10px;
+  }
+}

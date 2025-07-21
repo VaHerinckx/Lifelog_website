@@ -74,6 +74,16 @@ const FilteringPanel = ({
             step: (row) => {
               processedRows++;
               const track = row.data;
+              
+              // Filter out tracks before 2017
+              const trackDate = new Date(track.timestamp);
+              if (isNaN(trackDate.getTime()) || trackDate < new Date('2017-01-01')) {
+                return; // Skip this track
+              }
+              
+              // Add listening year for year filter options
+              track.listening_year = trackDate.getFullYear().toString();
+              
               const dateValue = track[fieldName];
               
               if (dateValue) {

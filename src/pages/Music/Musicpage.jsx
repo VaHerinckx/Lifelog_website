@@ -32,6 +32,16 @@ const MusicPage = () => {
   // Define filter configurations for FilteringPanel
   const filterConfigs = [
     {
+      key: 'listeningYear',
+      type: 'multiselect',
+      label: 'Listening Year',
+      optionsSource: 'listening_year',
+      dataField: 'listening_year',
+      icon: <Calendar size={16} />,
+      placeholder: 'Select years',
+      searchPlaceholder: 'Search years...'
+    },
+    {
       key: 'dateRange',
       type: 'daterange',
       label: 'Listening Date',
@@ -90,6 +100,22 @@ const MusicPage = () => {
     }
 
     let filtered = [...data.music.displayData];
+
+    // Filter out tracks before 2017 and add listening year
+    filtered = filtered.filter(item => {
+      const itemDate = new Date(item.timestamp);
+      if (!isNaN(itemDate.getTime()) && itemDate >= new Date('2017-01-01')) {
+        // Add listening year field for filtering
+        item.listening_year = itemDate.getFullYear().toString();
+        return true;
+      }
+      return false;
+    });
+
+    // Apply listening year filter
+    if (filters.listeningYear && Array.isArray(filters.listeningYear) && filters.listeningYear.length > 0) {
+      filtered = filtered.filter(item => filters.listeningYear.includes(item.listening_year));
+    }
 
     // Apply date range filter
     if (filters.dateRange && (filters.dateRange.startDate || filters.dateRange.endDate)) {
@@ -311,9 +337,9 @@ const MusicPage = () => {
 
       {/* Analysis Content - uses full dataset for comprehensive analysis */}
       <MusicAnalysisTab
-        musicData={data.music?.csvText || ''}
+        musicData={data.music?.displayData || []}
         allData={data.music?.csvText || ''}
-        displaySample={filteredData.length > 0 ? filteredData : (data.music?.displayData || [])}
+        displaySample={data.music?.displayData || []}
         selectedArtistInfo={selectedArtistInfo}
         currentFilters={filters}
         isFullDataset={true}

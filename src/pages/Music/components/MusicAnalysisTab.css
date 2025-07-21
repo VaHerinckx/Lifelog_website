@@ -1,7 +1,13 @@
 /* src/pages/Music/components/MusicAnalysisTab.css */
 .music-analysis-container {
   width: 100%;
-  max-width: 100%;
+  max-width: none !important;
+}
+
+/* Override page container constraints for charts */
+.music-analysis-container .page-container {
+  max-width: none !important;
+  width: 100% !important;
 }
 
 .music-analysis-title {
@@ -34,22 +40,17 @@
 }
 
 .charts-grid {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 2rem;
+  width: 100%;
 }
 
-/* For larger screens, we can show multiple columns */
-@media (min-width: 992px) {
-  .charts-grid {
-    grid-template-columns: 3fr 2fr;
-  }
-}
-
-@media (min-width: 1200px) {
-  .charts-grid {
-    grid-template-columns: 3fr 2fr;
-  }
+.chart-container {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 @media (max-width: 768px) {
