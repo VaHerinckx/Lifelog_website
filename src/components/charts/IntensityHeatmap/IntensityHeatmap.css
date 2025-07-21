@@ -1,17 +1,22 @@
 /* src/components/charts/IntensityHeatmap/IntensityHeatmap.css */
 .heatmap-container {
+  background-color: var(--chart-background);
+  border-radius: var(--chart-border-radius);
+  padding: var(--chart-padding);
+  margin-bottom: var(--chart-margin-bottom);
+  box-shadow: var(--chart-shadow);
   width: 100%;
-  background-color: var(--element-background-color, #D8DCFF);
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .heatmap-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: 1.5rem;
-  color: var(--text-element, #171738);
+  color: var(--chart-title-color);
+  font-size: var(--chart-title-size);
+  font-weight: var(--chart-title-weight);
+  margin: 0 0 var(--chart-title-margin) 0;
+  text-align: var(--chart-title-align);
 }
 
 .heatmap-table-container {
@@ -76,25 +81,25 @@
 }
 
 .grand-total-cell {
-  font-weight: 700;
-  font-size: 1.1rem;
-  background-color: rgba(52, 35, 166, 0.2);
-  color: #171738;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+  background-color: var(--color-active);
+  color: var(--color-text-primary);
 }
 
 .total-row {
-  border-top: 2px solid rgba(52, 35, 166, 0.4);
+  border-top: var(--border-width-medium) solid var(--border-color-medium);
 }
 
 .grand-total-cell {
-  font-weight: 700;
-  font-size: 1.1rem;
-  background-color: rgba(52, 35, 166, 0.2);
-  color: #171738;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg);
+  background-color: var(--color-active);
+  color: var(--color-text-primary);
 }
 
 .total-row {
-  border-top: 2px solid rgba(52, 35, 166, 0.4);
+  border-top: var(--border-width-medium) solid var(--border-color-medium);
 }
 
 /* Styling for percentage text */

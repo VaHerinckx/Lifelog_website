@@ -1,66 +1,87 @@
 .top-podcasts-container {
+  background-color: var(--chart-background);
+  border-radius: var(--chart-border-radius);
+  padding: var(--chart-padding);
+  margin-bottom: var(--chart-margin-bottom);
+  box-shadow: var(--chart-shadow);
   width: 100%;
-  background-color: #D8DCFF;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .top-podcasts-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  color: #171738;
+  color: var(--chart-title-color);
+  font-size: var(--chart-title-size);
+  font-weight: var(--chart-title-weight);
+  margin: 0 0 var(--chart-title-margin) 0;
+  text-align: var(--chart-title-align);
 }
 
 .top-podcasts-chart {
   width: 100%;
-  height: 300px;
+  height: var(--chart-height-default);
 }
 
 .podcast-artwork {
   width: 20px;
   height: 20px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .podcast-name {
-  font-size: 12px;
-  fill: #171738;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  fill: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
 }
 
 .value-label {
-  font-size: 12px;
-  fill: #171738;
+  font-size: var(--font-size-xs);
+  fill: var(--color-text-primary);
 }
 
 /* Tooltip styling */
 .top-podcasts-tooltip {
-  background-color: white;
-  padding: 0.75rem;
-  border: 1px solid #3423A6;
-  border-radius: 0.25rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: var(--color-surface-elevated);
+  padding: var(--spacing-sm);
+  border: var(--border-width-thin) solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
   display: flex;
-  gap: 0.75rem;
+  gap: var(--spacing-sm);
   align-items: center;
 }
 
 .tooltip-artwork {
   width: 30px;
   height: 30px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 .tooltip-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #171738;
-  margin-bottom: 0.25rem;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
 }
 
 .tooltip-time {
-  font-size: 0.875rem;
-  color: #171738;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .top-podcasts-container {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .top-podcasts-title {
+    font-size: var(--font-size-lg);
+  }
+  
+  .top-podcasts-chart {
+    height: var(--chart-height-mobile);
+  }
 }

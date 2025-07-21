@@ -40,21 +40,17 @@
 }
 
 .charts-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  display: block;
   width: 100%;
 }
 
-.test {
-  width: 100%
-}
 
 .chart-container {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   overflow: hidden;
+  margin-bottom: 2rem;
 }
 
 @media (max-width: 768px) {

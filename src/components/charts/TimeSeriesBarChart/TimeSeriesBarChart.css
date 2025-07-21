@@ -1,47 +1,51 @@
 /* src/components/charts/TimeSeriesBarChart/TimeSeriesBarChart.css */
 .time-series-chart-container {
+  background-color: var(--chart-background);
+  border-radius: var(--chart-border-radius);
+  padding: var(--chart-padding);
+  margin-bottom: var(--chart-margin-bottom);
+  box-shadow: var(--chart-shadow);
   width: 100%;
-  background-color: var(--element-background-color, #D8DCFF);
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  margin-bottom: 2rem;
-  color: var(--text-element, #171738);
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+  color: var(--color-text-primary);
 }
 
 .chart-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
 }
 
 .time-series-chart__title {
-  color: var(--title-color, #171738);
-  font-size: 1.125rem;
-  font-weight: 600;
+  color: var(--chart-title-color);
+  font-size: var(--chart-title-size);
+  font-weight: var(--chart-title-weight);
   margin: 0;
 }
 
 .chart-filter {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--spacing-sm);
 }
 
 .chart-filter label {
-  color: var(--text-element, #171738);
-  font-weight: 500;
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
   width: auto;
   white-space: nowrap;
 }
 
 .chart-filter .filter-select {
   width: 120px;
-  padding: 8px;
-  border-radius: 4px;
-  color: var(--text-element, #171738);
-  border: 1px solid rgba(52, 35, 166, 0.2);
-  background-color: #ffffff;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  border: var(--border-width-thin) solid var(--border-color-medium);
+  background-color: var(--color-surface-elevated);
 }
 
 /* Chart styling */
@@ -51,8 +55,8 @@
 }
 
 .time-series-chart-container .recharts-text {
-  fill: var(--text-element, #171738) !important;
-  font-size: 12px;
+  fill: var(--color-text-primary) !important;
+  font-size: var(--font-size-xs);
 }
 
 .time-series-chart-container .recharts-tooltip-wrapper {
@@ -64,7 +68,7 @@
 }
 
 .time-series-chart-container .recharts-legend-item-text {
-  color: var(--text-element, #171738) !important;
+  color: var(--color-text-primary) !important;
 }
 
 /* Define the bar color in CSS instead of inline in JSX */
@@ -77,7 +81,7 @@
   justify-content: center;
   align-items: center;
   height: 200px;
-  color: var(--text-element, #171738);
+  color: var(--color-text-secondary);
   opacity: 0.7;
   font-style: italic;
 }
@@ -87,11 +91,15 @@
   .chart-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: var(--spacing-sm);
   }
 
   .time-series-chart-container {
-    padding: 1rem;
+    padding: var(--spacing-md);
+  }
+
+  .time-series-chart__title {
+    font-size: var(--font-size-lg);
   }
 
   .chart-filter {

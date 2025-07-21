@@ -1,32 +1,33 @@
-/* Generic styles for TopChart component - works for artists, tracks, and albums */
+/* TopChart component using standardized design system */
 .top-artists-container,
 .top-tracks-container,
 .top-albums-container {
+  background-color: var(--chart-background);
+  border-radius: var(--chart-border-radius);
+  padding: var(--chart-padding);
+  margin-bottom: var(--chart-margin-bottom);
+  box-shadow: var(--chart-shadow);
   width: 100%;
   max-width: 100%;
-  margin: 2rem 0;
-  padding: 1.5rem;
-  background-color: var(--element-background-color);
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .top-artists-title,
 .top-tracks-title,
 .top-albums-title {
-  color: var(--title-color);
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 0 0 1rem 0;
-  text-align: center;
+  color: var(--chart-title-color);
+  font-size: var(--chart-title-size);
+  font-weight: var(--chart-title-weight);
+  margin: 0 0 var(--chart-title-margin) 0;
+  text-align: var(--chart-title-align);
 }
 
 .top-artists-chart,
 .top-tracks-chart,
 .top-albums-chart {
   width: 100%;
-  height: 500px;
+  height: var(--chart-height-default);
 }
 
 /* Indicator styles */
@@ -45,15 +46,15 @@
 .artist-name,
 .track-name,
 .album-name {
-  font-size: 12px;
-  font-weight: 500;
-  fill: var(--text-element);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  fill: var(--color-text-primary);
 }
 
 .value-label {
-  font-size: 11px;
-  font-weight: 600;
-  fill: var(--text-element);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  fill: var(--color-text-primary);
 }
 
 /* Tooltip styling */
@@ -92,20 +93,20 @@
   .top-artists-container,
   .top-tracks-container,
   .top-albums-container {
-    padding: 1rem;
-    margin: 1rem 0;
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
   }
   
   .top-artists-title,
   .top-tracks-title,
   .top-albums-title {
-    font-size: 1.25rem;
+    font-size: var(--font-size-lg);
   }
   
   .top-artists-chart,
   .top-tracks-chart,
   .top-albums-chart {
-    height: 400px;
+    height: var(--chart-height-mobile);
   }
   
   .artist-name,

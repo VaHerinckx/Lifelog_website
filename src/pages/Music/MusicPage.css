@@ -1,7 +1,7 @@
 /* Mobile-specific adjustments */
 @media (max-width: 768px) {
   .page-container {
-    padding: 1rem;
+    padding: var(--container-padding-mobile);
   }
 
   .filters-section {
@@ -10,7 +10,7 @@
 
   .filters-selections {
     flex-direction: column;
-    gap: 15px;
+    gap: var(--spacing-md);
   }
 
   .filter-group {
@@ -19,7 +19,7 @@
   }
 
   .filter-group label {
-    margin-bottom: 5px;
+    margin-bottom: var(--spacing-xs);
   }
 
   .filter-select, .date-input {
@@ -28,12 +28,12 @@
 
   .date-inputs {
     flex-direction: column;
-    gap: 10px;
+    gap: var(--spacing-sm);
   }
 
   .date-separator {
     text-align: center;
-    padding: 0.25rem 0;
+    padding: var(--spacing-xs) 0;
   }
 
   .artist-header {
@@ -44,7 +44,7 @@
 
   .charts-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: var(--spacing-lg);
   }
 
   .chart-container {
@@ -54,7 +54,7 @@
   .chart-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: var(--spacing-sm);
   }
 
   select, input, button {
@@ -70,29 +70,29 @@
   justify-content: center;
   align-items: center;
   min-height: 400px;
-  background-color: rgba(52, 35, 166, 0.1);
-  border-radius: 8px;
-  margin-top: 2rem;
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-md);
+  margin-top: var(--spacing-xl);
 }
 
 .coming-soon-message {
-  color: white;
-  font-size: 1.2rem;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
   text-align: center;
-  padding: 2rem;
+  padding: var(--spacing-xl);
 }
 
 /* Add these styles to your MusicPage.css file */
 
 .tracks-content {
-  padding: 1rem 0;
+  padding: var(--spacing-lg) 0;
 }
 
 .music-stats-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1.5rem;
-  margin: 1.5rem 0;
+  gap: var(--spacing-lg);
+  margin: var(--spacing-lg) 0;
 }
 
 .coming-soon-container {
@@ -100,16 +100,16 @@
   justify-content: center;
   align-items: center;
   min-height: 400px;
-  background-color: rgba(52, 35, 166, 0.1);
-  border-radius: 8px;
-  margin-top: 2rem;
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-md);
+  margin-top: var(--spacing-xl);
 }
 
 .coming-soon-message {
-  color: white;
-  font-size: 1.2rem;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
   text-align: center;
-  padding: 2rem;
+  padding: var(--spacing-xl);
 }
 
 /* Responsive adjustments */

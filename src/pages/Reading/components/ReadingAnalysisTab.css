@@ -1,23 +1,30 @@
 /* ReadingAnalysisTab.css */
 .reading-analysis-container {
-  width: 100%;
-  max-width: 100%;
+  width: var(--container-width);
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: var(--container-padding);
 }
 
 .reading-analysis-title {
-  color: var(--title-color);
-  margin-bottom: 10px;
+  color: var(--color-accent);
+  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
 }
 
 .reading-analysis-description {
-  color: var(--text-secondary);
-  margin-bottom: 20px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-normal);
+  opacity: 0.9;
 }
 
 .analysis-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 2rem;
+  gap: var(--spacing-xl);
 }
 
 .analysis-section {
@@ -25,12 +32,13 @@
 }
 
 .reading-analysis-empty {
-  padding: 3rem;
+  padding: var(--spacing-2xl);
   text-align: center;
-  background-color: rgba(52, 35, 166, 0.1);
-  border-radius: 8px;
-  margin-top: 2rem;
-  color: var(--text-primary);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-md);
+  margin-top: var(--spacing-xl);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
 }
 
 /* For larger screens, we can show multiple columns */

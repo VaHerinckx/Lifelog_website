@@ -1,18 +1,21 @@
 /* src/pages/Reading/ReadingPage.css */
 /* Add this rule to force the page content to take full width */
 .page-container {
-  width: 95%; /* Use most of the viewport width */
-  max-width: 260000px; /* Prevent excessive width on very large screens */
-  margin: 0 auto; /* Center the container */
+  width: var(--container-width);
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: var(--container-padding);
   box-sizing: border-box;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
 }
 
 
 .page-content {
-  width: 95%; /* Use most of the available width */
-  max-width: 1800px; /* Prevent excessive width on very large screens */
+  width: var(--container-width);
+  max-width: var(--container-max-width);
   margin: 0 auto;
-  padding: 2rem 2rem; /* Reduce the horizontal padding */
+  padding: var(--spacing-xl);
   box-sizing: border-box;
 }
 
@@ -24,59 +27,61 @@
 
 @media (max-width: 768px) {
   .page-content {
-    padding: 1.5rem 1rem;
+    padding: var(--container-padding-mobile);
   }
 }
 
 .page-container h1,
 .page-container h2 {
-  color: #FB4B4E;
-  margin-bottom: 10px;
+  color: var(--color-accent);
+  margin-bottom: var(--spacing-sm);
 }
 
 .page-description {
-  color: #ffffff;
-  margin-bottom: 20px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-lg);
   opacity: 0.9;
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-normal);
 }
 
 /* Controls Container */
 .controls-container {
-  margin: 20px 0;
+  margin: var(--spacing-lg) 0;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: var(--spacing-md);
 }
 
 /* Filters Section */
 .filters-section {
-  padding: 15px;
-  background-color: #D8DCFF;
-  color: black;
-  border-radius: 4px;
+  padding: var(--spacing-md);
+  background-color: var(--color-surface);
+  color: var(--color-text-on-surface);
+  border-radius: var(--radius-sm);
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: var(--spacing-lg);
 }
 
 .filter-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--spacing-sm);
 }
 
 .filter-group label {
-  color: var(--background-color);
-  font-weight: 500;
+  color: var(--color-text-on-surface);
+  font-weight: var(--font-weight-medium);
   min-width: 80px;
 }
 
 .filter-select {
-  padding: 8px 12px;
-  border-radius: 4px;
-  color: var(--background-color);
-  border: 1px solid rgba(52, 35, 166, 0.2);
-  background-color: #fff;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-on-surface);
+  border: var(--border-width-thin) solid var(--border-color-light);
+  background-color: white;
   min-width: 180px;
 }
 
@@ -85,36 +90,36 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  padding: 10px 0;
+  padding: var(--spacing-sm) 0;
 }
 
 .view-control-btn {
-  background-color: #D8DCFF;
+  background-color: var(--color-surface);
   border: none;
-  color: var(--background-color);
-  border-radius: 4px;
-  padding: 8px;
-  margin-left: 10px;
+  color: var(--color-text-on-surface);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm);
+  margin-left: var(--spacing-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--transition-fast);
 }
 
 .view-control-btn:hover {
-  background-color: #C5CAFF;
+  background-color: var(--color-surface);
 }
 
 .view-control-btn.active {
-  background-color: #3423A6;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--color-text-primary);
 }
 
 .book-count {
-  margin-left: 15px;
-  color: #D8DCFF;
-  font-size: 0.9rem;
+  margin-left: var(--spacing-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
 }
 
 /* Books Grid View */
@@ -122,43 +127,43 @@
   display: grid;
   width: 100%;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 1rem;
+  gap: var(--spacing-lg);
 }
 
 .book-card {
-  background-color: #D8DCFF;
-  border-radius: 8px;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
   overflow: hidden;
   display: flex;
   flex-direction: column;
   height: 100%;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
   cursor: pointer;
 }
 
 .book-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: var(--shadow-lg);
 }
 
 .book-cover-container {
   width: 100%;
   height: 220px;
   overflow: hidden;
-  background-color: #3423A6;
+  background-color: var(--color-primary);
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 0;
+  padding: var(--spacing-sm) 0;
 }
 
 .book-cover {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  background-color: #3423A6;
-  transition: transform 0.3s ease;
+  background-color: var(--color-primary);
+  transition: transform var(--transition-normal);
 }
 
 .book-card:hover .book-cover {
@@ -532,26 +537,26 @@
 
 /* Update the view controls to include the timeline button */
 .view-control-btn {
-  background-color: #D8DCFF;
+  background-color: var(--color-surface);
   border: none;
-  color: var(--background-color);
-  border-radius: 4px;
-  padding: 8px;
-  margin-left: 10px;
+  color: var(--color-text-on-surface);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm);
+  margin-left: var(--spacing-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--transition-fast);
 }
 
 .view-control-btn:hover {
-  background-color: #C5CAFF;
+  background-color: var(--color-surface);
 }
 
 .view-control-btn.active {
-  background-color: #3423A6;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--color-text-primary);
 }
 
 /* Empty State Styling */

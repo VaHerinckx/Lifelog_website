@@ -217,7 +217,7 @@ const TimeSeriesBarChart = ({
               interval={selectedPeriod === 'daily' ? 6 : (selectedPeriod === 'monthly' ? 1 : 0)} // Skip some labels for daily/monthly view
             />
             <YAxis
-              label={{ value: yAxisLabel, angle: -90, position: 'insideLeft' }}
+
               tickFormatter={(val) => val.toLocaleString()}
             />
             <Tooltip

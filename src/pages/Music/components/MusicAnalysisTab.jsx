@@ -136,28 +136,26 @@ const MusicAnalysisTab = ({
           </div>
 
           {/* Top 10 Charts - Individual containers */}
-          <div className="test">
-            <div className="chart-container">
-              <TopChart
-                data={processedData}
-                dimension="artist"
-                metric="listeningTime"
-              />
-            </div>
-            <div className="chart-container">
-              <TopChart
-                data={processedData}
-                dimension="track"
-                metric="listeningTime"
-              />
-            </div>
-            <div className="chart-container">
-              <TopChart
-                data={processedData}
-                dimension="album"
-                metric="listeningTime"
-              />
-            </div>
+          <div className="chart-container">
+            <TopChart
+              data={processedData}
+              dimension="artist"
+              metric="listeningTime"
+            />
+          </div>
+          <div className="chart-container">
+            <TopChart
+              data={processedData}
+              dimension="track"
+              metric="listeningTime"
+            />
+          </div>
+          <div className="chart-container">
+            <TopChart
+              data={processedData}
+              dimension="album"
+              metric="listeningTime"
+            />
           </div>
 
           {/* Other Charts */}
