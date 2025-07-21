@@ -10,24 +10,14 @@ const PodcastAnalysisTab = ({ podcastData = [], selectedPodcastInfo = null, curr
   // No longer manages its own filters - receives filtered data as props
 
   return (
-    <div className="podcast-analysis-container">
-      <h2 className="podcast-analysis-title">Podcast Analytics</h2>
-      <p className="podcast-analysis-description">
-        Discover patterns and insights in your podcast listening habits
-        {podcastData.length > 0 && (
-          <span style={{ display: 'block', marginTop: '5px', fontSize: '0.9rem', opacity: 0.8 }}>
-            Analyzing {podcastData.length.toLocaleString()} episodes
-          </span>
-        )}
-      </p>
-
+    <div className="analysis-tab-container">
       {podcastData.length === 0 ? (
         <div className="empty-state">
           <p>No podcast data available with current filters. Try adjusting your filter criteria.</p>
         </div>
       ) : (
-        <div className="charts-grid">
-          <div className="chart-container">
+        <div className="analysis-charts-grid">
+          <div className="analysis-chart-section">
             <TimeSeriesBarChart
               data={podcastData}
               dateColumnName="modified at"
@@ -37,7 +27,7 @@ const PodcastAnalysisTab = ({ podcastData = [], selectedPodcastInfo = null, curr
             />
           </div>
 
-          <div className="chart-container">
+          <div className="analysis-chart-section">
             <IntensityHeatmap
               data={podcastData}
               dateColumnName="modified at"
@@ -47,14 +37,14 @@ const PodcastAnalysisTab = ({ podcastData = [], selectedPodcastInfo = null, curr
             />
           </div>
 
-          <div className="chart-container">
+          <div className="analysis-chart-section">
             <TopPodcastsChart
               data={podcastData}
               dateRange={currentFilters.dateRange || { startDate: null, endDate: null }}
             />
           </div>
 
-          <div className="chart-container">
+          <div className="analysis-chart-section">
             <TreemapGenre
               data={podcastData}
               selectedPodcast={currentFilters.podcasts?.length === 1 ? currentFilters.podcasts[0] : 'all'}

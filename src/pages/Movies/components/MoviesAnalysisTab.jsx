@@ -10,7 +10,7 @@ const MoviesAnalysisTab = ({ movies = [], shows = [], contentType = 'movies' }) 
   
   if (!data || data.length === 0) {
     return (
-      <div className="movies-analysis-empty">
+      <div className="analysis-empty-state">
         <p>No {isMovies ? 'movie' : 'TV show'} data available for analysis. Add some {isMovies ? 'movies' : 'shows'} to see insights!</p>
       </div>
     );
@@ -37,22 +37,10 @@ const MoviesAnalysisTab = ({ movies = [], shows = [], contentType = 'movies' }) 
   });
 
   return (
-    <div className="movies-analysis-container">
-      <h2 className="movies-analysis-title">
-        {isMovies ? 'Movie Analytics' : 'TV Show Analytics'}
-      </h2>
-      <p className="movies-analysis-description">
-        Discover patterns and insights in your {isMovies ? 'movie watching' : 'TV show viewing'} habits
-        {data.length > 0 && (
-          <span style={{ display: 'block', marginTop: '5px', fontSize: '0.9rem', opacity: 0.8 }}>
-            Analyzing {data.length.toLocaleString()} {isMovies ? 'movie' : 'episode'} entries
-          </span>
-        )}
-      </p>
-
-      <div className="charts-grid">
+    <div className="analysis-tab-container">
+      <div className="analysis-charts-grid">
         {/* Content watched over time */}
-        <div className="chart-container">
+        <div className="analysis-chart-section">
           <TimeSeriesBarChart
             data={chartData}
             dateColumnName="Date"
@@ -63,7 +51,7 @@ const MoviesAnalysisTab = ({ movies = [], shows = [], contentType = 'movies' }) 
         </div>
 
         {/* Viewing activity heatmap */}
-        <div className="chart-container">
+        <div className="analysis-chart-section">
           <IntensityHeatmap
             data={chartData}
             dateColumnName="Date"

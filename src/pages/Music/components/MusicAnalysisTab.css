@@ -1,24 +1,8 @@
-/* src/pages/Music/components/MusicAnalysisTab.css */
-.music-analysis-container {
-  width: 100%;
-  max-width: none !important;
-}
-
-/* Override page container constraints for charts */
-.music-analysis-container .page-container {
-  max-width: none !important;
-  width: 100% !important;
-}
-
-.music-analysis-title {
-  color: var(--title-color);
-  margin-bottom: 10px;
-}
-
-.music-analysis-description {
-  color: var(--text-secondary);
-  margin-bottom: 20px;
-}
+/* MusicAnalysisTab.css - Uses standardized analysis tab classes */
+/* Container uses analysis-tab-container class for consistent width behavior */
+/* Title uses analysis-tab-title class for consistent styling */
+/* Description uses analysis-tab-description class for consistent styling */
+/* Grid uses analysis-charts-grid class for consistent layout */
 
 .filter-pane-grid {
   display: flex;
@@ -39,19 +23,7 @@
   min-width: 240px;
 }
 
-.charts-grid {
-  display: block;
-  width: 100%;
-}
-
-
-.chart-container {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  margin-bottom: 2rem;
-}
+/* Chart sections use analysis-chart-section class for consistent styling */
 
 @media (max-width: 768px) {
   .filter-pane-grid {

@@ -101,19 +101,7 @@ const MusicAnalysisTab = ({
 
 
   return (
-    <div className="music-analysis-container">
-      <h2 className="music-analysis-title">Music Analytics</h2>
-      <p className="music-analysis-description">
-        Discover patterns and insights in your music listening habits
-        {dataCount > 0 && (
-          <span style={{ display: 'block', marginTop: '5px', fontSize: '0.9rem', opacity: 0.8 }}>
-            {isProcessing ? 'Processing full dataset...' :
-             isFullDataset ? `Analyzing ${dataCount.toLocaleString()} tracks from full dataset` :
-             `Analyzing ${dataCount.toLocaleString()} tracks from sample`}
-          </span>
-        )}
-      </p>
-
+    <div className="analysis-tab-container">
       {isProcessing ? (
         <div className="empty-state">
           <p>Processing music data for comprehensive analysis...</p>
@@ -123,9 +111,9 @@ const MusicAnalysisTab = ({
           <p>No music data available for analysis.</p>
         </div>
       ) : (
-        <div className="charts-grid">
+        <div className="analysis-charts-grid">
           {/* Time Series Chart First */}
-          <div className="chart-container">
+          <div className="analysis-chart-section">
             <TimeSeriesBarChart
               data={processedData}
               dateColumnName="timestamp"
@@ -136,21 +124,21 @@ const MusicAnalysisTab = ({
           </div>
 
           {/* Top 10 Charts - Individual containers */}
-          <div className="chart-container">
+          <div className="analysis-chart-section">
             <TopChart
               data={processedData}
               dimension="artist"
               metric="listeningTime"
             />
           </div>
-          <div className="chart-container">
+          <div className="analysis-chart-section">
             <TopChart
               data={processedData}
               dimension="track"
               metric="listeningTime"
             />
           </div>
-          <div className="chart-container">
+          <div className="analysis-chart-section">
             <TopChart
               data={processedData}
               dimension="album"
@@ -159,7 +147,7 @@ const MusicAnalysisTab = ({
           </div>
 
           {/* Other Charts */}
-          <div className="chart-container">
+          <div className="analysis-chart-section">
             <IntensityHeatmap
               data={processedData}
               dateColumnName="timestamp"
@@ -169,7 +157,7 @@ const MusicAnalysisTab = ({
             />
           </div>
 
-          <div className="chart-container">
+          <div className="analysis-chart-section">
             <TreemapGenre
               data={processedData}
               selectedArtist={currentFilters.artists?.length === 1 ? currentFilters.artists[0] : 'all'}

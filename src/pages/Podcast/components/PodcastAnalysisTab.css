@@ -1,19 +1,10 @@
-/* src/pages/Podcast/components/PodcastAnalysisTab.css */
-.podcast-analysis-container {
-  width: 100%;
-  max-width: 100%;
-}
+/* PodcastAnalysisTab.css - Uses standardized analysis tab classes */
+/* Container uses analysis-tab-container class for consistent width behavior */
+/* Title uses analysis-tab-title class for consistent styling */
+/* Description uses analysis-tab-description class for consistent styling */
+/* Grid uses analysis-charts-grid class for consistent layout */
 
-.podcast-analysis-title {
-  color: var(--title-color);
-  margin-bottom: 10px;
-}
-
-.podcast-analysis-description {
-  color: var(--text-secondary);
-  margin-bottom: 20px;
-}
-
+/* Custom filter styles specific to podcast analysis */
 .filter-pane-grid {
   display: flex;
   flex-wrap: wrap;
@@ -33,25 +24,6 @@
   min-width: 240px;
 }
 
-.charts-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-}
-
-/* For larger screens, we can show multiple columns */
-@media (min-width: 992px) {
-  .charts-grid {
-    grid-template-columns: 3fr 2fr;
-  }
-}
-
-@media (min-width: 1200px) {
-  .charts-grid {
-    grid-template-columns: 3fr 2fr;
-  }
-}
-
 @media (max-width: 768px) {
   .filter-pane-grid {
     flex-direction: column;
@@ -63,3 +35,6 @@
     flex: 1 1 100%;
   }
 }
+
+/* All main styles are now inherited from design system components.css */
+/* Custom styles can be added here if needed for this specific analysis tab */

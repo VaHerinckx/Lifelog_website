@@ -324,3 +324,52 @@
   outline: 2px solid var(--color-focus);
   outline-offset: 2px;
 }
+
+/* ===== ANALYSIS TAB PATTERNS ===== */
+/* Standardized classes for all *AnalysisTab components */
+.analysis-tab-container {
+  width: 100%;
+  max-width: 100%;
+}
+
+.analysis-tab-title {
+  color: var(--color-accent);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-sm);
+}
+
+.analysis-tab-description {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-normal);
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.9;
+}
+
+.analysis-charts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-xl);
+}
+
+.analysis-chart-section {
+  width: 100%;
+}
+
+.analysis-empty-state {
+  padding: var(--spacing-2xl);
+  text-align: center;
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-md);
+  margin-top: var(--spacing-xl);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+}
+
+/* Responsive grid layouts for analysis tabs */
+@media (min-width: 1200px) {
+  .analysis-charts-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

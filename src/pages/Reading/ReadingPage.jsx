@@ -94,6 +94,7 @@ const ReadingPage = () => {
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [readingEntries, setReadingEntries] = useState([]);
+  const [filteredReadingEntries, setFilteredReadingEntries] = useState([]);
 
   // Simplified filter state - now managed by FilteringPanel
   const [filters, setFilters] = useState({});
@@ -241,6 +242,7 @@ const ReadingPage = () => {
     const sortedBooks = _.sortBy(processedBooks, book => book.timestamp).reverse();
     setBooks(sortedBooks);
     setFilteredBooks(sortedBooks);
+    setFilteredReadingEntries(readingData);
 
     // Calculate stats and date range
     const now = new Date();
@@ -290,8 +292,9 @@ const ReadingPage = () => {
 
     if (books.length > 0) {
       let filtered = [...books];
+      let filteredEntries = [...readingEntries];
 
-      // Apply date range filter
+      // Apply date range filter to books
       if (newFilters.dateRange && (newFilters.dateRange.startDate || newFilters.dateRange.endDate)) {
         filtered = filtered.filter(book => {
           if (!book.timestamp || isNaN(book.timestamp.getTime())) return false;
@@ -305,21 +308,38 @@ const ReadingPage = () => {
 
           return true;
         });
+
+        // Apply date range filter to reading entries
+        filteredEntries = filteredEntries.filter(entry => {
+          const entryDate = new Date(entry.Timestamp);
+          if (isNaN(entryDate.getTime())) return false;
+
+          const startDate = newFilters.dateRange.startDate ? new Date(newFilters.dateRange.startDate) : null;
+          const endDate = newFilters.dateRange.endDate ? new Date(newFilters.dateRange.endDate) : null;
+
+          if (startDate && entryDate < startDate) return false;
+          if (endDate && entryDate > endDate) return false;
+
+          return true;
+        });
       }
 
       // Apply genres filter (multi-select)
       if (newFilters.genres && Array.isArray(newFilters.genres) && newFilters.genres.length > 0) {
         filtered = filtered.filter(book => newFilters.genres.includes(book.genre));
+        filteredEntries = filteredEntries.filter(entry => newFilters.genres.includes(entry.Genre));
       }
 
       // Apply authors filter (multi-select)
       if (newFilters.authors && Array.isArray(newFilters.authors) && newFilters.authors.length > 0) {
         filtered = filtered.filter(book => newFilters.authors.includes(book.author));
+        filteredEntries = filteredEntries.filter(entry => newFilters.authors.includes(entry.Author));
       }
 
       // Apply books filter (multi-select)
       if (newFilters.books && Array.isArray(newFilters.books) && newFilters.books.length > 0) {
         filtered = filtered.filter(book => newFilters.books.includes(book.title));
+        filteredEntries = filteredEntries.filter(entry => newFilters.books.includes(entry.Title));
       }
 
       // Default sorting by most recent
@@ -329,7 +349,14 @@ const ReadingPage = () => {
           : -Infinity;
       }).reverse();
 
+      // Sort reading entries by timestamp as well
+      filteredEntries = _.sortBy(filteredEntries, entry => {
+        const entryDate = new Date(entry.Timestamp);
+        return !isNaN(entryDate.getTime()) ? entryDate.getTime() : -Infinity;
+      }).reverse();
+
       setFilteredBooks(filtered);
+      setFilteredReadingEntries(filteredEntries);
     }
   };
 
@@ -599,7 +626,7 @@ const ReadingPage = () => {
 
         {/* Analysis Tab Content */}
         {activeTab === 'analysis' && (
-          <ReadingAnalysisTab books={readingEntries} dateRange={dateRange} />
+          <ReadingAnalysisTab books={filteredReadingEntries} />
         )}
 
         {/* Book Details Modal */}

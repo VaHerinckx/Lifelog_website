@@ -1,6 +1,7 @@
 // src/pages/Reading/components/AnalysisFilterPane.jsx
 import React, { useMemo } from 'react';
 import { Book, User, Calendar, BookOpen, Tag } from 'lucide-react';
+import Filter from '../../../components/ui/Filters/Filter/Filter';
 
 import './AnalysisFilterPane.css';
 
@@ -71,6 +72,32 @@ const AnalysisFilterPane = ({
     };
   }, [data]);
 
+  // Calculate date boundaries for the date range filter
+  const dateBoundaries = useMemo(() => {
+    if (!Array.isArray(data) || data.length === 0) {
+      return { minDate: null, maxDate: null };
+    }
+
+    const validDates = data
+      .map(item => {
+        const dateValue = item[dateColumnName];
+        if (!dateValue) return null;
+        const date = new Date(dateValue);
+        return (!isNaN(date.getTime()) && date.getFullYear() > 1900) ? date : null;
+      })
+      .filter(Boolean)
+      .sort((a, b) => a - b);
+
+    if (validDates.length === 0) {
+      return { minDate: null, maxDate: null };
+    }
+
+    return {
+      minDate: validDates[0],
+      maxDate: validDates[validDates.length - 1]
+    };
+  }, [data, dateColumnName]);
+
   return (
     <div className="analysis-filter-pane">
       <div className="filter-pane-header">
@@ -80,61 +107,71 @@ const AnalysisFilterPane = ({
 
       <div className="filter-pane-grid">
         <div className="filter-item">
-          <AdvancedDateRangeSlider
-            data={data}
-            dateColumnName={dateColumnName}
+          <Filter
+            type="daterange"
+            label="Filter by Date"
+            value={dateRange}
             onChange={onDateRangeChange}
-            initialStartDate={dateRange?.startDate}
-            initialEndDate={dateRange?.endDate}
-            title="Filter by Date"
+            icon={<Calendar size={16} />}
+            placeholder="Select date range"
+            minDate={dateBoundaries.minDate}
+            maxDate={dateBoundaries.maxDate}
           />
         </div>
 
         <div className="filter-item">
-          <MultiSelectDropdown
+          <Filter
+            type="multiselect"
             options={uniqueTitles}
-            selectedValues={selectedTitles}
+            value={selectedTitles}
             onChange={onTitleChange}
             placeholder="Select books..."
             label="Filter by Book Title"
             searchPlaceholder="Search books..."
             icon={<Book size={16} />}
+            searchable={true}
           />
         </div>
 
         <div className="filter-item">
-          <MultiSelectDropdown
+          <Filter
+            type="multiselect"
             options={uniqueAuthors}
-            selectedValues={selectedAuthors}
+            value={selectedAuthors}
             onChange={onAuthorChange}
             placeholder="Select authors..."
             label="Filter by Author"
             searchPlaceholder="Search authors..."
             icon={<User size={16} />}
+            searchable={true}
           />
         </div>
 
         <div className="filter-item">
-          <MultiSelectDropdown
+          <Filter
+            type="multiselect"
             options={uniqueGenres}
-            selectedValues={selectedGenres}
+            value={selectedGenres}
             onChange={onGenreChange}
             placeholder="Select genres..."
             label="Filter by Genre"
             searchPlaceholder="Search genres..."
             icon={<Tag size={16} />}
+            searchable={true}
           />
         </div>
 
         <div className="filter-item">
-          <MultiSelectDropdown
+          <Filter
+            type="multiselect"
             options={uniqueFictionTypes}
-            selectedValues={selectedFictionTypes}
+            value={selectedFictionTypes}
             onChange={onFictionTypeChange}
             placeholder="Select type..."
             label="Filter by Type"
             searchPlaceholder="Fiction or Non-Fiction..."
             icon={<BookOpen size={16} />}
+            searchable={true}
           />
         </div>
       </div>

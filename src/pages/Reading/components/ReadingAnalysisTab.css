@@ -1,49 +1,9 @@
-/* ReadingAnalysisTab.css */
-.reading-analysis-container {
-  width: var(--container-width);
-  max-width: var(--container-max-width);
-  margin: 0 auto;
-  padding: var(--container-padding);
-}
+/* ReadingAnalysisTab.css - Uses standardized analysis tab classes */
+/* Container uses analysis-tab-container class for consistent width behavior */
+/* Title uses analysis-tab-title class for consistent styling */
+/* Description uses analysis-tab-description class for consistent styling */
+/* Grid uses analysis-charts-grid class for consistent layout */
+/* Empty state uses analysis-empty-state class for consistent styling */
 
-.reading-analysis-title {
-  color: var(--color-accent);
-  margin-bottom: var(--spacing-sm);
-  font-size: var(--font-size-4xl);
-  font-weight: var(--font-weight-bold);
-}
-
-.reading-analysis-description {
-  color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-lg);
-  font-size: var(--font-size-lg);
-  line-height: var(--line-height-normal);
-  opacity: 0.9;
-}
-
-.analysis-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--spacing-xl);
-}
-
-.analysis-section {
-  width: 100%;
-}
-
-.reading-analysis-empty {
-  padding: var(--spacing-2xl);
-  text-align: center;
-  background-color: var(--color-surface-elevated);
-  border-radius: var(--radius-md);
-  margin-top: var(--spacing-xl);
-  color: var(--color-text-primary);
-  font-size: var(--font-size-lg);
-}
-
-/* For larger screens, we can show multiple columns */
-@media (min-width: 1200px) {
-  .analysis-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
+/* All main styles are now inherited from design system components.css */
+/* Custom styles can be added here if needed for this specific analysis tab */
