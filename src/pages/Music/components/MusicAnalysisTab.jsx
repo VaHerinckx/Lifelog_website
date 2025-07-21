@@ -7,13 +7,13 @@ import TopChart from '../../../components/charts/TopChart';
 import TreemapGenre from '../../../components/charts/TreemapGenre';
 import './MusicAnalysisTab.css';
 
-const MusicAnalysisTab = ({ 
-  musicData = '', 
-  allData = '', 
-  displaySample = [], 
-  selectedArtistInfo = null, 
+const MusicAnalysisTab = ({
+  musicData = '',
+  allData = '',
+  displaySample = [],
+  selectedArtistInfo = null,
   currentFilters = {},
-  isFullDataset = false 
+  isFullDataset = false
 }) => {
   const [processedData, setProcessedData] = useState([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -82,7 +82,7 @@ const MusicAnalysisTab = ({
         const genres = [track.genre_1, track.genre_2, track.genre_3, track.genre_4, track.genre_5]
           .filter(Boolean)
           .filter(genre => genre !== 'Unknown' && genre.trim() !== '');
-        
+
         return genres.some(genre => currentFilters.genres.includes(genre));
       });
     }
@@ -107,7 +107,7 @@ const MusicAnalysisTab = ({
         Discover patterns and insights in your music listening habits
         {dataCount > 0 && (
           <span style={{ display: 'block', marginTop: '5px', fontSize: '0.9rem', opacity: 0.8 }}>
-            {isProcessing ? 'Processing full dataset...' : 
+            {isProcessing ? 'Processing full dataset...' :
              isFullDataset ? `Analyzing ${dataCount.toLocaleString()} tracks from full dataset` :
              `Analyzing ${dataCount.toLocaleString()} tracks from sample`}
           </span>
@@ -136,28 +136,28 @@ const MusicAnalysisTab = ({
           </div>
 
           {/* Top 10 Charts - Individual containers */}
-          <div className="chart-container">
-            <TopChart 
-              data={processedData}
-              dimension="artist"
-              metric="listeningTime"
-            />
-          </div>
-
-          <div className="chart-container">
-            <TopChart 
-              data={processedData}
-              dimension="track"
-              metric="listeningTime"
-            />
-          </div>
-
-          <div className="chart-container">
-            <TopChart 
-              data={processedData}
-              dimension="album"
-              metric="listeningTime"
-            />
+          <div className="test">
+            <div className="chart-container">
+              <TopChart
+                data={processedData}
+                dimension="artist"
+                metric="listeningTime"
+              />
+            </div>
+            <div className="chart-container">
+              <TopChart
+                data={processedData}
+                dimension="track"
+                metric="listeningTime"
+              />
+            </div>
+            <div className="chart-container">
+              <TopChart
+                data={processedData}
+                dimension="album"
+                metric="listeningTime"
+              />
+            </div>
           </div>
 
           {/* Other Charts */}
