@@ -117,6 +117,16 @@ const ReadingPage = () => {
   // Define filter configurations for FilteringPanel
   const filterConfigs = [
     {
+      key: 'readingYears',
+      type: 'multiselect',
+      label: 'Reading Years',
+      optionsSource: 'reading_year',
+      dataField: 'reading_year',
+      icon: <Clock size={16} />,
+      placeholder: 'Select years',
+      searchPlaceholder: 'Search years...'
+    },
+    {
       key: 'dateRange',
       type: 'daterange',
       label: 'Reading Date',
@@ -171,7 +181,7 @@ const ReadingPage = () => {
   // Fetch reading data from actual CSV when we can't load from data context
   const fetchReadingData = async () => {
     try {
-      const response = await window.fs.readFile('kindle_gr_processed_sample.csv', { encoding: 'utf8' });
+      const response = await window.fs.readFile('kindle_gr_processed.csv', { encoding: 'utf8' });
       const cleanedResponse = response.replace(/\u0000/g, '');
 
       const parsedData = Papa.parse(cleanedResponse, {
@@ -204,10 +214,21 @@ const ReadingPage = () => {
   const processBooks = (readingData) => {
     if (!readingData || readingData.length === 0) return;
 
-    setReadingEntries(readingData);
-    const processedBooks = _.chain(readingData)
-      .groupBy('Title')
-      .map((entries, title) => {
+    // Add reading_year field to each reading entry for filtering
+    const enhancedReadingData = readingData.map(entry => {
+      const timestamp = new Date(entry.Timestamp || '');
+      return {
+        ...entry,
+        reading_year: timestamp instanceof Date && !isNaN(timestamp.getTime()) 
+          ? timestamp.getFullYear().toString() 
+          : null
+      };
+    });
+
+    setReadingEntries(enhancedReadingData);
+    const processedBooks = _.chain(enhancedReadingData)
+      .groupBy(entry => `${entry.Title}:::${entry.Author}`)
+      .map((entries) => {
         const latestEntry = _.maxBy(entries, entry => new Date(entry['Timestamp'] || entry.Timestamp));
         if (!latestEntry) return null;
 
@@ -219,10 +240,11 @@ const ReadingPage = () => {
         const numPages = latestEntry['Number of Pages'] || 0;
         const coverUrl = latestEntry['cover_url'] || '';
         const readingDuration = latestEntry['reading_duration'] || null;
+        const bookTimestamp = new Date(latestEntry.Timestamp || '');
 
         return {
           id: bookId,
-          title: title,
+          title: latestEntry.Title || '',
           author: latestEntry.Author || '',
           publicationYear: originalYear ? Math.floor(originalYear) : '',
           myRating: parseFloat(myRating),
@@ -232,7 +254,10 @@ const ReadingPage = () => {
           pages: parseInt(numPages),
           coverUrl: coverUrl,
           readingDuration: readingDuration ? parseInt(readingDuration) : null,
-          timestamp: new Date(latestEntry.Timestamp || ''),
+          timestamp: bookTimestamp,
+          reading_year: bookTimestamp instanceof Date && !isNaN(bookTimestamp.getTime()) 
+            ? bookTimestamp.getFullYear().toString() 
+            : null,
           page_split: latestEntry.page_split || 0
         };
       })
@@ -242,7 +267,7 @@ const ReadingPage = () => {
     const sortedBooks = _.sortBy(processedBooks, book => book.timestamp).reverse();
     setBooks(sortedBooks);
     setFilteredBooks(sortedBooks);
-    setFilteredReadingEntries(readingData);
+    setFilteredReadingEntries(enhancedReadingData);
 
     // Calculate stats and date range
     const now = new Date();
@@ -322,6 +347,12 @@ const ReadingPage = () => {
 
           return true;
         });
+      }
+
+      // Apply reading years filter (multi-select)
+      if (newFilters.readingYears && Array.isArray(newFilters.readingYears) && newFilters.readingYears.length > 0) {
+        filtered = filtered.filter(book => book.reading_year && newFilters.readingYears.includes(book.reading_year));
+        filteredEntries = filteredEntries.filter(entry => entry.reading_year && newFilters.readingYears.includes(entry.reading_year));
       }
 
       // Apply genres filter (multi-select)

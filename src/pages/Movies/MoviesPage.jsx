@@ -212,14 +212,13 @@ const MoviesPage = () => {
     },
     {
       key: 'ratings',
-      type: 'singleselect',
+      type: 'multiselect',
       label: 'My Rating',
-      optionsSource: 'static',
-      options: ['All Ratings', '5 Stars', '4+ Stars', '3+ Stars', '2+ Stars', '1+ Stars', 'Unrated'],
-      dataField: 'Rating',
+      optionsSource: 'originalEntry.Rating',
+      dataField: 'originalEntry.Rating',
       icon: <Star size={16} />,
-      placeholder: 'Filter by rating',
-      defaultValue: 'All Ratings'
+      placeholder: 'Select ratings',
+      searchPlaceholder: 'Search ratings...'
     }
   ];
 
@@ -465,20 +464,11 @@ const MoviesPage = () => {
         );
       }
 
-      // Apply rating filter (single-select)
-      if (newFilters.ratings && newFilters.ratings !== 'All Ratings') {
-        filtered = filtered.filter(movie => {
-          if (newFilters.ratings === 'Unrated') {
-            return !movie.rating || movie.rating === 0;
-          }
-
-          const minRating = parseInt(newFilters.ratings.split('+')[0] || newFilters.ratings.split(' ')[0]);
-          if (newFilters.ratings === '5 Stars') {
-            return movie.rating === 5;
-          } else {
-            return movie.rating >= minRating;
-          }
-        });
+      // Apply ratings filter (multi-select)
+      if (newFilters.ratings && Array.isArray(newFilters.ratings) && newFilters.ratings.length > 0) {
+        filtered = filtered.filter(movie =>
+          movie.rating && newFilters.ratings.includes(movie.rating.toString())
+        );
       }
 
       // Sort by most recent

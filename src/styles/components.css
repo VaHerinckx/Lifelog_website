@@ -9,6 +9,12 @@
   padding: var(--container-padding);
 }
 
+/* Coming soon page text styling */
+.coming-soon-text {
+  color: white;
+}
+
+
 @media (max-width: 768px) {
   .page-container {
     padding: var(--container-padding-mobile);

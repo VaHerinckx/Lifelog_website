@@ -25,7 +25,7 @@ const App = () => {
               path="/nutrition"
               element={
                 <div className="page-container">
-                  <div>Nutrition Page Coming Soon</div>
+                  <div className="coming-soon-text">Nutrition Page Coming Soon</div>
                 </div>
               }
             />
@@ -33,7 +33,7 @@ const App = () => {
               path="/sport"
               element={
                 <div className="page-container">
-                  <div>Sport Page Coming Soon</div>
+                  <div className="coming-soon-text">Sport Page Coming Soon</div>
                 </div>
               }
             />
@@ -41,7 +41,7 @@ const App = () => {
               path="/health"
               element={
                 <div className="page-container">
-                  <div>Health Page Coming Soon</div>
+                  <div className="coming-soon-text">Health Page Coming Soon</div>
                 </div>
               }
             />
@@ -51,7 +51,7 @@ const App = () => {
               path="/finances"
               element={
                 <div className="page-container">
-                  <div>Finances Page Coming Soon</div>
+                  <div className="coming-soon-text">Finances Page Coming Soon</div>
                 </div>
               }
             />
@@ -59,7 +59,7 @@ const App = () => {
               path="/work"
               element={
                 <div className="page-container">
-                  <div>Work Page Coming Soon</div>
+                  <div className="coming-soon-text">Work Page Coming Soon</div>
                 </div>
               }
             />

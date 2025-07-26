@@ -6,16 +6,16 @@ const NavigationBar = () => {
   const location = useLocation();
 
   const navItems = [
-    { path: '/', label: 'Home', icon: '/icons/home_w.png' },
-    { path: '/podcast', label: 'Podcast', icon: '/icons/podcast_w.png' },
-    { path: '/music', label: 'Music', icon: '/icons/music_w.png' },
-    { path: '/nutrition', label: 'Nutrition', icon: '/icons/food_w.png' },
-    { path: '/sport', label: 'Sport', icon: '/icons/sport_w.png' },
-    { path: '/health', label: 'Health', icon: '/icons/health_w.png' },
-    { path: '/reading', label: 'Reading', icon: '/icons/book_w.png' },
-    { path: '/movies', label: 'Movies & TV', icon: '/icons/movie_w.png' },
-    { path: '/finances', label: 'Finances', icon: '/icons/finance_w.png' },
-    { path: '/work', label: 'Work', icon: '/icons/work_w.png' }
+    { path: '/', label: 'Home', icon: '/icons/home_w.png', implemented: true },
+    { path: '/podcast', label: 'Podcast', icon: '/icons/podcast_w.png', implemented: true },
+    { path: '/music', label: 'Music', icon: '/icons/music_w.png', implemented: true },
+    { path: '/nutrition', label: 'Nutrition', icon: '/icons/food_w.png', implemented: false },
+    { path: '/sport', label: 'Sport', icon: '/icons/sport_w.png', implemented: false },
+    { path: '/health', label: 'Health', icon: '/icons/health_w.png', implemented: false },
+    { path: '/reading', label: 'Reading', icon: '/icons/book_w.png', implemented: true },
+    { path: '/movies', label: 'Movies & TV', icon: '/icons/movie_w.png', implemented: true },
+    { path: '/finances', label: 'Finances', icon: '/icons/finance_w.png', implemented: false },
+    { path: '/work', label: 'Work', icon: '/icons/work_w.png', implemented: false }
   ];
 
   return (
