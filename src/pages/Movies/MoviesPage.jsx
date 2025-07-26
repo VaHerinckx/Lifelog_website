@@ -204,8 +204,8 @@ const MoviesPage = () => {
       key: 'years',
       type: 'multiselect',
       label: 'Release Year',
-      optionsSource: 'Year',
-      dataField: 'Year',
+      optionsSource: 'originalEntry.Year',
+      dataField: 'originalEntry.Year',
       icon: <Clock size={16} />,
       placeholder: 'Select years',
       searchPlaceholder: 'Search years...'
@@ -467,7 +467,7 @@ const MoviesPage = () => {
       // Apply ratings filter (multi-select)
       if (newFilters.ratings && Array.isArray(newFilters.ratings) && newFilters.ratings.length > 0) {
         filtered = filtered.filter(movie =>
-          movie.rating && newFilters.ratings.includes(movie.rating.toString())
+          movie.originalEntry && movie.originalEntry.Rating && newFilters.ratings.includes(movie.originalEntry.Rating)
         );
       }
 
