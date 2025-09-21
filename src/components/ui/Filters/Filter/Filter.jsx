@@ -89,9 +89,11 @@ const Filter = ({
   };
 
   // Filter options based on search term
-  const filteredOptions = options.filter(option =>
-    option.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOptions = options.filter(option => {
+    // Ensure option is a string before calling toLowerCase
+    const optionStr = typeof option === 'string' ? option : String(option);
+    return optionStr.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   // Handle clicking outside to close dropdown
   useEffect(() => {

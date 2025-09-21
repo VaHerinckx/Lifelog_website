@@ -1,0 +1,123 @@
+/* Import design system variables */
+@import '../../../styles/variables.css';
+@import '../../../styles/components.css';
+
+/* Analysis Tab Container */
+.analysis-tab-container {
+  width: 100%;
+}
+
+/* Analysis Charts Grid */
+.analysis-charts-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-xl);
+  width: 100%;
+}
+
+/* Desktop: 2 columns for larger screens */
+@media (min-width: 1200px) {
+  .analysis-charts-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Analysis Chart Section */
+.analysis-chart-section {
+  width: 100%;
+}
+
+/* Chart Placeholder for future implementations */
+.chart-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4xl);
+  background-color: rgba(52, 35, 166, 0.05);
+  border: 2px dashed rgba(52, 35, 166, 0.2);
+  border-radius: var(--radius-lg);
+  text-align: center;
+  min-height: 200px;
+}
+
+.chart-placeholder p {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  margin: var(--spacing-xs) 0;
+}
+
+.chart-placeholder p:first-child {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-on-surface);
+}
+
+/* Analysis Empty State */
+.analysis-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4xl);
+  text-align: center;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  margin: var(--spacing-xl) 0;
+}
+
+.analysis-empty-state p {
+  color: var(--color-text-on-surface);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-relaxed);
+  max-width: 500px;
+  margin: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .analysis-charts-grid {
+    gap: var(--spacing-lg);
+  }
+  
+  .chart-placeholder {
+    padding: var(--spacing-2xl);
+    min-height: 150px;
+  }
+  
+  .chart-placeholder p {
+    font-size: var(--font-size-sm);
+  }
+}
+
+/* Ensure charts inherit proper styling from components.css */
+.analysis-chart-section .chart-container-base {
+  background-color: var(--chart-background);
+  border-radius: var(--chart-border-radius);
+  padding: var(--chart-padding);
+  margin-bottom: var(--chart-margin-bottom);
+  box-shadow: var(--chart-shadow);
+}
+
+.analysis-chart-section .chart-title {
+  color: var(--chart-title-color);
+  font-size: var(--chart-title-size);
+  font-weight: var(--chart-title-weight);
+  margin: 0 0 var(--chart-title-margin) 0;
+  text-align: var(--chart-title-align);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .chart-placeholder {
+    border: 3px solid var(--color-primary);
+    background-color: var(--color-surface);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .analysis-chart-section * {
+    animation: none;
+    transition: none;
+  }
+}

@@ -1,0 +1,357 @@
+/* Import design system variables */
+@import '../../../styles/variables.css';
+@import '../../../styles/components.css';
+
+/* Meal List Container */
+.meal-list-container {
+  width: 100%;
+}
+
+/* Meal List Header */
+.meal-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  padding: var(--spacing-md) 0;
+}
+
+.meal-count {
+  display: flex;
+  align-items: center;
+}
+
+.count-text {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+/* View Controls */
+.view-controls {
+  display: flex;
+  gap: var(--spacing-xs);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs);
+}
+
+.view-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-on-surface);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-button:hover {
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+}
+
+.view-button.active {
+  background-color: var(--color-primary);
+  color: var(--color-surface);
+}
+
+/* Meal List Grid/List */
+.meal-list.grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--spacing-lg);
+}
+
+.meal-list.list-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* Meal Card */
+.meal-card {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.meal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-primary);
+}
+
+.meal-card.list-view {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+}
+
+.meal-card.grid-view {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+/* Meal Header */
+.meal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+
+.meal-type {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.meal-icon {
+  font-size: var(--font-size-lg);
+}
+
+.meal-type-text {
+  color: var(--color-text-on-surface);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-base);
+}
+
+.meal-time {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+/* Meal Info */
+.meal-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.meal-date {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-xs);
+}
+
+/* Food Items */
+.food-items {
+  margin: var(--spacing-sm) 0;
+}
+
+.food-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+}
+
+.food-item {
+  background-color: rgba(52, 35, 166, 0.1);
+  color: var(--color-primary);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  border: 1px solid rgba(52, 35, 166, 0.2);
+}
+
+.food-item.more {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--color-text-primary);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Meal Details */
+.meal-details {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: var(--spacing-sm) 0;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.meal-score-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.portion-size {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+}
+
+/* Meal Rating */
+.meal-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.stars {
+  display: flex;
+  gap: 1px;
+}
+
+.star {
+  color: #d1d5db;
+  transition: all 0.1s ease;
+}
+
+.star.filled {
+  color: #EAC435;
+}
+
+.star.half {
+  color: #EAC435;
+}
+
+.star.empty {
+  color: #d1d5db;
+}
+
+.score-text {
+  color: var(--color-text-on-surface);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  margin-left: var(--spacing-xs);
+}
+
+/* Food Category Pills */
+.food-category-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
+}
+
+.category-pill {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-surface);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.category-pill.more-count {
+  background-color: var(--color-text-on-surface-secondary);
+  color: var(--color-surface);
+}
+
+/* Empty State */
+.meal-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-4xl);
+  text-align: center;
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  margin: var(--spacing-xl) 0;
+}
+
+.empty-icon {
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-lg);
+  opacity: 0.6;
+}
+
+.empty-message {
+  color: var(--color-text-on-surface);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-relaxed);
+  max-width: 400px;
+  margin: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .meal-list.grid-view {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+
+  .meal-card.list-view {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .meal-header {
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  .meal-details {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .food-list {
+    gap: var(--spacing-xs);
+  }
+
+  .food-item {
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-xs);
+  }
+
+  .view-controls {
+    padding: 2px;
+  }
+
+  .view-button {
+    padding: var(--spacing-xs);
+    min-height: 44px; /* Touch target */
+    min-width: 44px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .meal-card {
+    border: 2px solid var(--color-primary);
+  }
+  
+  .food-item {
+    border: 2px solid var(--color-primary);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .meal-card {
+    transition: none;
+  }
+  
+  .meal-card:hover {
+    transform: none;
+  }
+  
+  .star {
+    transition: none;
+  }
+}

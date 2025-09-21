@@ -14,6 +14,12 @@ export const DRIVE_FILES = {
   },
   TRAKT: {
     FILE_ID: import.meta.env.VITE_TRAKT_FILE_ID
+  },
+  HEALTH: {
+    FILE_ID: import.meta.env.VITE_HEALTH_FILE_ID
+  },
+  NUTRITION: {
+    FILE_ID: import.meta.env.VITE_NUTRITION_FILE_ID
   }
 };
 

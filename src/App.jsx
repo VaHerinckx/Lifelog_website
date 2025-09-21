@@ -8,6 +8,8 @@ import PodcastPage from './pages/Podcast/PodcastPage';
 import MusicPage from './pages/Music/Musicpage';
 import ReadingPage from './pages/Reading/ReadingPage';
 import MoviesPage from './pages/Movies/MoviesPage';
+import HealthPage from './pages/Health/HealthPage';
+import NutritionPage from './pages/Nutrition/NutritionPage';
 
 const App = () => {
   return (
@@ -21,14 +23,7 @@ const App = () => {
           <Route element={<Layout />}>
             <Route path="/podcast" element={<PodcastPage />} />
             <Route path="/music" element={<MusicPage />} />
-            <Route
-              path="/nutrition"
-              element={
-                <div className="page-container">
-                  <div className="coming-soon-text">Nutrition Page Coming Soon</div>
-                </div>
-              }
-            />
+            <Route path="/nutrition" element={<NutritionPage />} />
             <Route
               path="/sport"
               element={
@@ -37,14 +32,7 @@ const App = () => {
                 </div>
               }
             />
-            <Route
-              path="/health"
-              element={
-                <div className="page-container">
-                  <div className="coming-soon-text">Health Page Coming Soon</div>
-                </div>
-              }
-            />
+            <Route path="/health" element={<HealthPage />} />
             <Route path="/reading" element={<ReadingPage />} />
             <Route path="/movies" element={<MoviesPage />} />
             <Route

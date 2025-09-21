@@ -466,9 +466,15 @@ const MoviesPage = () => {
 
       // Apply ratings filter (multi-select)
       if (newFilters.ratings && Array.isArray(newFilters.ratings) && newFilters.ratings.length > 0) {
-        filtered = filtered.filter(movie =>
-          movie.originalEntry && movie.originalEntry.Rating && newFilters.ratings.includes(movie.originalEntry.Rating)
-        );
+        filtered = filtered.filter(movie => {
+          if (!movie.originalEntry || !movie.originalEntry.Rating) return false;
+          
+          // Convert both filter values and movie rating to numbers for comparison
+          const movieRating = parseFloat(movie.originalEntry.Rating);
+          const selectedRatings = newFilters.ratings.map(rating => parseFloat(rating));
+          
+          return selectedRatings.includes(movieRating);
+        });
       }
 
       // Sort by most recent
@@ -694,6 +700,14 @@ const MoviesPage = () => {
             // Hide genres filter for shows since they don't have genre data
             if (config.key === 'genres' && contentType === 'shows') {
               return null;
+            }
+            // For ratings, override with static options to include 0.5, 1.0, and 5.0
+            if (config.key === 'ratings' && contentType === 'movies') {
+              return {
+                ...config,
+                optionsSource: 'static',
+                options: ['0.5', '1', '1.5', '2', '2.5', '3', '3.5', '4', '4.5', '5']
+              };
             }
             return config;
           }).filter(Boolean)}

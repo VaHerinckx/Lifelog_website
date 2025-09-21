@@ -302,6 +302,14 @@ export const DataProvider = ({ children }) => {
           console.log('📺 Shows fileId:', fileId);
           console.log('📺 DRIVE_FILES.TRAKT:', DRIVE_FILES.TRAKT);
           break;
+        case 'health':
+          fileId = DRIVE_FILES.HEALTH.FILE_ID;
+          console.log('🏥 Health fileId:', fileId);
+          console.log('🏥 DRIVE_FILES.HEALTH:', DRIVE_FILES.HEALTH);
+          break;
+        case 'nutrition':
+          fileId = DRIVE_FILES.NUTRITION.FILE_ID;
+          break;
         default:
           throw new Error(`Unknown data type: ${dataType}`);
       }
@@ -494,11 +502,69 @@ export const DataProvider = ({ children }) => {
               console.log('📺 TRAKT RAW DATA - Fields:', results.meta.fields);
             }
 
-            const cleanedData = cleanData(results.data);
+            let cleanedData = cleanData(results.data);
             console.log(`${dataType} cleaned data:`, {
               length: cleanedData.length,
               firstItem: cleanedData[0]
             });
+
+            // Special processing for nutrition data (SIMPLIFIED for optimized CSV)
+            if (dataType === 'nutrition') {
+              cleanedData = cleanedData.map(item => {
+                try {
+                  // Parse food items - they are comma-separated
+                  const foodList = item.food_items ? item.food_items.split(',').map(f => f.trim()).filter(f => f) : [];
+                  
+                  // Parse timestamp with error handling
+                  let timestamp;
+                  try {
+                    timestamp = new Date(item.timestamp);
+                    // Check if timestamp is valid
+                    if (isNaN(timestamp.getTime())) {
+                      console.warn('Invalid timestamp for item:', item.timestamp);
+                      return null; // Skip this item
+                    }
+                  } catch (e) {
+                    console.warn('Error parsing timestamp:', item.timestamp, e);
+                    return null; // Skip this item
+                  }
+                  
+                  // Food categories are already numeric
+                  const foodCategories = {
+                    meat: parseInt(item.Meat) || 0,
+                    vegetables: parseInt(item.Vegetables) || 0,
+                    fruits: parseInt(item.Fruits) || 0,
+                    carbs: parseInt(item.Carbs) || 0,
+                    dairy: parseInt(item.Dairy) || 0,
+                    sauces: parseInt(item.sauces_spices) || 0,
+                    veggieAlternative: parseInt(item.veggie_alternative) || 0,
+                    fish: parseInt(item.Fish) || 0,
+                    sweets: parseInt(item.Sweets) || 0
+                  };
+                  
+                  const processedItem = {
+                    ...item,
+                    timestamp: timestamp.toISOString(),
+                    foodList,
+                    mealScore: parseFloat(item.meal_score) || 0,
+                    amountText: item.amount_text || '',
+                    mealType: item.meal_type || '',
+                    foodCategories,
+                    // Simple derived fields
+                    year: timestamp.getFullYear().toString(),
+                    month: timestamp.getMonth() + 1,
+                    dayOfWeek: timestamp.getDay()
+                  };
+                  
+                  
+                  return processedItem;
+                } catch (error) {
+                  console.warn('Error processing nutrition item:', error, item);
+                  return null; // Skip this item
+                }
+              }).filter(item => item && item.mealType); // Only valid meals
+              
+            }
 
             // Extra logging for shows cleaned data
             if (dataType === 'shows') {

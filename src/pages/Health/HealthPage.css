@@ -1,0 +1,118 @@
+/* src/pages/Health/HealthPage.css */
+@import '../../styles/variables.css';
+@import '../../styles/components.css';
+
+/* Consistent page container styling with Movies page */
+.page-container {
+  width: 95%;
+  max-width: 1800px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.page-content {
+  width: 95%;
+  max-width: 1800px;
+  margin: 0 auto;
+  padding: 2rem 2rem;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .page-content {
+    padding: 1.5rem 1rem;
+  }
+}
+
+.page-container h1,
+.page-container h2 {
+  color: #FB4B4E;
+  margin-bottom: 10px;
+}
+
+.page-description {
+  color: #ffffff;
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+
+/* Error and Empty State - consistent with Movies page */
+.error {
+  color: #FB4B4E;
+  background-color: rgba(251, 75, 78, 0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  background-color: rgba(52, 35, 166, 0.1);
+  border-radius: 8px;
+  margin-top: 2rem;
+}
+
+.empty-state-icon {
+  color: #FB4B4E;
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state-message {
+  color: white;
+  font-size: 1.2rem;
+}
+
+/* Card icons - removed as CardsPanel handles styling */
+
+/* Data Preview Section */
+.data-preview {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin-top: var(--spacing-xl);
+}
+
+.data-preview h3 {
+  color: var(--color-accent);
+  font-size: var(--font-size-lg);
+  font-weight: var(--weight-semibold);
+  margin: 0 0 var(--spacing-md) 0;
+}
+
+.data-preview p {
+  color: var(--color-text-on-surface);
+  margin: var(--spacing-sm) 0;
+}
+
+.data-sample {
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.data-sample p {
+  margin: var(--spacing-xs) 0;
+  font-size: var(--font-size-sm);
+}
+
+/* Responsive Design - match Movies page structure */
+@media (max-width: 768px) {
+  .data-preview {
+    padding: var(--spacing-lg);
+  }
+  
+  .data-sample {
+    padding: var(--spacing-sm);
+  }
+  
+  .data-sample p {
+    font-size: var(--font-size-xs);
+  }
+}
