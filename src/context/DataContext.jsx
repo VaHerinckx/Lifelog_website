@@ -483,7 +483,7 @@ export const DataProvider = ({ children }) => {
           delimiter: "|",
           header: true,
           skipEmptyLines: true,
-          encoding: 'UTF-8', // Explicitly set UTF-8 encoding
+          encoding: '', // Auto-detect encoding (handles both UTF-8 and UTF-16)
           transform: (value) => cleanString(value), // Clean each value as it's parsed
           complete: (results) => {
             console.log(`${dataType} Papa parse results:`, {
