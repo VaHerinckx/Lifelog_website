@@ -1,0 +1,25 @@
+@import '../../styles/variables.css';
+@import '../../styles/components.css';
+
+.finance-page {
+  width: var(--container-width);
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: var(--container-padding);
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+.transaction-count {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-md);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .finance-page {
+    padding: var(--container-padding-mobile);
+  }
+}

@@ -14,7 +14,7 @@ const NavigationBar = () => {
     { path: '/health', label: 'Health', icon: '/icons/health_w.png', implemented: false },
     { path: '/reading', label: 'Reading', icon: '/icons/book_w.png', implemented: true },
     { path: '/movies', label: 'Movies & TV', icon: '/icons/movie_w.png', implemented: true },
-    { path: '/finances', label: 'Finances', icon: '/icons/finance_w.png', implemented: false },
+    { path: '/finances', label: 'Finances', icon: '/icons/finance_w.png', implemented: true },
     { path: '/work', label: 'Work', icon: '/icons/work_w.png', implemented: false }
   ];
 

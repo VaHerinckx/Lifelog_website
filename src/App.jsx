@@ -10,6 +10,7 @@ import ReadingPage from './pages/Reading/ReadingPage';
 import MoviesPage from './pages/Movies/MoviesPage';
 import HealthPage from './pages/Health/HealthPage';
 import NutritionPage from './pages/Nutrition/NutritionPage';
+import FinancePage from './pages/Finance/FinancePage';
 
 const App = () => {
   return (
@@ -35,14 +36,7 @@ const App = () => {
             <Route path="/health" element={<HealthPage />} />
             <Route path="/reading" element={<ReadingPage />} />
             <Route path="/movies" element={<MoviesPage />} />
-            <Route
-              path="/finances"
-              element={
-                <div className="page-container">
-                  <div className="coming-soon-text">Finances Page Coming Soon</div>
-                </div>
-              }
-            />
+            <Route path="/finances" element={<FinancePage />} />
             <Route
               path="/work"
               element={

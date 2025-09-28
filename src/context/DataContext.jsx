@@ -310,6 +310,10 @@ export const DataProvider = ({ children }) => {
         case 'nutrition':
           fileId = DRIVE_FILES.NUTRITION.FILE_ID;
           break;
+        case 'finances':
+          fileId = DRIVE_FILES.FINANCES.FILE_ID;
+          console.log('💰 Finances fileId:', fileId);
+          break;
         default:
           throw new Error(`Unknown data type: ${dataType}`);
       }

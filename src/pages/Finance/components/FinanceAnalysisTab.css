@@ -1,0 +1,21 @@
+@import '../../../styles/variables.css';
+@import '../../../styles/components.css';
+
+.chart-placeholder {
+  padding: var(--spacing-2xl);
+  text-align: center;
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--radius-sm);
+  border: 2px dashed var(--color-border);
+}
+
+.chart-placeholder p {
+  color: var(--color-text-secondary);
+  margin: var(--spacing-xs) 0;
+  font-size: var(--font-size-sm);
+}
+
+.chart-placeholder p:first-child {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-on-surface);
+}
