@@ -41,11 +41,13 @@ const FinanceAnalysisTab = ({ data }) => {
         let expenses = 0;
 
         transactions.forEach(transaction => {
-          const amount = Math.abs(parseFloat(transaction.Amount) || 0);
-          if (transaction['Income/Expense'] === 'Income') {
-            income += amount;
-          } else if (transaction['Income/Expense'] === 'Expense') {
-            expenses += amount;
+          const movement = parseFloat(transaction.movement) || 0;
+          const type = transaction.transaction_type;
+
+          if (type === 'income') {
+            income += movement;
+          } else if (type === 'expense') {
+            expenses += movement; // movement is already negative
           }
         });
 
@@ -68,10 +70,12 @@ const FinanceAnalysisTab = ({ data }) => {
     const expensesByCategory = {};
     
     data.forEach(transaction => {
-      if (transaction['Income/Expense'] === 'Expense') {
+      const type = transaction.transaction_type;
+
+      if (type === 'expense') {
         const category = transaction.Category || 'Other';
-        const amount = Math.abs(parseFloat(transaction.Amount) || 0);
-        expensesByCategory[category] = (expensesByCategory[category] || 0) + amount;
+        const movement = parseFloat(transaction.movement) || 0;
+        expensesByCategory[category] = (expensesByCategory[category] || 0) + movement;
       }
     });
 
@@ -91,10 +95,12 @@ const FinanceAnalysisTab = ({ data }) => {
     const incomeByCategory = {};
     
     data.forEach(transaction => {
-      if (transaction['Income/Expense'] === 'Income') {
+      const type = transaction.transaction_type;
+
+      if (type === 'income') {
         const category = transaction.Category || 'Other';
-        const amount = Math.abs(parseFloat(transaction.Amount) || 0);
-        incomeByCategory[category] = (incomeByCategory[category] || 0) + amount;
+        const movement = parseFloat(transaction.movement) || 0;
+        incomeByCategory[category] = (incomeByCategory[category] || 0) + movement;
       }
     });
 
@@ -115,7 +121,7 @@ const FinanceAnalysisTab = ({ data }) => {
     
     data.forEach(transaction => {
       const account = transaction.Accounts || 'Unknown';
-      const amount = Math.abs(parseFloat(transaction.Amount) || 0);
+      const amount = parseFloat(transaction.amount_eur) || 0;
       if (!transactionsByAccount[account]) {
         transactionsByAccount[account] = { total: 0, count: 0 };
       }
@@ -137,7 +143,7 @@ const FinanceAnalysisTab = ({ data }) => {
     if (!data || data.length === 0) return [];
 
     const expensesByWeek = _.groupBy(
-      data.filter(t => t['Income/Expense'] === 'Expense'),
+      data.filter(t => t.transaction_type === 'expense'),
       (item) => {
         try {
           const cleanPeriod = item.Period.toString().trim();
@@ -165,7 +171,7 @@ const FinanceAnalysisTab = ({ data }) => {
     return Object.entries(expensesByWeek)
       .filter(([weekStart]) => weekStart !== 'invalid') // Filter out invalid dates
       .map(([weekStart, transactions]) => {
-        const total = transactions.reduce((sum, t) => sum + Math.abs(parseFloat(t.Amount) || 0), 0);
+        const total = transactions.reduce((sum, t) => sum + (parseFloat(t.movement) || 0), 0);
         return {
           date: new Date(weekStart),
           value: Math.round(total * 100) / 100,
@@ -183,10 +189,12 @@ const FinanceAnalysisTab = ({ data }) => {
     const expensesBySubcategory = {};
     
     data.forEach(transaction => {
-      if (transaction['Income/Expense'] === 'Expense' && transaction.Subcategory) {
+      const type = transaction.transaction_type;
+
+      if (type === 'expense' && transaction.Subcategory) {
         const subcategory = transaction.Subcategory;
-        const amount = Math.abs(parseFloat(transaction.Amount) || 0);
-        expensesBySubcategory[subcategory] = (expensesBySubcategory[subcategory] || 0) + amount;
+        const movement = parseFloat(transaction.movement) || 0;
+        expensesBySubcategory[subcategory] = (expensesBySubcategory[subcategory] || 0) + movement;
       }
     });
 

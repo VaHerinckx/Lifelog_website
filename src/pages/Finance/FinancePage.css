@@ -17,6 +17,50 @@
   font-weight: var(--font-weight-medium);
 }
 
+.account-balances-section {
+  margin: var(--spacing-2xl) 0;
+  background-color: var(--color-surface);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+}
+
+.account-balances-section h2 {
+  color: var(--color-accent);
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-lg);
+}
+
+.account-balances-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--color-text-on-surface);
+}
+
+.account-balances-table thead {
+  background-color: var(--color-primary);
+}
+
+.account-balances-table th {
+  padding: var(--spacing-md);
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+  color: rgba(255, 255, 255, 0.95);
+  border-bottom: var(--border-width-medium) solid var(--color-primary-dark);
+}
+
+.account-balances-table td {
+  padding: var(--spacing-md);
+  border-bottom: var(--border-width-thin) solid rgba(255, 255, 255, 0.1);
+}
+
+.account-balances-table tbody tr:hover {
+  background-color: rgba(52, 35, 166, 0.1);
+}
+
+.account-balances-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
   .finance-page {

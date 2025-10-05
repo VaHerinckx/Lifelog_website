@@ -43,7 +43,7 @@ const TransactionList = ({ transactions, onTransactionClick }) => {
         aValue = new Date(0);
         bValue = new Date(0);
       }
-    } else if (sortField === 'Amount') {
+    } else if (sortField === 'Amount' || sortField === 'amount_eur' || sortField === 'movement') {
       aValue = parseFloat(aValue) || 0;
       bValue = parseFloat(bValue) || 0;
     } else {
@@ -61,7 +61,7 @@ const TransactionList = ({ transactions, onTransactionClick }) => {
   // Format currency
   const formatCurrency = (amount) => {
     const numAmount = parseFloat(amount) || 0;
-    return `€${Math.abs(numAmount).toLocaleString()}`;
+    return `€${numAmount.toLocaleString()}`;
   };
 
   // Format date
@@ -97,15 +97,35 @@ const TransactionList = ({ transactions, onTransactionClick }) => {
   };
 
   // Get transaction type icon and color
-  const getTransactionTypeDisplay = (type, amount) => {
-    const isIncome = type === 'Income';
-    const color = isIncome ? 'var(--color-success)' : 'var(--color-accent)';
-    const Icon = isIncome ? ArrowUp : ArrowDown;
-    
+  const getTransactionTypeDisplay = (type) => {
+    let color, Icon, text;
+
+    if (type === 'income') {
+      color = 'var(--color-success)';
+      Icon = ArrowUp;
+      text = 'Income';
+    } else if (type === 'expense') {
+      color = 'var(--color-accent)';
+      Icon = ArrowDown;
+      text = 'Expense';
+    } else if (type === 'incoming_transfer') {
+      color = 'var(--color-success)';
+      Icon = ArrowUp;
+      text = 'Transfer In';
+    } else if (type === 'outgoing_transfer') {
+      color = 'var(--color-accent)';
+      Icon = ArrowDown;
+      text = 'Transfer Out';
+    } else {
+      color = 'var(--color-text-secondary)';
+      Icon = ArrowDown;
+      text = type || 'Unknown';
+    }
+
     return {
       icon: <Icon size={16} style={{ color }} />,
       color,
-      text: isIncome ? 'Income' : 'Expense'
+      text
     };
   };
 
@@ -182,20 +202,20 @@ const TransactionList = ({ transactions, onTransactionClick }) => {
                 </div>
               </th>
               <th>Type</th>
-              <th 
-                className="sortable amount-column" 
-                onClick={() => handleSort('Amount')}
+              <th
+                className="sortable amount-column"
+                onClick={() => handleSort('movement')}
               >
                 <div className="th-content">
                   <DollarSign size={16} />
-                  Amount {renderSortIndicator('Amount')}
+                  Amount (EUR) {renderSortIndicator('movement')}
                 </div>
               </th>
             </tr>
           </thead>
           <tbody>
             {sortedTransactions.map((transaction, index) => {
-              const typeDisplay = getTransactionTypeDisplay(transaction['Income/Expense'], transaction.Amount);
+              const typeDisplay = getTransactionTypeDisplay(transaction.transaction_type);
               
               return (
                 <tr 
@@ -238,11 +258,11 @@ const TransactionList = ({ transactions, onTransactionClick }) => {
                     </div>
                   </td>
                   <td className="amount-cell">
-                    <span 
+                    <span
                       className="amount-value"
                       style={{ color: typeDisplay.color }}
                     >
-                      {formatCurrency(transaction.Amount)}
+                      {formatCurrency(transaction.movement)}
                     </span>
                   </td>
                 </tr>
