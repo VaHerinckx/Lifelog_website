@@ -20,8 +20,8 @@ const PodcastAnalysisTab = ({ podcastData = [], selectedPodcastInfo = null, curr
           <div className="analysis-chart-section">
             <TimeSeriesBarChart
               data={podcastData}
-              dateColumnName="modified at"
-              metricColumnName="duration"
+              dateColumnName="listened_date"
+              metricColumnName="duration_seconds"
               title="Listening Time by Period"
               yAxisLabel="Minutes"
             />
@@ -30,8 +30,8 @@ const PodcastAnalysisTab = ({ podcastData = [], selectedPodcastInfo = null, curr
           <div className="analysis-chart-section">
             <IntensityHeatmap
               data={podcastData}
-              dateColumnName="modified at"
-              valueColumnName="duration"
+              dateColumnName="listened_date"
+              valueColumnName="duration_seconds"
               title="Listening Activity by Day and Time"
               treatMidnightAsUnknown={false}
             />

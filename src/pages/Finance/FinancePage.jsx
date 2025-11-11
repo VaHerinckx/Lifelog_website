@@ -30,16 +30,13 @@ const FinancePage = () => {
     netBalance: 0
   });
 
-  // State for account balances
-  const [accountBalances, setAccountBalances] = useState([]);
-
   // Define filter configurations for FilteringPanel
   const filterConfigs = [
     {
       key: 'dateRange',
       type: 'daterange',
       label: 'Date Range',
-      dataField: 'èèPeriod',
+      dataField: 'date',
       icon: <Calendar size={16} />,
       placeholder: 'Select date range'
     },
@@ -100,6 +97,14 @@ const FinancePage = () => {
     fetchData('finances');
   }, [fetchData]);
 
+  // Debug: Log column names when data changes
+  useEffect(() => {
+    if (data.finances && data.finances.length > 0) {
+      console.log('🔍 Finance data columns:', Object.keys(data.finances[0]));
+      console.log('🔍 First row:', data.finances[0]);
+    }
+  }, [data.finances]);
+
   // Apply filters whenever filters or data change
   useEffect(() => {
     if (!data.finances || data.finances.length === 0) {
@@ -113,18 +118,18 @@ const FinancePage = () => {
     if (filters.dateRange) {
       const { startDate, endDate } = filters.dateRange;
       filtered = filtered.filter(item => {
-        if (!item.èèPeriod) return false;
-        
+        if (!item.date) return false;
+
         // Parse the date properly - format is "YYYY-MM-DD HH:MM:SS"
         let itemDate;
         try {
-          // Clean the period string and parse it
-          const cleanPeriod = item.èèPeriod.toString().trim();
-          itemDate = new Date(cleanPeriod);
+          // Clean the date string and parse it
+          const cleanDate = item.date.toString().trim();
+          itemDate = new Date(cleanDate);
           
           // If invalid, try parsing just the date part
           if (isNaN(itemDate.getTime())) {
-            const datePart = cleanPeriod.split(' ')[0]; // Get just "YYYY-MM-DD"
+            const datePart = cleanDate.split(' ')[0]; // Get just "YYYY-MM-DD"
             itemDate = new Date(datePart);
           }
           
@@ -180,19 +185,19 @@ const FinancePage = () => {
     // Sort by date in descending order (newest first)
     filtered.sort((a, b) => {
       try {
-        const cleanPeriodA = a.èèPeriod.toString().trim();
-        const cleanPeriodB = b.èèPeriod.toString().trim();
+        const cleanDateA = a.date.toString().trim();
+        const cleanDateB = b.date.toString().trim();
         
-        let dateA = new Date(cleanPeriodA);
-        let dateB = new Date(cleanPeriodB);
-        
+        let dateA = new Date(cleanDateA);
+        let dateB = new Date(cleanDateB);
+
         // If invalid, try parsing just the date part
         if (isNaN(dateA.getTime())) {
-          const datePart = cleanPeriodA.split(' ')[0];
+          const datePart = cleanDateA.split(' ')[0];
           dateA = new Date(datePart);
         }
         if (isNaN(dateB.getTime())) {
-          const datePart = cleanPeriodB.split(' ')[0];
+          const datePart = cleanDateB.split(' ')[0];
           dateB = new Date(datePart);
         }
         
@@ -241,57 +246,6 @@ const FinancePage = () => {
       totalExpenses,
       netBalance
     });
-
-    // Calculate account balances
-    const balancesByAccount = {};
-
-    // Account name mapping - merge renamed accounts
-    const accountMapping = {
-      'Savings account': 'Argenta Savings account'
-    };
-
-    filteredData.forEach(item => {
-      let account = item.Accounts || 'Unknown';
-
-      // Apply account mapping to merge renamed accounts
-      if (accountMapping[account]) {
-        account = accountMapping[account];
-      }
-
-      const type = item.transaction_type;
-      const movement = parseFloat(item.movement) || 0;
-
-      if (!balancesByAccount[account]) {
-        balancesByAccount[account] = { income: 0, expenses: 0, transfersIn: 0, transfersOut: 0, balance: 0 };
-      }
-
-      // Add to balance (movement already has correct sign)
-      balancesByAccount[account].balance += movement;
-
-      // Track components for display
-      if (type === 'income') {
-        balancesByAccount[account].income += movement;
-      } else if (type === 'expense') {
-        balancesByAccount[account].expenses += movement;
-      } else if (type === 'incoming_transfer') {
-        balancesByAccount[account].transfersIn += movement;
-      } else if (type === 'outgoing_transfer') {
-        balancesByAccount[account].transfersOut += movement;
-      }
-    });
-
-    const balancesArray = Object.entries(balancesByAccount)
-      .map(([account, data]) => ({
-        account,
-        income: data.income,
-        expenses: data.expenses,
-        transfersIn: data.transfersIn,
-        transfersOut: data.transfersOut,
-        balance: data.balance
-      }))
-      .sort((a, b) => b.balance - a.balance);
-
-    setAccountBalances(balancesArray);
   }, [filteredData]);
 
   // Handle filter changes from FilteringPanel
@@ -409,68 +363,6 @@ const FinancePage = () => {
               cards={cardsData}
               loading={loading.finances}
             />
-
-            {/* Account Balances Table */}
-            {accountBalances.length > 0 && (
-              <div className="account-balances-section">
-                <h2>Account Balances</h2>
-                <table className="account-balances-table">
-                  <thead>
-                    <tr>
-                      <th>Account</th>
-                      <th>Income</th>
-                      <th>Expenses</th>
-                      <th>Transfers In</th>
-                      <th>Transfers Out</th>
-                      <th>Balance</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {accountBalances.map((acc, idx) => (
-                      <tr key={idx}>
-                        <td>{acc.account}</td>
-                        <td style={{ color: 'var(--color-success)' }}>
-                          €{acc.income.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-                        <td style={{ color: 'var(--color-accent)' }}>
-                          €{acc.expenses.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-                        <td style={{ color: 'var(--color-success)' }}>
-                          €{acc.transfersIn.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-                        <td style={{ color: 'var(--color-accent)' }}>
-                          €{acc.transfersOut.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-                        <td style={{
-                          color: acc.balance >= 0 ? 'var(--color-success)' : 'var(--color-accent)',
-                          fontWeight: 'bold'
-                        }}>
-                          €{acc.balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-                      </tr>
-                    ))}
-                    <tr style={{ borderTop: '2px solid var(--color-primary)', fontWeight: 'bold' }}>
-                      <td>TOTAL</td>
-                      <td style={{ color: 'var(--color-success)' }}>
-                        €{accountBalances.reduce((sum, acc) => sum + acc.income, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td style={{ color: 'var(--color-accent)' }}>
-                        €{accountBalances.reduce((sum, acc) => sum + acc.expenses, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td style={{ color: 'var(--color-success)' }}>
-                        €{accountBalances.reduce((sum, acc) => sum + acc.transfersIn, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td style={{ color: 'var(--color-accent)' }}>
-                        €{accountBalances.reduce((sum, acc) => sum + acc.transfersOut, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                      <td style={{ fontWeight: 'bold' }}>
-                        €{accountBalances.reduce((sum, acc) => sum + acc.balance, 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            )}
 
             <TransactionList
               transactions={filteredData}

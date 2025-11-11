@@ -73,8 +73,7 @@ const cleanData = (data) => {
       const cleanKey = cleanString(key).trim();
 
       // Special handling for date fields
-      if (cleanKey.includes('modified at') ||
-          cleanKey.includes('date') ||
+      if (cleanKey.includes('date') ||
           cleanKey.includes('timestamp') ||
           cleanKey.includes('finish') ||
           cleanKey.includes('start')) {
@@ -323,10 +322,10 @@ export const DataProvider = ({ children }) => {
       console.log(`Fetching ${dataType} data with fileId:`, fileId);
 
 
-      // Special handling for music data due to large file size
+      // Special handling for music data due to UTF-16 encoding
       if (dataType === 'music') {
         console.log(`Loading music data with special handling for large file`);
-        
+
         try {
           const response = await fetch(getDriveDownloadUrl(fileId));
           if (!response.ok) {
@@ -335,14 +334,14 @@ export const DataProvider = ({ children }) => {
 
           // Get the response as array buffer to handle encoding properly
           const arrayBuffer = await response.arrayBuffer();
-          
+
           // Try to decode as UTF-16 first, then fall back to UTF-8
           let csvText;
           try {
             // Try UTF-16 LE first (common for Windows exports)
             const decoder = new TextDecoder('utf-16le');
             csvText = decoder.decode(arrayBuffer);
-            
+
             // Check if it looks like UTF-16 (has null bytes between characters)
             if (csvText.includes('\u0000')) {
               console.log('Detected UTF-16 encoding for music data');
@@ -358,9 +357,9 @@ export const DataProvider = ({ children }) => {
             csvText = utf8Decoder.decode(arrayBuffer);
             console.log('Fallback to UTF-8 encoding for music data');
           }
-          
+
           console.log(`Music CSV text length: ${csvText.length} characters`);
-          
+
           // Parse with streaming aggregation - process ALL data for stats, keep sample for display
           return new Promise((resolve, reject) => {
             let processedRows = 0;
@@ -504,6 +503,15 @@ export const DataProvider = ({ children }) => {
                 console.log(`📺 Row ${index + 1}:`, row);
               });
               console.log('📺 TRAKT RAW DATA - Fields:', results.meta.fields);
+            }
+
+            // Extra logging for podcast data
+            if (dataType === 'podcast') {
+              console.log('🎧 PODCAST RAW DATA - Column Names:', results.meta.fields);
+              console.log('🎧 PODCAST RAW DATA - First 3 rows:');
+              results.data.slice(0, 3).forEach((row, index) => {
+                console.log(`🎧 Row ${index + 1}:`, row);
+              });
             }
 
             let cleanedData = cleanData(results.data);

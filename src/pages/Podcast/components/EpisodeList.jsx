@@ -40,27 +40,12 @@ const formatDate = (dateString) => {
 
 // Helper function to get completion percentage
 const getCompletionPercentage = (episode) => {
-  // Try different possible field names for completion
-  const completionPercent = episode['completion_%'];
-  const completion = episode.completion;
+  const completionPercent = episode.completion_percent;
 
   if (completionPercent !== undefined && completionPercent !== null) {
     const parsedValue = parseFloat(completionPercent);
     if (!isNaN(parsedValue)) {
       return Math.min(Math.max(parsedValue, 0), 100); // Clamp between 0-100
-    }
-  }
-
-  if (completion !== undefined && completion !== null) {
-    const parsedValue = parseFloat(completion);
-    if (!isNaN(parsedValue)) {
-      // Assume it's stored as decimal (0-1) if less than or equal to 1
-      if (parsedValue <= 1) {
-        return Math.min(Math.max(parsedValue * 100, 0), 100);
-      } else {
-        // Assume it's already percentage
-        return Math.min(Math.max(parsedValue, 0), 100);
-      }
     }
   }
 
@@ -77,7 +62,7 @@ const EpisodeListItem = ({ episode, onClick }) => {
       {/* Podcast artwork */}
       <div className="episode-artwork">
         <img
-          src={episode.artwork_large || episode.artwork || "/api/placeholder/80/80"}
+          src={episode.artwork_url || "/api/placeholder/80/80"}
           alt={`${episode.podcast_name || 'Unknown Podcast'} artwork`}
           onError={(e) => {
             e.target.onerror = null;
@@ -97,8 +82,8 @@ const EpisodeListItem = ({ episode, onClick }) => {
       {/* Episode info */}
       <div className="episode-info">
         <div className="episode-header">
-          <h3 className="episode-title" title={episode.title}>
-            {episode.title || 'Untitled Episode'}
+          <h3 className="episode-title" title={episode.episode_title}>
+            {episode.episode_title || 'Untitled Episode'}
           </h3>
           <p className="podcast-name" title={episode.podcast_name}>
             {episode.podcast_name || 'Unknown Podcast'}
@@ -112,12 +97,12 @@ const EpisodeListItem = ({ episode, onClick }) => {
           <div className="episode-details">
             <div className="meta-item">
               <Calendar size={16} />
-              <span>{formatDate(episode['modified at'])}</span>
+              <span>{formatDate(episode.listened_date)}</span>
             </div>
 
             <div className="meta-item">
               <Clock size={16} />
-              <span>{formatDuration(episode.duration)}</span>
+              <span>{formatDuration(episode.duration_seconds)}</span>
             </div>
 
             <div className="meta-item">
@@ -143,8 +128,8 @@ const EpisodeList = ({ episodes = [], onEpisodeClick = null }) => {
   // Sort episodes by most recent first
   const sortedEpisodes = React.useMemo(() => {
     return [...episodes].sort((a, b) => {
-      const dateA = new Date(a['modified at'] || 0);
-      const dateB = new Date(b['modified at'] || 0);
+      const dateA = new Date(a.listened_date || 0);
+      const dateB = new Date(b.listened_date || 0);
       return dateB - dateA; // Descending order (newest first)
     });
   }, [episodes]);
@@ -167,7 +152,7 @@ const EpisodeList = ({ episodes = [], onEpisodeClick = null }) => {
       <div className="episode-list">
         {sortedEpisodes.map((episode, index) => (
           <EpisodeListItem
-            key={`${episode.podcast_name}-${episode.title}-${index}`}
+            key={`${episode.podcast_name}-${episode.episode_title}-${index}`}
             episode={episode}
             onClick={onEpisodeClick}
           />

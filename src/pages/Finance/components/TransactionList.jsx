@@ -3,7 +3,7 @@ import { DollarSign, Calendar, Building, Tag, FileText, ArrowUp, ArrowDown } fro
 import './TransactionList.css';
 
 const TransactionList = ({ transactions, onTransactionClick }) => {
-  const [sortField, setSortField] = useState('èèPeriod');
+  const [sortField, setSortField] = useState('date');
   const [sortDirection, setSortDirection] = useState('desc');
 
   // Handle sorting
@@ -22,7 +22,7 @@ const TransactionList = ({ transactions, onTransactionClick }) => {
     let bValue = b[sortField];
 
     // Handle different data types
-    if (sortField === 'èèPeriod' || sortField === 'Period') {
+    if (sortField === 'date') {
       try {
         const cleanA = String(aValue).trim();
         const cleanB = String(bValue).trim();
@@ -165,13 +165,13 @@ const TransactionList = ({ transactions, onTransactionClick }) => {
         <table className="transaction-table">
           <thead>
             <tr>
-              <th 
-                className="sortable" 
-                onClick={() => handleSort('èèPeriod')}
+              <th
+                className="sortable"
+                onClick={() => handleSort('date')}
               >
                 <div className="th-content">
                   <Calendar size={16} />
-                  Date {renderSortIndicator('èèPeriod')}
+                  Date {renderSortIndicator('date')}
                 </div>
               </th>
               <th 
@@ -224,7 +224,7 @@ const TransactionList = ({ transactions, onTransactionClick }) => {
                   onClick={() => onTransactionClick && onTransactionClick(transaction)}
                 >
                   <td className="date-cell">
-                    {formatDate(transaction.èèPeriod || transaction.Period)}
+                    {formatDate(transaction.date)}
                   </td>
                   <td className="description-cell">
                     <div className="description-content">

@@ -15,12 +15,12 @@ const FinanceAnalysisTab = ({ data }) => {
     // Group by month and calculate totals
     const groupedByMonth = _.groupBy(data, (item) => {
       try {
-        const cleanPeriod = item.Period.toString().trim();
-        let date = new Date(cleanPeriod);
+        const cleanDate = item.date.toString().trim();
+        let date = new Date(cleanDate);
         
         // If invalid, try parsing just the date part
         if (isNaN(date.getTime())) {
-          const datePart = cleanPeriod.split(' ')[0];
+          const datePart = cleanDate.split(' ')[0];
           date = new Date(datePart);
         }
         

@@ -38,7 +38,7 @@ const PodcastPage = () => {
       key: 'dateRange',
       type: 'daterange',
       label: 'Listening Date',
-      dataField: 'modified at',
+      dataField: 'listened_date',
       icon: <Calendar size={16} />,
       placeholder: 'Select date range'
     },
@@ -87,7 +87,7 @@ const PodcastPage = () => {
     // Apply date range filter
     if (filters.dateRange && (filters.dateRange.startDate || filters.dateRange.endDate)) {
       filtered = filtered.filter(item => {
-        const itemDate = new Date(item['modified at']);
+        const itemDate = new Date(item['listened_date']);
         if (isNaN(itemDate.getTime()) || itemDate.getFullYear() <= 1970) {
           return false;
         }
@@ -138,7 +138,7 @@ const PodcastPage = () => {
         setSelectedPodcastInfo({
           name: podcastInfo.podcast_name,
           artist: podcastInfo.artist,
-          artwork: podcastInfo.artwork_large,
+          artwork: podcastInfo.artwork_url,
           genre: podcastInfo.genre
         });
       }
@@ -155,7 +155,7 @@ const PodcastPage = () => {
 
       // Total listening time in minutes with careful parsing
       const durations = filteredData.map(episode => {
-        const duration = episode.duration;
+        const duration = episode.duration_seconds;
         if (duration !== undefined && duration !== null) {
           const parsedDuration = parseFloat(duration);
           if (!isNaN(parsedDuration)) {
@@ -172,21 +172,12 @@ const PodcastPage = () => {
 
       // Average completion rate from filtered data
       const completionValues = filteredData.map(episode => {
-        const completionPercent = episode['completion_%'];
-        const completion = episode.completion;
+        const completionPercent = episode.completion_percent;
 
         if (completionPercent !== undefined && completionPercent !== null) {
           const parsedValue = parseFloat(completionPercent);
           if (!isNaN(parsedValue)) {
             return Math.min(parsedValue, 100);
-          }
-        }
-
-        if (completion !== undefined && completion !== null) {
-          const parsedValue = parseFloat(completion);
-          if (!isNaN(parsedValue)) {
-            const percentage = parsedValue * 100;
-            return Math.min(percentage, 100);
           }
         }
 
