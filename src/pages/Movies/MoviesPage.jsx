@@ -33,9 +33,10 @@ const StarRating = ({ rating, size = 16 }) => {
 
 // Function to get poster URL from processed data
 const getPosterUrl = (movie) => {
-  // First try to get from the PosterURL field added by Python processing
-  if (movie.originalEntry && movie.originalEntry.PosterURL && movie.originalEntry.PosterURL !== 'No poster found') {
-    return movie.originalEntry.PosterURL;
+  // First try to get from the poster_url field added by Python processing (supports both snake_case and PascalCase)
+  const posterUrl = movie.originalEntry?.poster_url || movie.originalEntry?.PosterURL;
+  if (posterUrl && posterUrl !== 'No poster found') {
+    return posterUrl;
   }
 
   // Fallback to placeholder
@@ -186,7 +187,7 @@ const MoviesPage = () => {
       key: 'dateRange',
       type: 'daterange',
       label: 'Watch Date',
-      dataField: 'Date',
+      dataField: 'date',
       icon: <Calendar size={16} />,
       placeholder: 'Select date range'
     },
@@ -204,8 +205,8 @@ const MoviesPage = () => {
       key: 'years',
       type: 'multiselect',
       label: 'Release Year',
-      optionsSource: 'originalEntry.Year',
-      dataField: 'originalEntry.Year',
+      optionsSource: 'originalEntry.year',
+      dataField: 'originalEntry.year',
       icon: <Clock size={16} />,
       placeholder: 'Select years',
       searchPlaceholder: 'Search years...'
@@ -214,8 +215,8 @@ const MoviesPage = () => {
       key: 'ratings',
       type: 'multiselect',
       label: 'My Rating',
-      optionsSource: 'originalEntry.Rating',
-      dataField: 'originalEntry.Rating',
+      optionsSource: 'originalEntry.rating',
+      dataField: 'originalEntry.rating',
       icon: <Star size={16} />,
       placeholder: 'Select ratings',
       searchPlaceholder: 'Search ratings...'
@@ -467,12 +468,13 @@ const MoviesPage = () => {
       // Apply ratings filter (multi-select)
       if (newFilters.ratings && Array.isArray(newFilters.ratings) && newFilters.ratings.length > 0) {
         filtered = filtered.filter(movie => {
-          if (!movie.originalEntry || !movie.originalEntry.Rating) return false;
-          
+          const rating = movie.originalEntry?.rating || movie.originalEntry?.Rating;
+          if (!rating) return false;
+
           // Convert both filter values and movie rating to numbers for comparison
-          const movieRating = parseFloat(movie.originalEntry.Rating);
+          const movieRating = parseFloat(rating);
           const selectedRatings = newFilters.ratings.map(rating => parseFloat(rating));
-          
+
           return selectedRatings.includes(movieRating);
         });
       }
