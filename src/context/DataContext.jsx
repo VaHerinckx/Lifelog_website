@@ -520,28 +520,56 @@ export const DataProvider = ({ children }) => {
               firstItem: cleanedData[0]
             });
 
-            // Special processing for nutrition data (SIMPLIFIED for optimized CSV)
+            // Special processing for nutrition data (using nutrilio_processed.csv columns)
             if (dataType === 'nutrition') {
+              console.log('🥗 NUTRITION RAW DATA - Total rows:', cleanedData.length);
+              console.log('🥗 NUTRITION RAW DATA - First 5 rows:');
+              cleanedData.slice(0, 5).forEach((row, index) => {
+                console.log(`🥗 Row ${index + 1}:`, {
+                  date: row.date,
+                  Time: row.Time,
+                  Meal: row.Meal,
+                  food_list: row.food_list,
+                  usda_meal_score: row.usda_meal_score
+                });
+              });
+
               cleanedData = cleanedData.map(item => {
                 try {
-                  // Parse food items - they are comma-separated
-                  const foodList = item.food_items ? item.food_items.split(',').map(f => f.trim()).filter(f => f) : [];
-                  
-                  // Parse timestamp with error handling
+                  // Parse food_list - remove quotes and split by comma
+                  const foodListRaw = item.food_list || '';
+                  const foodList = foodListRaw
+                    .replace(/'/g, '')
+                    .replace(/"/g, '')
+                    .split(',')
+                    .map(f => f.trim())
+                    .filter(f => f);
+
+                  // Create timestamp from date and Time columns
                   let timestamp;
                   try {
-                    timestamp = new Date(item.timestamp);
+                    if (item.date && item.Time) {
+                      // Extract just the date part (YYYY-MM-DD) in case it's already an ISO string
+                      const dateStr = item.date.split('T')[0];
+                      timestamp = new Date(`${dateStr}T${item.Time}`);
+                    } else if (item.date) {
+                      timestamp = new Date(item.date);
+                    } else {
+                      console.warn('No date found for item:', item);
+                      return null;
+                    }
+
                     // Check if timestamp is valid
                     if (isNaN(timestamp.getTime())) {
-                      console.warn('Invalid timestamp for item:', item.timestamp);
-                      return null; // Skip this item
+                      console.warn('Invalid timestamp for item:', item.date, item.Time);
+                      return null;
                     }
                   } catch (e) {
-                    console.warn('Error parsing timestamp:', item.timestamp, e);
-                    return null; // Skip this item
+                    console.warn('Error parsing timestamp:', item.date, item.Time, e);
+                    return null;
                   }
-                  
-                  // Food categories are already numeric
+
+                  // Food categories are already numeric (if they exist)
                   const foodCategories = {
                     meat: parseInt(item.Meat) || 0,
                     vegetables: parseInt(item.Vegetables) || 0,
@@ -553,29 +581,40 @@ export const DataProvider = ({ children }) => {
                     fish: parseInt(item.Fish) || 0,
                     sweets: parseInt(item.Sweets) || 0
                   };
-                  
+
                   const processedItem = {
                     ...item,
                     timestamp: timestamp.toISOString(),
                     foodList,
-                    mealScore: parseFloat(item.meal_score) || 0,
+                    mealScore: parseFloat(item.usda_meal_score) || 0,
                     amountText: item.amount_text || '',
-                    mealType: item.meal_type || '',
+                    mealType: item.Meal || '',
                     foodCategories,
                     // Simple derived fields
                     year: timestamp.getFullYear().toString(),
                     month: timestamp.getMonth() + 1,
                     dayOfWeek: timestamp.getDay()
                   };
-                  
-                  
+
+
                   return processedItem;
                 } catch (error) {
                   console.warn('Error processing nutrition item:', error, item);
                   return null; // Skip this item
                 }
-              }).filter(item => item && item.mealType); // Only valid meals
-              
+              }).filter(item => item && item.mealType); // Only valid meals with a meal type
+
+              console.log('🥗 NUTRITION PROCESSED DATA - Total meals after filtering:', cleanedData.length);
+              console.log('🥗 NUTRITION PROCESSED DATA - First 3 processed meals:');
+              cleanedData.slice(0, 3).forEach((row, index) => {
+                console.log(`🥗 Processed Meal ${index + 1}:`, {
+                  timestamp: row.timestamp,
+                  mealType: row.mealType,
+                  foodList: row.foodList,
+                  mealScore: row.mealScore,
+                  amountText: row.amountText
+                });
+              });
             }
 
             // Extra logging for shows cleaned data
