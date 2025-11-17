@@ -1,53 +1,9 @@
 /* MusicPageTabs.css */
-.page-tabs {
-  display: flex;
-  margin-bottom: var(--spacing-lg);
-  border-bottom: var(--border-width-medium) solid var(--border-color-light);
-}
+@import '../../../styles/variables.css';
+@import '../../../styles/components.css';
 
-.page-tab {
-  padding: var(--spacing-sm) var(--spacing-lg);
-  background: none;
-  border: none;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.page-tab:hover {
-  color: var(--color-text-primary);
-}
-
-.page-tab.active {
-  color: var(--color-accent);
-}
-
-.page-tab.active::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  right: 0;
-  height: var(--border-width-medium);
-  background-color: var(--color-accent);
-}
-
-/* Responsive styles */
-@media (max-width: 768px) {
-  .page-tabs {
-    margin-bottom: var(--spacing-md);
-  }
-
-  .page-tab {
-    padding: var(--spacing-xs) var(--spacing-md);
-    font-size: var(--font-size-sm);
-  }
-}
+/* Tab navigation styles now standardized in components.css */
+/* Uses: .page-tabs, .page-tab, .page-tab.active */
 
 /* Base page styling */
 .page-container {
@@ -123,48 +79,11 @@
   font-weight: 500;
 }
 
-/* Charts grid styling */
-.charts-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  margin-top: 2rem;
-}
+/* Charts grid styles now standardized in components.css */
+/* Uses: .charts-grid, .chart-container */
 
-.chart-container {
-  width: 100%;
-}
-
-/* For larger screens, we can show multiple columns for some charts */
-@media (min-width: 1200px) {
-  .charts-grid {
-    grid-template-columns: 3fr 2fr;
-  }
-
-  /* Make the first chart span full width */
-  .chart-container:first-child {
-    grid-column: 1 / -1;
-  }
-}
-
-/* Empty state styling */
-.empty-state {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 300px;
-  background-color: rgba(52, 35, 166, 0.1);
-  border-radius: 8px;
-  margin-top: 2rem;
-  text-align: center;
-  padding: 2rem;
-}
-
-.empty-state p {
-  color: var(--text-primary);
-  font-size: 1.1rem;
-  opacity: 0.8;
-}
+/* Empty state styles now standardized in components.css */
+/* Uses: .empty-state, .empty-state p */
 
 /* Tracks content styling */
 .tracks-content {
@@ -220,15 +139,6 @@
 
   .artist-popularity {
     font-size: 0.9rem;
-  }
-
-  .charts-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .chart-container {
-    overflow-x: auto;
   }
 
   .coming-soon-message {

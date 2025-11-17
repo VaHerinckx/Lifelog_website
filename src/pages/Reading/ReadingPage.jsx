@@ -1,71 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { Book, Book as BookIcon, BookOpen, List, Grid, Clock, BarChart, Tag, User, Star } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Book, Book as BookIcon, BookOpen, List, Grid, Clock, Star } from 'lucide-react';
 import Papa from 'papaparse';
 import _ from 'lodash';
 import './ReadingPage.css';
 import './components//ReadingPageTabs.css';
-import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useData } from '../../context/DataContext';
-import { formatDate } from '../../utils';
 
 // Import components
 import BookDetails from './components/BookDetails';
 import ReadingTimeline from './components/ReadingTimeline';
 import ReadingAnalysisTab from './components/ReadingAnalysisTab';
+import BookCard from './components/BookCard';
 import CardsPanel from '../../components/ui/CardsPanel/CardsPanel';
 import FilteringPanel from '../../components/ui/Filters/FilteringPanel/FilteringPanel';
 import StarRating from '../../components/ui/StarRating';
+import { readingFilterConfigs } from '../../config/filterConfigs';
 
-// Component to display a book card
-const BookCard = ({ book, onClick }) => {
-
-  return (
-    <div className="book-card" onClick={() => onClick(book)}>
-      <div className="book-cover-container">
-        <img
-          src={book.coverUrl || "/api/placeholder/220/320"}
-          alt={`${book.title} cover`}
-          className="book-cover"
-          onError={(e) => {
-            e.target.onerror = null;
-            e.target.src = "/api/placeholder/220/320";
-          }}
-        />
-      </div>
-      <div className="book-info">
-        <h3 className="book-title" title={book.title}>{book.title}</h3>
-        <p className="book-author" title={book.author}>by {book.author}</p>
-
-        <div className="rating-container">
-          <StarRating rating={book.myRating} size={16} />
-          <span>{book.myRating.toFixed(1)}</span>
-        </div>
-
-        <div className="book-meta">
-          {book.publicationYear && <span>{book.publicationYear}</span>}
-          <div className="book-genre-tags">
-            <span className={`book-genre ${book.fiction ? 'fiction-tag' : 'non-fiction-tag'}`}>
-              {book.fiction ? 'Fiction' : 'Non-Fiction'}
-            </span>
-          </div>
-        </div>
-
-        <div className="reading-dates">
-          <span className="date-label">Read on:</span>
-          <span className="date-value">{formatDate(book.timestamp)}</span>
-        </div>
-
-        {book.readingDuration && book.timestamp && (
-          <div className="reading-duration">
-            <span className="duration-value">
-              {book.readingDuration} days to read
-            </span>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
+// Import new standardized components
+import PageHeader from '../../components/ui/PageHeader';
+import TabNavigation from '../../components/ui/TabNavigation';
+import ViewControls from '../../components/ui/ViewControls';
+import ContentContainer from '../../components/ui/ContentContainer';
+import ContentListItem from '../../components/ui/ContentListItem';
 
 const ReadingPage = () => {
   const { data, loading, error, fetchData } = useData();
@@ -86,63 +42,12 @@ const ReadingPage = () => {
     avgReadingDuration: 0,
     recentBooks: 0
   });
-  const [activeTab, setActiveTab] = useState('books');
+  const [activeTab, setActiveTab] = useState('content');
   const [dateRange, setDateRange] = useState({
     startDate: null,
     endDate: null
   });
 
-  // Define filter configurations for FilteringPanel
-  const filterConfigs = [
-    {
-      key: 'readingYears',
-      type: 'multiselect',
-      label: 'Reading Years',
-      optionsSource: 'reading_year',
-      dataField: 'reading_year',
-      icon: <Clock size={16} />,
-      placeholder: 'Select years',
-      searchPlaceholder: 'Search years...'
-    },
-    {
-      key: 'dateRange',
-      type: 'daterange',
-      label: 'Reading Date',
-      dataField: 'timestamp',
-      icon: <Clock size={16} />,
-      placeholder: 'Select date range'
-    },
-    {
-      key: 'genres',
-      type: 'multiselect',
-      label: 'Genres',
-      optionsSource: 'genre',
-      dataField: 'genre',
-      icon: <Tag size={16} />,
-      placeholder: 'Select genres',
-      searchPlaceholder: 'Search genres...'
-    },
-    {
-      key: 'authors',
-      type: 'multiselect',
-      label: 'Authors',
-      optionsSource: 'author',
-      dataField: 'author',
-      icon: <User size={16} />,
-      placeholder: 'Select authors',
-      searchPlaceholder: 'Search authors...'
-    },
-    {
-      key: 'books',
-      type: 'multiselect',
-      label: 'Books',
-      optionsSource: 'title',
-      dataField: 'title',
-      icon: <Book size={16} />,
-      placeholder: 'Select books',
-      searchPlaceholder: 'Search books...'
-    }
-  ];
 
   // Function to process books data from the API response
   const processRawData = (rawData) => {
@@ -460,10 +365,6 @@ const ReadingPage = () => {
     return cards;
   };
 
-  if (loading && loading.reading) {
-    return <LoadingSpinner centerIcon={BookIcon} />;
-  }
-
   if ((error && error.reading) || (!books.length && !loading?.reading)) {
     return (
       <div className="page-container">
@@ -486,65 +387,43 @@ const ReadingPage = () => {
   return (
     <div className="page-container">
       <div className="page-content">
-        <h1>Reading Tracker</h1>
-        <p className="page-description">Track your reading habits and discover insights about your books</p>
+        {/* Page Header */}
+        <PageHeader
+          title="Reading Tracker"
+          description="Track your reading habits and discover insights about your books"
+        />
 
         {/* Tab Navigation */}
-        <div className="page-tabs">
-          <button
-            className={`page-tab ${activeTab === 'books' ? 'active' : ''}`}
-            onClick={() => setActiveTab('books')}
-          >
-            <BookIcon size={18} style={{ marginRight: '8px' }} />
-            Books
-          </button>
-          <button
-            className={`page-tab ${activeTab === 'analysis' ? 'active' : ''}`}
-            onClick={() => setActiveTab('analysis')}
-          >
-            <BarChart size={18} style={{ marginRight: '8px' }} />
-            Analysis
-          </button>
-        </div>
+        <TabNavigation
+          contentLabel="Books"
+          contentIcon={BookIcon}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
         {/* NEW: FilteringPanel replaces all the old filters */}
             <FilteringPanel
               data={books}
-              filterConfigs={filterConfigs}
+              filterConfigs={readingFilterConfigs}
               onFiltersChange={handleFiltersChange}
               title="Book Filters"
               description="Filter and sort your reading collection"
             />
 
         {/* Books Tab Content */}
-        {activeTab === 'books' && (
+        {activeTab === 'content' && (
           <>
-
-            <div className="view-controls">
-              <button
-                className={`view-control-btn ${viewMode === 'grid' ? 'active' : ''}`}
-                onClick={() => setViewMode('grid')}
-                title="Grid View"
-              >
-                <Grid size={20} />
-              </button>
-              <button
-                className={`view-control-btn ${viewMode === 'list' ? 'active' : ''}`}
-                onClick={() => setViewMode('list')}
-                title="List View"
-              >
-                <List size={20} />
-              </button>
-              <button
-                className={`view-control-btn ${viewMode === 'timeline' ? 'active' : ''}`}
-                onClick={() => setViewMode('timeline')}
-                title="Timeline View"
-              >
-                <Clock size={20} />
-              </button>
-              <div className="book-count">
-                {filteredBooks.length} {filteredBooks.length === 1 ? 'book' : 'books'} found
-              </div>
-            </div>
+            {/* View Controls */}
+            <ViewControls
+              viewModes={[
+                { mode: 'grid', icon: Grid },
+                { mode: 'list', icon: List },
+                { mode: 'timeline', icon: Clock }
+              ]}
+              activeMode={viewMode}
+              onModeChange={setViewMode}
+              itemCount={filteredBooks.length}
+              itemLabel={{ singular: 'book', plural: 'books' }}
+            />
 
             <CardsPanel
               title="Reading Statistics"
@@ -554,82 +433,79 @@ const ReadingPage = () => {
             />
 
             {/* Books Display */}
-            {filteredBooks.length > 0 ? (
-              <>
-                {viewMode === 'grid' && (
-                  <div className="books-grid">
-                    {filteredBooks.map(book => (
-                      <BookCard
-                        key={`${book.id}-${book.title}`}
-                        book={book}
-                        onClick={handleBookClick}
-                      />
-                    ))}
-                  </div>
-                )}
+            <ContentContainer
+              isEmpty={filteredBooks.length === 0}
+              loading={loading?.reading}
+              loadingIcon={Book}
+              emptyState={{
+                icon: BookIcon,
+                title: "No books found",
+                message: "No books match your current filters. Try adjusting your criteria."
+              }}
+            >
+              {viewMode === 'grid' && (
+                <div className="books-grid">
+                  {filteredBooks.map(book => (
+                    <BookCard
+                      key={`${book.id}-${book.title}`}
+                      book={book}
+                      onClick={handleBookClick}
+                    />
+                  ))}
+                </div>
+              )}
 
-                {viewMode === 'list' && (
-                  <div className="books-list">
-                    {filteredBooks.map(book => (
-                      <div
-                        key={`list-${book.id}-${book.title}`}
-                        className="book-list-item"
-                        onClick={() => handleBookClick(book)}
-                      >
-                        <div className="book-list-cover">
-                          <img
-                            src={book.coverUrl || "/api/placeholder/80/120"}
-                            alt={`${book.title} cover`}
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = "/api/placeholder/80/120";
-                            }}
-                          />
-                        </div>
-                        <div className="book-list-info">
-                          <h3 className="book-list-title">{book.title}</h3>
-                          <p className="book-list-author">{book.author}</p>
-                          <div className="book-list-meta">
+              {viewMode === 'list' && (
+                <div className="books-list">
+                  {filteredBooks.map(book => (
+                    <ContentListItem
+                      key={`list-${book.id}-${book.title}`}
+                      image={{
+                        url: book.coverUrl,
+                        alt: `${book.title} cover`,
+                        fallback: "/api/placeholder/80/120",
+                        aspectRatio: 'portrait'
+                      }}
+                      title={book.title}
+                      subtitle={book.author}
+                      metadata={[
+                        {
+                          component: (
                             <div className="rating-container">
                               <StarRating rating={book.myRating} />
                               <span className="rating-value">{book.myRating.toFixed(1)}</span>
                             </div>
-                            <div className="book-list-details">
-                              <BookOpen size={16} />
-                              <span>{book.pages} pages</span>
-                              {book.readingDuration && (
-                                <span className="reading-duration">
-                                  • Read in {book.readingDuration} days
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="book-list-tags">
-                          <span className={`book-list-tag ${book.fiction ? 'fiction-tag' : 'non-fiction-tag'}`}>
-                            {book.fiction ? 'Fiction' : 'Non-Fiction'}
-                          </span>
-                          {book.genre && book.genre !== 'Unknown' && (
-                            <span className="book-list-tag genre-tag">{book.genre}</span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                          )
+                        },
+                        {
+                          icon: <BookOpen size={16} />,
+                          text: `${book.pages} pages`
+                        },
+                        ...(book.readingDuration ? [{
+                          text: `• Read in ${book.readingDuration} days`
+                        }] : [])
+                      ]}
+                      tags={[
+                        {
+                          text: book.fiction ? 'Fiction' : 'Non-Fiction',
+                          className: book.fiction ? 'fiction-tag' : 'non-fiction-tag'
+                        },
+                        ...(book.genre && book.genre !== 'Unknown' ? [{
+                          text: book.genre,
+                          className: 'genre-tag'
+                        }] : [])
+                      ]}
+                      onClick={() => handleBookClick(book)}
+                      className="book-list-item"
+                    />
+                  ))}
+                </div>
+              )}
 
-                {viewMode === 'timeline' && (
-                  <ReadingTimeline books={filteredBooks} />
-                )}
-              </>
-            ) : (
-              <div className="empty-state">
-                <BookIcon size={48} className="empty-state-icon" />
-                <p className="empty-state-message">
-                  No books match your current filters. Try adjusting your criteria.
-                </p>
-              </div>
-            )}
+              {viewMode === 'timeline' && (
+                <ReadingTimeline books={filteredBooks} />
+              )}
+            </ContentContainer>
           </>
         )}
 

@@ -1,6 +1,6 @@
 // src/pages/Movies/MoviesPage.jsx
 import React, { useState, useEffect } from 'react';
-import { Film, Grid, List, Calendar, User, Tag, Clock, BarChart, Tv, Star } from 'lucide-react';
+import { Film, Grid, List, BarChart, Tv, Star } from 'lucide-react';
 import Papa from 'papaparse';
 import _ from 'lodash';
 import './MoviesPage.css';
@@ -13,6 +13,7 @@ import MoviesAnalysisTab from './components/MoviesAnalysisTab';
 import CardsPanel from '../../components/ui/CardsPanel/CardsPanel';
 import FilteringPanel from '../../components/ui/Filters/FilteringPanel/FilteringPanel';
 import StarRating from '../../components/ui/StarRating';
+import { moviesFilterConfigs } from '../../config/filterConfigs';
 
 // Function to get poster URL from processed data
 const getPosterUrl = (movie) => {
@@ -159,48 +160,6 @@ const MoviesPage = () => {
     totalRewatches: 0
   });
   const [activeTab, setActiveTab] = useState('movies');
-
-  // Define filter configurations for FilteringPanel
-  const filterConfigs = [
-    {
-      key: 'dateRange',
-      type: 'daterange',
-      label: 'Watch Date',
-      dataField: 'date',
-      icon: <Calendar size={16} />,
-      placeholder: 'Select date range'
-    },
-    {
-      key: 'genres',
-      type: 'multiselect',
-      label: 'Genres',
-      optionsSource: 'custom', // We'll handle this specially
-      dataField: 'genre',
-      icon: <Tag size={16} />,
-      placeholder: 'Select genres',
-      searchPlaceholder: 'Search genres...'
-    },
-    {
-      key: 'years',
-      type: 'multiselect',
-      label: 'Release Year',
-      optionsSource: 'originalEntry.year',
-      dataField: 'originalEntry.year',
-      icon: <Clock size={16} />,
-      placeholder: 'Select years',
-      searchPlaceholder: 'Search years...'
-    },
-    {
-      key: 'ratings',
-      type: 'multiselect',
-      label: 'My Rating',
-      optionsSource: 'originalEntry.rating',
-      dataField: 'originalEntry.rating',
-      icon: <Star size={16} />,
-      placeholder: 'Select ratings',
-      searchPlaceholder: 'Search ratings...'
-    }
-  ];
 
   // Function to process movies data from the API response
   const processRawData = (rawData) => {
@@ -669,7 +628,7 @@ const MoviesPage = () => {
         {/* FilteringPanel */}
         <FilteringPanel
           data={contentType === 'movies' ? movies : shows}
-          filterConfigs={filterConfigs.map(config => {
+          filterConfigs={moviesFilterConfigs.map(config => {
             // For genres, override with our extracted unique genres (only for movies)
             if (config.key === 'genres' && contentType === 'movies') {
               return {

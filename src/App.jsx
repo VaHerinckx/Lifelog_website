@@ -1,5 +1,5 @@
 // src/App.jsx
-import './variables.css';
+import './styles/variables.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { DataProvider } from './context/DataContext';
 import Layout from './components/ui/Layout';

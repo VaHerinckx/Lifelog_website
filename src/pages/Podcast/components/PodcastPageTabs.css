@@ -1,4 +1,6 @@
 /* src/pages/Podcast/PodcastPage.css */
+@import '../../../styles/variables.css';
+@import '../../../styles/components.css';
 
 /* Base page styling */
 .page-container {
@@ -70,48 +72,11 @@
   opacity: 0.8;
 }
 
-/* Charts grid styling */
-.charts-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 2rem;
-  margin-top: 2rem;
-}
+/* Charts grid styles now standardized in components.css */
+/* Uses: .charts-grid, .chart-container */
 
-.chart-container {
-  width: 100%;
-}
-
-/* For larger screens, we can show multiple columns for some charts */
-@media (min-width: 1200px) {
-  .charts-grid {
-    grid-template-columns: 3fr 2fr;
-  }
-
-  /* Make the first chart span full width */
-  .chart-container:first-child {
-    grid-column: 1 / -1;
-  }
-}
-
-/* Empty state styling */
-.empty-state {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 300px;
-  background-color: rgba(52, 35, 166, 0.1);
-  border-radius: 8px;
-  margin-top: 2rem;
-  text-align: center;
-  padding: 2rem;
-}
-
-.empty-state p {
-  color: var(--text-primary);
-  font-size: 1.1rem;
-  opacity: 0.8;
-}
+/* Empty state styles now standardized in components.css */
+/* Uses: .empty-state, .empty-state p */
 
 /* Podcasts content styling */
 .podcasts-content {
@@ -173,15 +138,6 @@
 
   .podcast-genre {
     font-size: 0.9rem;
-  }
-
-  .charts-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .chart-container {
-    overflow-x: auto;
   }
 
   .coming-soon-message {

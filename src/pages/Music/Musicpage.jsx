@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import _ from 'lodash';
 import './MusicPage.css';
-import { Music, BarChart2, Headphones, Clock, User, Percent, Calendar, Tag, Album } from 'lucide-react';
+import { Music, BarChart2, Headphones, Clock, User, Percent } from 'lucide-react';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useData } from '../../context/DataContext';
 import MusicAnalysisTab from './components/MusicAnalysisTab';
 import CardsPanel from '../../components/ui/CardsPanel/CardsPanel';
 import FilteringPanel from '../../components/ui/Filters/FilteringPanel/FilteringPanel';
+import { musicFilterConfigs } from '../../config/filterConfigs';
 
 const MusicPage = () => {
   // Get data and functions from context
@@ -28,58 +29,6 @@ const MusicPage = () => {
 
   // State for filtered stats loading
   const [filteredStatsLoading, setFilteredStatsLoading] = useState(false);
-
-  // Define filter configurations for FilteringPanel
-  const filterConfigs = [
-    {
-      key: 'listeningYear',
-      type: 'multiselect',
-      label: 'Listening Year',
-      optionsSource: 'listening_year',
-      dataField: 'listening_year',
-      icon: <Calendar size={16} />,
-      placeholder: 'Select years',
-      searchPlaceholder: 'Search years...'
-    },
-    {
-      key: 'dateRange',
-      type: 'daterange',
-      label: 'Listening Date',
-      dataField: 'timestamp',
-      icon: <Calendar size={16} />,
-      placeholder: 'Select date range'
-    },
-    {
-      key: 'artists',
-      type: 'multiselect',
-      label: 'Artists',
-      optionsSource: 'artist_name',
-      dataField: 'artist_name',
-      icon: <User size={16} />,
-      placeholder: 'Select artists',
-      searchPlaceholder: 'Search artists...'
-    },
-    {
-      key: 'albums',
-      type: 'multiselect',
-      label: 'Albums',
-      optionsSource: 'album_name',
-      dataField: 'album_name',
-      icon: <Album size={16} />,
-      placeholder: 'Select albums',
-      searchPlaceholder: 'Search albums...'
-    },
-    {
-      key: 'genres',
-      type: 'multiselect',
-      label: 'Genres',
-      optionsSource: 'genre_1',
-      dataField: 'genre_1',
-      icon: <Tag size={16} />,
-      placeholder: 'Select genres',
-      searchPlaceholder: 'Search genres...'
-    }
-  ];
 
 
   // Fetch music data when component mounts
@@ -294,7 +243,7 @@ const MusicPage = () => {
       <FilteringPanel
         data={data.music?.displayData || []}
         fullDataset={data.music?.csvText || ''}
-        filterConfigs={filterConfigs}
+        filterConfigs={musicFilterConfigs}
         onFiltersChange={handleFiltersChange}
         title="Music Filters"
         description="Filter your music data for analysis"

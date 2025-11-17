@@ -1,4 +1,9 @@
 /* src/components/reading/BookDetails.css */
+@import '../../../styles/variables.css';
+@import '../../../styles/components.css';
+
+/* Overlay extends modal-overlay from components.css */
+/* Inherits: position, layout, background, z-index, backdrop-filter */
 .book-details-overlay {
   position: fixed;
   top: 0;
@@ -14,8 +19,10 @@
   backdrop-filter: blur(5px);
 }
 
+/* Modal extends modal-container from components.css */
+/* Inherits: background, border-radius, dimensions, overflow, shadow */
 .book-details-modal {
-  background-color: #D8DCFF;
+  background-color: var(--color-surface);
   border-radius: 12px;
   width: 100%;
   max-width: 900px;
@@ -25,13 +32,15 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
+/* Close button extends modal-close-button from components.css */
+/* Inherits: position, styling, transitions, hover effects */
 .close-button {
   position: absolute;
   top: 15px;
   right: 15px;
   background: none;
   border: none;
-  color: #171738;
+  color: var(--color-text-on-surface);
   cursor: pointer;
   z-index: 10;
   padding: 5px;
@@ -62,24 +71,24 @@
   object-fit: contain;
   border-radius: 8px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-  background-color: #3423A6;
+  background-color: var(--color-primary);
 }
 
 .book-details-info {
   flex: 1;
-  color: #171738;
+  color: var(--color-text-on-surface);
 }
 
 .book-details-info h2 {
   font-size: 1.8rem;
-  color: #171738;
+  color: var(--color-text-on-surface);
   margin-bottom: 5px;
 }
 
 .book-details-info h3 {
   font-size: 1.2rem;
   font-weight: 500;
-  color: #3423A6;
+  color: var(--color-primary);
   margin-top: 0;
   margin-bottom: 20px;
 }
@@ -142,8 +151,8 @@
   padding: 6px 12px;
   border-radius: 4px;
   font-size: 0.9rem;
-  background-color: #3423A6;
-  color: white;
+  background-color: var(--color-primary);
+  color: var(--color-white);
 }
 
 /* Responsive adjustments */

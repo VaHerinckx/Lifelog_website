@@ -1,6 +1,9 @@
 /* LifeLog Design System Variables */
 /* All styling should reference these variables for consistency */
 
+/* Import fonts */
+@import '../assets/fonts/fonts.css';
+
 /* ===== SPACING SCALE ===== */
 /* 8px base scale using rem units */
 :root {
@@ -43,8 +46,13 @@
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
 
+  /* Font families */
+  --font-primary: 'Wotfard', Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --font-secondary: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+
   /* ===== COLOR SYSTEM ===== */
   /* Primary brand colors */
+    /* Antwarp Blue #0066A3, Benzol Green #001288*/
   --color-primary: #3423A6;
   --color-primary-dark: #2A1C85;
   --color-primary-light: #D8DCFF;
@@ -75,6 +83,13 @@
   --color-warning: #F59E0B;
   --color-error: #EF4444;
   --color-info: #3B82F6;
+
+  /* Utility colors */
+  --color-white: #ffffff;
+  --color-rating-star: #EAC435;        /* Yellow/gold for rating stars */
+  --color-purple-light: #6D62C4;       /* Light purple for tags/badges */
+  --color-border-gray: #cccccc;        /* Light gray for borders */
+  --color-text-gray: #555555;          /* Gray text for secondary content */
 
   /* ===== BORDER & RADIUS ===== */
   /* Consistent border radius scale */

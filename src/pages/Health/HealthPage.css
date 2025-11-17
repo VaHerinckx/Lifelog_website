@@ -2,71 +2,46 @@
 @import '../../styles/variables.css';
 @import '../../styles/components.css';
 
-/* Consistent page container styling with Movies page */
-.page-container {
-  width: 95%;
-  max-width: 1800px;
-  margin: 0 auto;
-  box-sizing: border-box;
-}
+/* Page container uses .page-container--wide modifier from components.css */
+/* Apply in JSX: className="page-container page-container--wide" */
 
 .page-content {
-  width: 95%;
+  width: var(--container-width);
   max-width: 1800px;
   margin: 0 auto;
-  padding: 2rem 2rem;
+  padding: var(--spacing-xl);
   box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
   .page-content {
-    padding: 1.5rem 1rem;
+    padding: var(--container-padding-mobile);
   }
 }
 
 .page-container h1,
 .page-container h2 {
-  color: #FB4B4E;
+  color: var(--color-accent);
   margin-bottom: 10px;
 }
 
 .page-description {
-  color: #ffffff;
+  color: var(--color-white);
   margin-bottom: 20px;
   opacity: 0.9;
 }
 
-/* Error and Empty State - consistent with Movies page */
+/* Error styling */
 .error {
-  color: #FB4B4E;
+  color: var(--color-accent);
   background-color: rgba(251, 75, 78, 0.1);
   padding: 1rem;
   border-radius: 8px;
   margin-bottom: 1rem;
 }
 
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem;
-  text-align: center;
-  background-color: rgba(52, 35, 166, 0.1);
-  border-radius: 8px;
-  margin-top: 2rem;
-}
-
-.empty-state-icon {
-  color: #FB4B4E;
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.empty-state-message {
-  color: white;
-  font-size: 1.2rem;
-}
+/* Empty state styles now standardized in components.css */
+/* Uses: .empty-state, .empty-state-icon, .empty-state-message */
 
 /* Card icons - removed as CardsPanel handles styling */
 

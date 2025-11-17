@@ -28,7 +28,8 @@
   gap: 1rem;
 }
 
-/* Individual episode item */
+/* Individual episode item extends content-card-list-base from components.css */
+/* Inherits: display, background-color, border-radius, padding, cursor, transition, hover effects */
 .episode-list-item {
   display: flex;
   align-items: flex-start;
@@ -45,7 +46,7 @@
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* Episode artwork */
+/* Episode artwork extends content-card-image-container from components.css */
 .episode-artwork {
   flex: 0 0 80px;
   height: 80px;
@@ -62,6 +63,7 @@
   background-color: var(--chart-secondary-color);
 }
 
+/* Completion overlay badge extends content-card-badge pattern from components.css */
 .completion-overlay {
   position: absolute;
   bottom: 4px;
