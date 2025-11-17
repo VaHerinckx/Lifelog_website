@@ -8,15 +8,11 @@ import './CardsPanel.css';
  *
  * @param {Object} props
  * @param {Array} props.cards - Array of card objects with { value, label, icon } properties
- * @param {string} [props.title] - Optional title to display above the cards
- * @param {string} [props.description] - Optional description to display below the title
  * @param {boolean} [props.loading] - Whether the cards are in a loading state
  * @param {string} [props.className] - Additional CSS classes to apply to the container
  */
 const CardsPanel = ({
   cards = [],
-  title,
-  description,
   loading = false,
   className = ''
 }) => {
@@ -24,8 +20,6 @@ const CardsPanel = ({
   if (loading) {
     return (
       <div className={`cards-panel ${className}`}>
-        {title && <h2 className="cards-panel-title">{title}</h2>}
-        {description && <p className="cards-panel-description">{description}</p>}
         <div className="cards-panel-grid">
           {/* Show placeholder cards while loading */}
           {[1, 2, 3, 4].map((index) => (
@@ -44,8 +38,6 @@ const CardsPanel = ({
   if (!cards || cards.length === 0) {
     return (
       <div className={`cards-panel ${className}`}>
-        {title && <h2 className="cards-panel-title">{title}</h2>}
-        {description && <p className="cards-panel-description">{description}</p>}
         <div className="cards-panel-empty">
           <p>No statistics available</p>
         </div>
@@ -55,9 +47,6 @@ const CardsPanel = ({
 
   return (
     <div className={`cards-panel ${className}`}>
-      {title && <h2 className="cards-panel-title">{title}</h2>}
-      {description && <p className="cards-panel-description">{description}</p>}
-
       <div className="cards-panel-grid">
         {cards.map((card, index) => (
           <KpiCard

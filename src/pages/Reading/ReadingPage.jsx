@@ -9,9 +9,7 @@ import { useData } from '../../context/DataContext';
 // Import components
 import BookDetails from './components/BookDetails';
 import ReadingTimeline from './components/ReadingTimeline';
-import ReadingAnalysisTab from './components/ReadingAnalysisTab';
 import BookCard from './components/BookCard';
-import CardsPanel from '../../components/ui/CardsPanel/CardsPanel';
 import FilteringPanel from '../../components/ui/Filters/FilteringPanel/FilteringPanel';
 import StarRating from '../../components/ui/StarRating';
 import { readingFilterConfigs } from '../../config/filterConfigs';
@@ -19,9 +17,14 @@ import { readingFilterConfigs } from '../../config/filterConfigs';
 // Import new standardized components
 import PageHeader from '../../components/ui/PageHeader';
 import TabNavigation from '../../components/ui/TabNavigation';
-import ViewControls from '../../components/ui/ViewControls';
-import ContentContainer from '../../components/ui/ContentContainer';
+import ContentTab from '../../components/ui/ContentTab/ContentTab';
+import AnalysisTab from '../../components/ui/AnalysisTab/AnalysisTab';
 import ContentListItem from '../../components/ui/ContentListItem';
+import CardsPanel from '../../components/ui/CardsPanel/CardsPanel';
+
+// Import chart components for analysis tab
+import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
+import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
 
 const ReadingPage = () => {
   const { data, loading, error, fetchData } = useData();
@@ -29,9 +32,6 @@ const ReadingPage = () => {
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [readingEntries, setReadingEntries] = useState([]);
   const [filteredReadingEntries, setFilteredReadingEntries] = useState([]);
-
-  // Simplified filter state - now managed by FilteringPanel
-  const [filters, setFilters] = useState({});
 
   const [viewMode, setViewMode] = useState('grid');
   const [selectedBook, setSelectedBook] = useState(null);
@@ -43,10 +43,6 @@ const ReadingPage = () => {
     recentBooks: 0
   });
   const [activeTab, setActiveTab] = useState('content');
-  const [dateRange, setDateRange] = useState({
-    startDate: null,
-    endDate: null
-  });
 
 
   // Function to process books data from the API response
@@ -152,24 +148,10 @@ const ReadingPage = () => {
     setFilteredBooks(sortedBooks);
     setFilteredReadingEntries(enhancedReadingData);
 
-    // Calculate stats and date range
+    // Calculate stats
     const now = new Date();
     const lastMonthDate = new Date();
     lastMonthDate.setMonth(now.getMonth() - 1);
-
-    if (sortedBooks.length > 0) {
-      const validDates = sortedBooks
-        .map(book => book.timestamp)
-        .filter(date => date instanceof Date && !isNaN(date.getTime()))
-        .sort((a, b) => a - b);
-
-      if (validDates.length > 0) {
-        setDateRange({
-          startDate: validDates[0].toISOString().split('T')[0],
-          endDate: validDates[validDates.length - 1].toISOString().split('T')[0]
-        });
-      }
-    }
 
     const recentBooks = sortedBooks.filter(book =>
       book.timestamp && book.timestamp >= lastMonthDate
@@ -196,8 +178,6 @@ const ReadingPage = () => {
 
   // Apply filters when FilteringPanel filters change
   const handleFiltersChange = (newFilters) => {
-    setFilters(newFilters);
-
     if (books.length > 0) {
       let filtered = [...books];
       let filteredEntries = [...readingEntries];
@@ -405,119 +385,122 @@ const ReadingPage = () => {
               data={books}
               filterConfigs={readingFilterConfigs}
               onFiltersChange={handleFiltersChange}
-              title="Book Filters"
-              description="Filter and sort your reading collection"
+            />
+
+            {/* Statistics Cards */}
+            <CardsPanel
+              cards={prepareStatsCards()}
+              loading={loading?.reading}
             />
           </>
         )}
 
         {/* Books Tab Content */}
         {activeTab === 'content' && (
-          <>
-            {/* View Controls */}
-            {!loading?.reading && (
-              <>
-                <ViewControls
-                  viewModes={[
-                    { mode: 'grid', icon: Grid },
-                    { mode: 'list', icon: List },
-                    { mode: 'timeline', icon: Clock }
-                  ]}
-                  activeMode={viewMode}
-                  onModeChange={setViewMode}
-                  itemCount={filteredBooks.length}
-                  itemLabel={{ singular: 'book', plural: 'books' }}
-                />
-
-                <CardsPanel
-                  title="Reading Statistics"
-                  description="Your reading progress at a glance"
-                  cards={prepareStatsCards()}
-                  loading={loading?.reading}
-                />
-              </>
+          <ContentTab
+            loading={loading?.reading}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+            viewModes={[
+              { mode: 'grid', icon: Grid },
+              { mode: 'list', icon: List },
+              { mode: 'timeline', icon: Clock }
+            ]}
+            items={filteredBooks}
+            loadingIcon={Book}
+            emptyState={{
+              icon: BookIcon,
+              title: "No books found",
+              message: "No books match your current filters. Try adjusting your criteria."
+            }}
+            renderGrid={(books) => (
+              <div className="books-grid">
+                {books.map(book => (
+                  <BookCard
+                    key={`${book.id}-${book.title}`}
+                    book={book}
+                    onClick={handleBookClick}
+                  />
+                ))}
+              </div>
             )}
-
-            {/* Books Display */}
-            <ContentContainer
-              isEmpty={filteredBooks.length === 0}
-              loading={loading?.reading}
-              loadingIcon={Book}
-              emptyState={{
-                icon: BookIcon,
-                title: "No books found",
-                message: "No books match your current filters. Try adjusting your criteria."
-              }}
-            >
-              {viewMode === 'grid' && (
-                <div className="books-grid">
-                  {filteredBooks.map(book => (
-                    <BookCard
-                      key={`${book.id}-${book.title}`}
-                      book={book}
-                      onClick={handleBookClick}
-                    />
-                  ))}
-                </div>
-              )}
-
-              {viewMode === 'list' && (
-                <div className="books-list">
-                  {filteredBooks.map(book => (
-                    <ContentListItem
-                      key={`list-${book.id}-${book.title}`}
-                      image={{
-                        url: book.coverUrl,
-                        alt: `${book.title} cover`,
-                        fallback: "/api/placeholder/80/120",
-                        aspectRatio: 'portrait'
-                      }}
-                      title={book.title}
-                      subtitle={book.author}
-                      metadata={[
-                        {
-                          component: (
-                            <div className="rating-container">
-                              <StarRating rating={book.myRating} />
-                              <span className="rating-value">{book.myRating.toFixed(1)}</span>
-                            </div>
-                          )
-                        },
-                        {
-                          icon: <BookOpen size={16} />,
-                          text: `${book.pages} pages`
-                        },
-                        ...(book.readingDuration ? [{
-                          text: `• Read in ${book.readingDuration} days`
-                        }] : [])
-                      ]}
-                      tags={[
-                        {
-                          text: book.fiction ? 'Fiction' : 'Non-Fiction',
-                          className: book.fiction ? 'fiction-tag' : 'non-fiction-tag'
-                        },
-                        ...(book.genre && book.genre !== 'Unknown' ? [{
-                          text: book.genre,
-                          className: 'genre-tag'
-                        }] : [])
-                      ]}
-                      onClick={() => handleBookClick(book)}
-                      className="book-list-item"
-                    />
-                  ))}
-                </div>
-              )}
-
-              {viewMode === 'timeline' && (
-                <ReadingTimeline books={filteredBooks} />
-              )}
-            </ContentContainer>
-          </>
+            renderList={(books) => (
+              <div className="books-list">
+                {books.map(book => (
+                  <ContentListItem
+                    key={`list-${book.id}-${book.title}`}
+                    image={{
+                      url: book.coverUrl,
+                      alt: `${book.title} cover`,
+                      fallback: "/api/placeholder/80/120",
+                      aspectRatio: 'portrait'
+                    }}
+                    title={book.title}
+                    subtitle={book.author}
+                    metadata={[
+                      {
+                        component: (
+                          <div className="rating-container">
+                            <StarRating rating={book.myRating} />
+                            <span className="rating-value">{book.myRating.toFixed(1)}</span>
+                          </div>
+                        )
+                      },
+                      {
+                        icon: <BookOpen size={16} />,
+                        text: `${book.pages} pages`
+                      },
+                      ...(book.readingDuration ? [{
+                        text: `• Read in ${book.readingDuration} days`
+                      }] : [])
+                    ]}
+                    tags={[
+                      {
+                        text: book.fiction ? 'Fiction' : 'Non-Fiction',
+                        className: book.fiction ? 'fiction-tag' : 'non-fiction-tag'
+                      },
+                      ...(book.genre && book.genre !== 'Unknown' ? [{
+                        text: book.genre,
+                        className: 'genre-tag'
+                      }] : [])
+                    ]}
+                    onClick={() => handleBookClick(book)}
+                    className="book-list-item"
+                  />
+                ))}
+              </div>
+            )}
+            renderTimeline={(books) => <ReadingTimeline books={books} />}
+          />
         )}
 
         {/* Analysis Tab Content */}
         {activeTab === 'analysis' && (
-          <ReadingAnalysisTab books={filteredReadingEntries} />
+          <AnalysisTab
+            data={filteredReadingEntries}
+            chartLayout="two-column"
+            emptyState={{
+              message: "No reading data available with current filters. Try adjusting your criteria."
+            }}
+            renderCharts={(books) => (
+              <>
+                <TimeSeriesBarChart
+                  data={books}
+                  dateColumnName="Timestamp"
+                  metricColumnName="page_split"
+                  title="Total Pages Read by Period"
+                  yAxisLabel="Pages"
+                />
+                <IntensityHeatmap
+                  data={books}
+                  dateColumnName="Timestamp"
+                  valueColumnName="page_split"
+                  title="Reading Activity by Day and Time"
+                  treatMidnightAsUnknown={true}
+                />
+              </>
+            )}
+          />
         )}
 
         {/* Book Details Modal */}

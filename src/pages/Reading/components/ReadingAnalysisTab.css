@@ -1,9 +1,0 @@
-/* ReadingAnalysisTab.css - Uses standardized analysis tab classes */
-/* Container uses analysis-tab-container class for consistent width behavior */
-/* Title uses analysis-tab-title class for consistent styling */
-/* Description uses analysis-tab-description class for consistent styling */
-/* Grid uses analysis-charts-grid class for consistent layout */
-/* Empty state uses analysis-empty-state class for consistent styling */
-
-/* All main styles are now inherited from design system components.css */
-/* Custom styles can be added here if needed for this specific analysis tab */

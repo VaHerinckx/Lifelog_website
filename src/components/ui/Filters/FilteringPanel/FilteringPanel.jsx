@@ -14,8 +14,6 @@ import './FilteringPanel.css';
  * @param {Array} props.filterConfigs - Configuration for each filter
  * @param {Object} props.initialFilters - Initial filter values
  * @param {Function} props.onFiltersChange - Callback when filters change
- * @param {string} [props.title] - Optional title for the filter panel
- * @param {string} [props.description] - Optional description
  * @param {boolean} [props.loading] - Loading state
  */
 const FilteringPanel = ({
@@ -24,8 +22,6 @@ const FilteringPanel = ({
   filterConfigs = [],
   initialFilters = {},
   onFiltersChange,
-  title,
-  description,
   loading = false
 }) => {
   // Initialize filters state with proper defaults
@@ -304,10 +300,6 @@ const FilteringPanel = ({
   if (loading) {
     return (
       <div className="filtering-panel loading">
-        <div className="filtering-panel-header">
-          <h3 className="filtering-panel-title">{title || "Filters"}</h3>
-          {description && <p className="filtering-panel-description">{description}</p>}
-        </div>
         <div className="filtering-panel-content">
           <div className="filters-grid">
             {[1, 2, 3].map(index => (
@@ -324,13 +316,6 @@ const FilteringPanel = ({
 
   return (
     <div className="filtering-panel">
-      {(title || description) && (
-        <div className="filtering-panel-header">
-          {title && <h3 className="filtering-panel-title">{title}</h3>}
-          {description && <p className="filtering-panel-description">{description}</p>}
-        </div>
-      )}
-
       <div className="filtering-panel-content">
         <div className="filters-grid">
           {filterConfigs.map(config => {

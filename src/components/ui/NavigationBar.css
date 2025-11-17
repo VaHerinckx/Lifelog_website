@@ -13,16 +13,17 @@
 .nav-container {
   width: 100%;
   height: 100%;
-  position: relative; /* For the absolute positioning of children */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-lg);
 }
 
 .nav-logo {
-  position: absolute;
-  top: 50%;
-  left: 20px;
-  transform: translateY(-50%);
   display: flex;
   align-items: center;
+  flex-shrink: 0; /* Prevent logo from shrinking */
+  margin-right: var(--spacing-xl);
 }
 
 .logo-link {
@@ -47,17 +48,15 @@
 }
 
 .nav-items {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
   display: flex;
   gap: 20px;
   align-items: center;
   overflow-x: auto;
   -ms-overflow-style: none;
   scrollbar-width: none;
-  /*max-width: 800px;*/
+  flex: 1;
+  justify-content: center;
+  min-width: 0; /* Allow flex item to shrink */
 }
 
 .nav-items::-webkit-scrollbar {
@@ -102,8 +101,12 @@
     height: 56px;
   }
 
+  .nav-container {
+    padding: 0 var(--spacing-sm);
+  }
+
   .nav-logo {
-    left: 10px;
+    margin-right: var(--spacing-md);
   }
 
   .nav-logo-img {
