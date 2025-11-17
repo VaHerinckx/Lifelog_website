@@ -1,25 +1,7 @@
 import React from 'react';
-import { X, BookOpen, Calendar, Star, StarHalf, Clock } from 'lucide-react';
+import { X, BookOpen, Calendar, Clock } from 'lucide-react';
 import './BookDetails.css';
-
-// Component to display star ratings
-const StarRating = ({ rating, size = 18 }) => {
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
-  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-
-  return (
-    <div className="stars">
-      {[...Array(fullStars)].map((_, i) => (
-        <Star key={`full-${i}`} className="star" size={size} fill="#EAC435" />
-      ))}
-      {hasHalfStar && <StarHalf className="star" size={size} />}
-      {[...Array(emptyStars)].map((_, i) => (
-        <Star key={`empty-${i}`} className="empty-star" size={size} />
-      ))}
-    </div>
-  );
-};
+import StarRating from '../../../components/ui/StarRating';
 
 const BookDetails = ({ book, onClose }) => {
   if (!book) return null;
@@ -72,7 +54,7 @@ const BookDetails = ({ book, onClose }) => {
               <div className="rating-item">
                 <label>My Rating:</label>
                 <div className="rating-display">
-                  <StarRating rating={book.myRating} />
+                  <StarRating rating={book.myRating} size={18} />
                   <span>{book.myRating.toFixed(1)}</span>
                 </div>
               </div>
@@ -80,7 +62,7 @@ const BookDetails = ({ book, onClose }) => {
               <div className="rating-item">
                 <label>Community Rating:</label>
                 <div className="rating-display">
-                  <StarRating rating={book.averageRating} />
+                  <StarRating rating={book.averageRating} size={18} />
                   <span>{book.averageRating.toFixed(2)}</span>
                 </div>
               </div>

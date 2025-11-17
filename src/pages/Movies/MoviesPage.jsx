@@ -1,35 +1,18 @@
 // src/pages/Movies/MoviesPage.jsx
 import React, { useState, useEffect } from 'react';
-import { Film, Star, StarHalf, Grid, List, Calendar, User, Tag, Clock, BarChart, Tv } from 'lucide-react';
+import { Film, Grid, List, Calendar, User, Tag, Clock, BarChart, Tv, Star } from 'lucide-react';
 import Papa from 'papaparse';
 import _ from 'lodash';
 import './MoviesPage.css';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useData } from '../../context/DataContext';
+import { formatDate } from '../../utils';
 
 // Import components
 import MoviesAnalysisTab from './components/MoviesAnalysisTab';
 import CardsPanel from '../../components/ui/CardsPanel/CardsPanel';
 import FilteringPanel from '../../components/ui/Filters/FilteringPanel/FilteringPanel';
-
-// Component to display star ratings
-const StarRating = ({ rating, size = 16 }) => {
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
-  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-
-  return (
-    <div className="stars">
-      {[...Array(fullStars)].map((_, i) => (
-        <Star key={`full-${i}`} className="star" size={size} fill="#EAC435" />
-      ))}
-      {hasHalfStar && <StarHalf className="star" size={size} />}
-      {[...Array(emptyStars)].map((_, i) => (
-        <Star key={`empty-${i}`} className="empty-star" size={size} />
-      ))}
-    </div>
-  );
-};
+import StarRating from '../../components/ui/StarRating';
 
 // Function to get poster URL from processed data
 const getPosterUrl = (movie) => {
@@ -45,10 +28,6 @@ const getPosterUrl = (movie) => {
 
 // Component to display a movie card
 const MovieCard = ({ movie, onClick }) => {
-  const formatDate = (date) => {
-    if (!date || !(date instanceof Date) || isNaN(date)) return 'Unknown date';
-    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-  };
 
   return (
     <div className="movie-card" onClick={() => onClick(movie)}>

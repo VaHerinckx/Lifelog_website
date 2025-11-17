@@ -1,6 +1,7 @@
 // src/pages/Podcast/components/EpisodeList.jsx
 import React from 'react';
 import { Clock, Play, CheckCircle, Calendar, Headphones } from 'lucide-react';
+import { formatDate } from '../../../utils';
 import './EpisodeList.css';
 
 // Helper function to format duration from seconds to readable format
@@ -18,8 +19,8 @@ const formatDuration = (seconds) => {
   }
 };
 
-// Helper function to format date
-const formatDate = (dateString) => {
+// Helper function to format date with time
+const formatDateWithTime = (dateString) => {
   if (!dateString) return 'Unknown date';
 
   try {
@@ -97,7 +98,7 @@ const EpisodeListItem = ({ episode, onClick }) => {
           <div className="episode-details">
             <div className="meta-item">
               <Calendar size={16} />
-              <span>{formatDate(episode.listened_date)}</span>
+              <span>{formatDateWithTime(episode.listened_date)}</span>
             </div>
 
             <div className="meta-item">

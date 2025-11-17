@@ -1,0 +1,25 @@
+/**
+ * StarRating Component Styles
+ */
+
+.star-rating {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.star-rating .star {
+  flex-shrink: 0;
+}
+
+.star-rating .star-filled {
+  color: #EAC435;
+}
+
+.star-rating .star-half {
+  color: #EAC435;
+}
+
+.star-rating .star-empty {
+  color: #ccc;
+}

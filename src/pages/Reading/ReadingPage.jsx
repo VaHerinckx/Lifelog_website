@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Book, Book as BookIcon, Star, StarHalf, BookOpen, List, Grid, Clock, BarChart, Tag, User } from 'lucide-react';
+import { Book, Book as BookIcon, BookOpen, List, Grid, Clock, BarChart, Tag, User, Star } from 'lucide-react';
 import Papa from 'papaparse';
 import _ from 'lodash';
 import './ReadingPage.css';
 import './components//ReadingPageTabs.css';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import { useData } from '../../context/DataContext';
+import { formatDate } from '../../utils';
 
 // Import components
 import BookDetails from './components/BookDetails';
@@ -13,33 +14,10 @@ import ReadingTimeline from './components/ReadingTimeline';
 import ReadingAnalysisTab from './components/ReadingAnalysisTab';
 import CardsPanel from '../../components/ui/CardsPanel/CardsPanel';
 import FilteringPanel from '../../components/ui/Filters/FilteringPanel/FilteringPanel';
-
-// Component to display star ratings
-const StarRating = ({ rating, size = 16 }) => {
-  const fullStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
-  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-
-  return (
-    <div className="stars">
-      {[...Array(fullStars)].map((_, i) => (
-        <Star key={`full-${i}`} className="star" size={size} fill="#EAC435" />
-      ))}
-      {hasHalfStar && <StarHalf className="star" size={size} />}
-      {[...Array(emptyStars)].map((_, i) => (
-        <Star key={`empty-${i}`} className="empty-star" size={size} />
-      ))}
-    </div>
-  );
-};
+import StarRating from '../../components/ui/StarRating';
 
 // Component to display a book card
 const BookCard = ({ book, onClick }) => {
-  // Format the timestamp to a readable date
-  const formatDate = (date) => {
-    if (!date || !(date instanceof Date) || isNaN(date)) return 'Unknown date';
-    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-  };
 
   return (
     <div className="book-card" onClick={() => onClick(book)}>

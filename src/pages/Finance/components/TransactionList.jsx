@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { DollarSign, Calendar, Building, Tag, FileText, ArrowUp, ArrowDown } from 'lucide-react';
+import { formatDate as formatDateUtil } from '../../../utils';
 import './TransactionList.css';
 
 const TransactionList = ({ transactions, onTransactionClick }) => {
@@ -64,33 +65,30 @@ const TransactionList = ({ transactions, onTransactionClick }) => {
     return `€${numAmount.toLocaleString()}`;
   };
 
-  // Format date
+  // Format date with custom parsing for finance data
   const formatDate = (dateString) => {
     try {
       if (!dateString) {
         return 'No Date';
       }
-      
+
       // Clean the date string and parse it
       const cleanDateString = dateString.toString().trim();
       let date = new Date(cleanDateString);
-      
+
       // If invalid, try parsing just the date part
       if (isNaN(date.getTime())) {
         const datePart = cleanDateString.split(' ')[0]; // Get just "YYYY-MM-DD"
         date = new Date(datePart);
       }
-      
+
       // If still invalid, return the original string
       if (isNaN(date.getTime())) {
         return dateString;
       }
-      
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
+
+      // Use the utility function for consistent formatting
+      return formatDateUtil(date);
     } catch (e) {
       return dateString;
     }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Grid, List, Utensils, Star, Clock, Scale, Tag } from 'lucide-react';
+import { formatDate as formatDateUtil } from '../../../utils';
 import './MealList.css';
 
 // Component to display star ratings for meal scores
@@ -68,13 +69,13 @@ const FoodCategoryPills = ({ foodCategories }) => {
 
 // Component to display a meal card
 const MealCard = ({ meal, onClick, viewMode }) => {
-  const formatDate = (date) => {
+  const formatDateWithTime = (date) => {
     if (!date || !(date instanceof Date) && typeof date !== 'string') return 'Unknown date';
     const dateObj = typeof date === 'string' ? new Date(date) : date;
     if (isNaN(dateObj.getTime())) return 'Unknown date';
-    return dateObj.toLocaleDateString(undefined, { 
-      year: 'numeric', 
-      month: 'short', 
+    return dateObj.toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -128,7 +129,7 @@ const MealCard = ({ meal, onClick, viewMode }) => {
 
       <div className="meal-info">
         <div className="meal-date">
-          {formatDate(meal.timestamp)}
+          {formatDateWithTime(meal.timestamp)}
         </div>
 
         {meal.foodList && meal.foodList.length > 0 && (
