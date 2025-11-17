@@ -19,7 +19,7 @@ const ContentContainer = ({ isEmpty, loading, emptyState, children, loadingIcon 
     return (
       <div className="content-container">
         <div className="loading-state">
-          <LoadingSpinner centerIcon={loadingIcon} />
+          <LoadingSpinner centerIcon={loadingIcon} fullPage={false} />
         </div>
       </div>
     );

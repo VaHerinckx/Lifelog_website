@@ -1,5 +1,4 @@
 // LoadingSpinner.jsx
-import React from 'react';
 import { Activity, Music, Podcast, Book, Film, DollarSign, Brain, Utensils, Briefcase } from 'lucide-react';
 import './LoadingSpinner.css';
 
@@ -28,11 +27,11 @@ const getLoadingMessage = (centerIcon) => {
   }
 };
 
-const LoadingSpinner = ({ centerIcon: CenterIcon = Podcast, containerClass = "" }) => {
+const LoadingSpinner = ({ centerIcon: CenterIcon = Podcast, containerClass = "", fullPage = true }) => {
   const loadingMessage = getLoadingMessage(CenterIcon);
 
   return (
-    <div className={`loading-container ${containerClass}`}>
+    <div className={`${fullPage ? 'loading-container' : 'loading-container-inline'} ${containerClass}`}>
       <div className="solar-system">
         {/* Center "sun" icon */}
         <div className="center-icon">

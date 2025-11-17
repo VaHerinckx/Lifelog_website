@@ -13,6 +13,15 @@
   z-index: 9999;
 }
 
+.loading-container-inline {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem 2rem 4rem;
+  min-height: 400px;
+}
+
 .solar-system {
   position: relative;
   width: 400px;

@@ -365,15 +365,13 @@ const ReadingPage = () => {
     return cards;
   };
 
-  if ((error && error.reading) || (!books.length && !loading?.reading)) {
+  if (error && error.reading) {
     return (
       <div className="page-container">
         <div className="page-content">
           <h1>Reading Tracker</h1>
           <div className="error">
-            {error?.reading ?
-              `Error loading reading data: ${error.reading}` :
-              "No reading data available. Please upload your data."}
+            Error loading reading data: {error.reading}
           </div>
           <div className="fallback-upload">
             <p>You can manually upload your reading data CSV:</p>
@@ -393,14 +391,16 @@ const ReadingPage = () => {
           description="Track your reading habits and discover insights about your books"
         />
 
-        {/* Tab Navigation */}
-        <TabNavigation
-          contentLabel="Books"
-          contentIcon={BookIcon}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
-        {/* NEW: FilteringPanel replaces all the old filters */}
+        {!loading?.reading && (
+          <>
+            {/* Tab Navigation */}
+            <TabNavigation
+              contentLabel="Books"
+              contentIcon={BookIcon}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
+            />
+            {/* NEW: FilteringPanel replaces all the old filters */}
             <FilteringPanel
               data={books}
               filterConfigs={readingFilterConfigs}
@@ -408,29 +408,35 @@ const ReadingPage = () => {
               title="Book Filters"
               description="Filter and sort your reading collection"
             />
+          </>
+        )}
 
         {/* Books Tab Content */}
         {activeTab === 'content' && (
           <>
             {/* View Controls */}
-            <ViewControls
-              viewModes={[
-                { mode: 'grid', icon: Grid },
-                { mode: 'list', icon: List },
-                { mode: 'timeline', icon: Clock }
-              ]}
-              activeMode={viewMode}
-              onModeChange={setViewMode}
-              itemCount={filteredBooks.length}
-              itemLabel={{ singular: 'book', plural: 'books' }}
-            />
+            {!loading?.reading && (
+              <>
+                <ViewControls
+                  viewModes={[
+                    { mode: 'grid', icon: Grid },
+                    { mode: 'list', icon: List },
+                    { mode: 'timeline', icon: Clock }
+                  ]}
+                  activeMode={viewMode}
+                  onModeChange={setViewMode}
+                  itemCount={filteredBooks.length}
+                  itemLabel={{ singular: 'book', plural: 'books' }}
+                />
 
-            <CardsPanel
-              title="Reading Statistics"
-              description="Your reading progress at a glance"
-              cards={prepareStatsCards()}
-              loading={loading?.reading}
-            />
+                <CardsPanel
+                  title="Reading Statistics"
+                  description="Your reading progress at a glance"
+                  cards={prepareStatsCards()}
+                  loading={loading?.reading}
+                />
+              </>
+            )}
 
             {/* Books Display */}
             <ContentContainer
