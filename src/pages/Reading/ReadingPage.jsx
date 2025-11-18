@@ -14,8 +14,8 @@ import PageHeader from '../../components/ui/PageHeader';
 import TabNavigation from '../../components/ui/TabNavigation';
 import ContentTab from '../../components/ui/ContentTab/ContentTab';
 import AnalysisTab from '../../components/ui/AnalysisTab/AnalysisTab';
-import CardsPanel from '../../components/ui/CardsPanel/CardsPanel';
-import CardGroup from '../../components/ui/CardGroup';
+import KPICardsPanel from '../../components/ui/KPICardsPanel/KPICardsPanel';
+import ContentCardsGroup from '../../components/ui/ContentCardsGroup';
 import KpiCard from '../../components/charts/KpiCard';
 
 // Import chart components for analysis tab
@@ -187,7 +187,7 @@ const ReadingPage = () => {
             </FilteringPanel>
 
             {/* Statistics Cards with KpiCard children */}
-            <CardsPanel
+            <KPICardsPanel
               dataSources={{
                 readingBooks: filteredBooks,
                 readingSessions: filteredReadingEntries
@@ -223,7 +223,7 @@ const ReadingPage = () => {
                 label="Avg. Reading Duration (days)"
                 icon={<Clock />}
               />
-            </CardsPanel>
+            </KPICardsPanel>
 
             {/* Tab Navigation */}
             <TabNavigation
@@ -253,7 +253,7 @@ const ReadingPage = () => {
               message: "No books match your current filters. Try adjusting your criteria."
             }}
             renderGrid={(books) => (
-              <CardGroup
+              <ContentCardsGroup
                 items={books}
                 viewMode="grid"
                 renderItem={(book) => (
@@ -267,7 +267,7 @@ const ReadingPage = () => {
               />
             )}
             renderList={(books) => (
-              <CardGroup
+              <ContentCardsGroup
                 items={books}
                 viewMode="list"
                 renderItem={(book) => (

@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import './CardGroup.css';
+import './ContentCardsGroup.css';
 
 /**
  * CardGroup - Generic container component for displaying items in different view modes

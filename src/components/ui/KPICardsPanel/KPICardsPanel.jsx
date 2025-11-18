@@ -1,6 +1,6 @@
-// src/components/ui/CardsPanel/CardsPanel.jsx
+// src/components/ui/KPICardsPanel/KPICardsPanel.jsx
 import React from 'react';
-import './CardsPanel.css';
+import './KPICardsPanel.css';
 
 /**
  * A reusable component for displaying a grid of KPI cards with consistent layout and styling
@@ -13,7 +13,7 @@ import './CardsPanel.css';
  * @param {boolean} [props.loading] - Whether the cards are in a loading state
  * @param {string} [props.className] - Additional CSS classes to apply to the container
  */
-const CardsPanel = ({
+const KPICardsPanel = ({
   children,
   dataSources = {},
   loading = false,
@@ -61,4 +61,4 @@ const CardsPanel = ({
   );
 };
 
-export default CardsPanel;
+export default KPICardsPanel;
