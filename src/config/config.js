@@ -6,6 +6,12 @@ export const DRIVE_FILES = {
   READING: {
     FILE_ID: import.meta.env.VITE_READING_FILE_ID
   },
+  READING_BOOKS: {
+    FILE_ID: import.meta.env.VITE_READING_BOOKS_FILE_ID
+  },
+  READING_SESSIONS: {
+    FILE_ID: import.meta.env.VITE_READING_SESSIONS_FILE_ID
+  },
   MUSIC: {
     FILE_ID: import.meta.env.VITE_MUSIC_FILE_ID
   },

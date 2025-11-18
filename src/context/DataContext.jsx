@@ -259,6 +259,8 @@ export const DataProvider = ({ children }) => {
     sport: null,
     health: null,
     reading: null,
+    readingBooks: null,
+    readingSessions: null,
     movies: null,
     shows: null,
     finances: null,
@@ -284,6 +286,14 @@ export const DataProvider = ({ children }) => {
         case 'reading':
           fileId = DRIVE_FILES.READING.FILE_ID;
           console.log('📚 Reading fileId:', fileId);
+          break;
+        case 'readingBooks':
+          fileId = DRIVE_FILES.READING_BOOKS.FILE_ID;
+          console.log('📚 Reading Books fileId:', fileId);
+          break;
+        case 'readingSessions':
+          fileId = DRIVE_FILES.READING_SESSIONS.FILE_ID;
+          console.log('📚 Reading Sessions fileId:', fileId);
           break;
         case 'music':
           fileId = DRIVE_FILES.MUSIC.FILE_ID;
