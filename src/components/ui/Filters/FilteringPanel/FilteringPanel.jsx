@@ -10,7 +10,7 @@ import './FilteringPanel.css';
  * updates filter options based on data
  *
  * @param {Object} props
- * @param {Array} props.data - The raw data to filter
+ * @param {Array|Object} props.data - The raw data to filter (array for single source, object for multiple sources)
  * @param {Array} props.filterConfigs - Configuration for each filter
  * @param {Object} props.initialFilters - Initial filter values
  * @param {Function} props.onFiltersChange - Callback when filters change
@@ -24,6 +24,11 @@ const FilteringPanel = ({
   onFiltersChange,
   loading = false
 }) => {
+  // Determine if we're working with multiple data sources
+  const isMultiSource = !Array.isArray(data) && typeof data === 'object';
+
+  // For backward compatibility, convert single array to object format
+  const dataSources = isMultiSource ? data : { default: data };
   // Initialize filters state with proper defaults
   const [filters, setFilters] = useState(() => {
     const initialState = {};
@@ -43,7 +48,10 @@ const FilteringPanel = ({
 
   // Calculate filtered options based on current filter selections (bi-directional cascading)
   const filterOptions = useMemo(() => {
-    if (!data || data.length === 0) return {};
+    // Get primary data source for option calculation (first non-empty source)
+    const primarySource = Object.values(dataSources).find(source => Array.isArray(source) && source.length > 0) || [];
+
+    if (primarySource.length === 0) return {};
 
     const options = {};
     const dateBoundaries = {};
@@ -116,7 +124,7 @@ const FilteringPanel = ({
           });
         } else {
           // Fallback to display data if full dataset not available
-          let filteredData = [...data];
+          let filteredData = [...primarySource];
 
           // Apply all other filters to determine date boundaries
           filterConfigs.forEach(otherConfig => {
@@ -189,7 +197,7 @@ const FilteringPanel = ({
 
       } else if (config.dataField || config.optionsSource) {
         // For regular filters, apply all OTHER active filters to determine available options
-        let filteredData = [...data];
+        let filteredData = [...primarySource];
 
         // Apply all other filters (not the current one we're calculating options for)
         filterConfigs.forEach(otherConfig => {
@@ -271,7 +279,7 @@ const FilteringPanel = ({
     });
 
     return { options, dateBoundaries };
-  }, [data, filterConfigs, filters]); // Important: depends on current filters state
+  }, [dataSources, filterConfigs, filters]); // Important: depends on current filters state
 
   // Handle individual filter changes
   const handleFilterChange = (filterKey, newValue) => {

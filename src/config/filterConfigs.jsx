@@ -18,11 +18,12 @@ export const filterBuilders = {
   /**
    * Creates a date range filter configuration
    */
-  dateRange: (key, label, dataField, icon = <Calendar size={16} />) => ({
+  dateRange: (key, label, dataField, icon = <Calendar size={16} />, dataSources = []) => ({
     key,
     type: 'daterange',
     label,
     dataField,
+    dataSources, // Array of data sources this filter applies to (e.g., ['readingBooks', 'readingSessions'])
     icon,
     placeholder: 'Select date range'
   }),
@@ -30,12 +31,13 @@ export const filterBuilders = {
   /**
    * Creates a multi-select filter configuration
    */
-  multiSelect: (key, label, dataField, icon, optionsSource = null) => ({
+  multiSelect: (key, label, dataField, icon, optionsSource = null, dataSources = []) => ({
     key,
     type: 'multiselect',
     label,
     optionsSource: optionsSource || dataField,
     dataField,
+    dataSources, // Array of data sources this filter applies to
     icon,
     placeholder: `Select ${label.toLowerCase()}`,
     searchPlaceholder: `Search ${label.toLowerCase()}...`
@@ -44,12 +46,13 @@ export const filterBuilders = {
   /**
    * Creates a year filter configuration (common pattern)
    */
-  yearFilter: (key, label, dataField) => ({
+  yearFilter: (key, label, dataField, dataSources = []) => ({
     key,
     type: 'multiselect',
     label,
     optionsSource: dataField,
     dataField,
+    dataSources, // Array of data sources this filter applies to
     icon: <Clock size={16} />,
     placeholder: 'Select years',
     searchPlaceholder: 'Search years...'
@@ -58,12 +61,13 @@ export const filterBuilders = {
   /**
    * Creates a genre filter configuration (common pattern)
    */
-  genreFilter: (key = 'genres', dataField = 'genre') => ({
+  genreFilter: (key = 'genres', dataField = 'genre', dataSources = []) => ({
     key,
     type: 'multiselect',
     label: 'Genres',
     optionsSource: dataField,
     dataField,
+    dataSources, // Array of data sources this filter applies to
     icon: <Tag size={16} />,
     placeholder: 'Select genres',
     searchPlaceholder: 'Search genres...'
@@ -83,11 +87,11 @@ export const musicFilterConfigs = [
 ];
 
 export const readingFilterConfigs = [
-  filterBuilders.yearFilter('readingYears', 'Reading Years', 'reading_year'),
-  filterBuilders.dateRange('dateRange', 'Reading Date', 'timestamp'),
-  filterBuilders.genreFilter(),
-  filterBuilders.multiSelect('authors', 'Authors', 'author', <User size={16} />),
-  filterBuilders.multiSelect('books', 'Books', 'title', <Book size={16} />)
+  filterBuilders.yearFilter('readingYears', 'Reading Years', 'reading_year', ['readingBooks', 'readingSessions']),
+  filterBuilders.dateRange('dateRange', 'Reading Date', 'timestamp', <Calendar size={16} />, ['readingBooks', 'readingSessions']),
+  filterBuilders.genreFilter('genres', 'genre', ['readingBooks']),
+  filterBuilders.multiSelect('authors', 'Authors', 'author', <User size={16} />, null, ['readingBooks']),
+  filterBuilders.multiSelect('books', 'Books', 'title', <Book size={16} />, null, ['readingBooks', 'readingSessions'])
 ];
 
 export const moviesFilterConfigs = [

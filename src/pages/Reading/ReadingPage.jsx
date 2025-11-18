@@ -31,13 +31,6 @@ const ReadingPage = () => {
 
   const [viewMode, setViewMode] = useState('grid');
   const [selectedBook, setSelectedBook] = useState(null);
-  const [readingStats, setReadingStats] = useState({
-    totalBooks: 0,
-    totalPages: 0,
-    avgRating: 0,
-    avgReadingDuration: 0,
-    recentBooks: 0
-  });
   const [activeTab, setActiveTab] = useState('content');
 
   // Create filter config map for applyFilters utility
@@ -89,28 +82,6 @@ const ReadingPage = () => {
       // Set reading sessions (already have derived date fields from Python)
       setReadingEntries(data.readingSessions);
       setFilteredReadingEntries(data.readingSessions);
-
-      // Calculate stats
-      const now = new Date();
-      const lastMonthDate = new Date();
-      lastMonthDate.setMonth(now.getMonth() - 1);
-
-      const recentBooks = sortedBooks.filter(book =>
-        book.timestamp && book.timestamp >= lastMonthDate
-      ).length;
-
-      setReadingStats({
-        totalBooks: sortedBooks.length,
-        totalPages: _.sumBy(sortedBooks, 'pages'),
-        avgRating: sortedBooks.filter(book => book.myRating > 0).length > 0
-          ? _.meanBy(sortedBooks.filter(book => book.myRating > 0), 'myRating').toFixed(1)
-          : "0.0",
-        avgReadingDuration: Math.round(_.meanBy(
-          sortedBooks.filter(book => book.readingDuration),
-          'readingDuration'
-        )) || 0,
-        recentBooks: recentBooks
-      });
     }
   }, [data?.readingBooks, data?.readingSessions]);
 
@@ -118,9 +89,36 @@ const ReadingPage = () => {
   const handleFiltersChange = (newFilters) => {
     if (books.length === 0) return;
 
-    // Apply filters using centralized utility
-    let filteredBooks = applyFilters(books, newFilters, filterConfigsMap);
-    let filteredSessions = applyFilters(readingEntries, newFilters, filterConfigsMap);
+    // Apply filters to each data source
+    const applyFiltersToSource = (sourceData, sourceName) => {
+      let filtered = [...sourceData];
+
+      // Apply each filter
+      Object.keys(newFilters).forEach(filterKey => {
+        const filterValue = newFilters[filterKey];
+        const config = filterConfigsMap[filterKey];
+
+        // Skip if filter doesn't apply to this data source
+        if (config?.dataSources && config.dataSources.length > 0) {
+          if (!config.dataSources.includes(sourceName)) {
+            return; // Skip this filter for this data source
+          }
+        }
+
+        // Apply filter using utility
+        if (filterValue && (Array.isArray(filterValue) ? filterValue.length > 0 : true)) {
+          const singleFilterObj = { [filterKey]: filterValue };
+          const singleConfigMap = { [filterKey]: config };
+          filtered = applyFilters(filtered, singleFilterObj, singleConfigMap);
+        }
+      });
+
+      return filtered;
+    };
+
+    // Filter both data sources
+    let filteredBooks = applyFiltersToSource(books, 'readingBooks');
+    let filteredSessions = applyFiltersToSource(readingEntries, 'readingSessions');
 
     // Sort by timestamp (most recent first)
     filteredBooks = _.sortBy(filteredBooks, book => {
@@ -138,32 +136,6 @@ const ReadingPage = () => {
     setFilteredReadingEntries(filteredSessions);
   };
 
-  // Update stats when filtered books change
-  useEffect(() => {
-    if (filteredBooks.length > 0) {
-      const now = new Date();
-      const lastMonthDate = new Date();
-      lastMonthDate.setMonth(now.getMonth() - 1);
-
-      const recentBooks = filteredBooks.filter(book =>
-        book.timestamp && book.timestamp >= lastMonthDate
-      ).length;
-
-      setReadingStats({
-        totalBooks: filteredBooks.length,
-        totalPages: _.sumBy(filteredBooks, 'pages'),
-        avgRating: filteredBooks.filter(book => book.myRating > 0).length > 0
-          ? _.meanBy(filteredBooks.filter(book => book.myRating > 0), 'myRating').toFixed(1)
-          : "0.0",
-        avgReadingDuration: Math.round(_.meanBy(
-          filteredBooks.filter(book => book.readingDuration),
-          'readingDuration'
-        )),
-        recentBooks: recentBooks
-      });
-    }
-  }, [filteredBooks]);
-
   const handleBookClick = (book) => {
     setSelectedBook(book);
   };
@@ -172,41 +144,61 @@ const ReadingPage = () => {
     setSelectedBook(null);
   };
 
-  // Prepare cards data for CardsPanel
-  const prepareStatsCards = () => {
+  // Define smart card configurations
+  const statsCards = useMemo(() => {
+    const now = new Date();
+    const lastMonthDate = new Date();
+    lastMonthDate.setMonth(now.getMonth() - 1);
+
     const cards = [
       {
-        value: readingStats.totalBooks.toLocaleString(),
+        dataSource: 'readingBooks',
+        computation: 'count',
         label: "Books Read",
         icon: <Book size={24} />
       },
       {
-        value: readingStats.totalPages.toLocaleString(),
+        dataSource: 'readingBooks',
+        field: 'pages',
+        computation: 'sum',
         label: "Total Pages",
         icon: <BookOpen size={24} />
       },
       {
-        value: readingStats.avgRating,
+        dataSource: 'readingBooks',
+        field: 'myRating',
+        computation: 'average',
+        computationOptions: {
+          decimals: 1,
+          filterZeros: true
+        },
         label: "Average Rating",
         icon: <Star size={24} />
       },
       {
-        value: readingStats.recentBooks.toLocaleString(),
+        dataSource: 'readingBooks',
+        field: 'readingDuration',
+        computation: 'average',
+        computationOptions: {
+          decimals: 0,
+          filterZeros: true
+        },
+        label: "Avg. Days to Read",
+        icon: <BookOpen size={24} />
+      },
+      {
+        dataSource: 'readingBooks',
+        computation: 'count_filtered',
+        computationOptions: {
+          filterFn: (book) => book.timestamp && book.timestamp >= lastMonthDate
+        },
         label: "Books Last Month",
         icon: <BookOpen size={24} />
       }
     ];
 
-    if (readingStats.avgReadingDuration > 0) {
-      cards.splice(3, 0, {
-        value: readingStats.avgReadingDuration.toLocaleString(),
-        label: "Avg. Days to Read",
-        icon: <BookOpen size={24} />
-      });
-    }
-
     return cards;
-  };
+  }, []);
 
   if ((error && error.readingBooks) || (error && error.readingSessions)) {
     return (
@@ -232,24 +224,32 @@ const ReadingPage = () => {
 
         {!(loading?.readingBooks || loading?.readingSessions) && (
           <>
-            {/* Tab Navigation */}
-            <TabNavigation
-              contentLabel="Books"
-              contentIcon={BookIcon}
-              activeTab={activeTab}
-              onTabChange={setActiveTab}
-            />
             {/* NEW: FilteringPanel replaces all the old filters */}
             <FilteringPanel
-              data={books}
+              data={{
+                readingBooks: books,
+                readingSessions: readingEntries
+              }}
               filterConfigs={readingFilterConfigs}
               onFiltersChange={handleFiltersChange}
             />
 
             {/* Statistics Cards */}
             <CardsPanel
-              cards={prepareStatsCards()}
+              cards={statsCards}
+              dataSources={{
+                readingBooks: filteredBooks,
+                readingSessions: filteredReadingEntries
+              }}
               loading={loading?.readingBooks || loading?.readingSessions}
+            />
+
+            {/* Tab Navigation */}
+            <TabNavigation
+              contentLabel="Books"
+              contentIcon={BookIcon}
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
             />
           </>
         )}
