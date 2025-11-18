@@ -65,8 +65,17 @@ const AnalysisTab = ({
     // Handle single element
     if (!charts) return null;
 
-    // Convert to array if it's a fragment or single element
-    const chartArray = React.Children.toArray(charts);
+    // Convert to array - handle Fragments properly
+    let chartArray;
+
+    // Check if charts is a Fragment (has props.children)
+    if (React.isValidElement(charts) && charts.type === React.Fragment) {
+      // Extract children from the Fragment
+      chartArray = React.Children.toArray(charts.props.children);
+    } else {
+      // Otherwise treat as regular element or array
+      chartArray = React.Children.toArray(charts);
+    }
 
     // Wrap each chart in analysis-chart-section
     return chartArray.map((chart, index) => (

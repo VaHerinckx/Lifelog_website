@@ -7,14 +7,8 @@ const NavigationBar = () => {
 
   const navItems = [
     { path: '/', label: 'Home', icon: '/icons/home_w.png', implemented: true },
-    { path: '/podcast', label: 'Podcast', icon: '/icons/podcast_w.png', implemented: true },
-    { path: '/music', label: 'Music', icon: '/icons/music_w.png', implemented: true },
-    { path: '/nutrition', label: 'Nutrition', icon: '/icons/food_w.png', implemented: false },
-    { path: '/sport', label: 'Sport', icon: '/icons/sport_w.png', implemented: false },
-    { path: '/health', label: 'Health', icon: '/icons/health_w.png', implemented: false },
     { path: '/reading', label: 'Reading', icon: '/icons/book_w.png', implemented: true },
-    { path: '/movies', label: 'Movies & TV', icon: '/icons/movie_w.png', implemented: true },
-    { path: '/finances', label: 'Finances', icon: '/icons/finance_w.png', implemented: true },
+    { path: '/sport', label: 'Sport', icon: '/icons/sport_w.png', implemented: false },
     { path: '/work', label: 'Work', icon: '/icons/work_w.png', implemented: false }
   ];
 

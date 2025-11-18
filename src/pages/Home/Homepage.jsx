@@ -4,52 +4,16 @@ import './Homepage.css';
 const Homepage = () => {
   const categories = [
     {
-      title: 'Podcast',
-      icon: '/icons/podcast_w.png',
-      description: 'Track your listening habits and favorite shows',
-      path: '/podcast'
-    },
-    {
-      title: 'Music',
-      icon: '/icons/music_w.png',
-      description: 'Monitor your music preferences and discoveries',
-      path: '/music'
-    },
-    {
-      title: 'Nutrition',
-      icon: '/icons/food_w.png',
-      description: 'Log your meals and track nutritional intake',
-      path: '/nutrition'
-    },
-    {
-      title: 'Sport',
-      icon: '/icons/sport_w.png',
-      description: 'Record your workouts and athletic progress',
-      path: '/sport'
-    },
-    {
-      title: 'Health',
-      icon: '/icons/health_w.png',
-      description: 'Monitor sleep, stress, and vital metrics',
-      path: '/health'
-    },
-    {
       title: 'Reading',
       icon: '/icons/book_w.png',
       description: 'Keep track of your reading journey',
       path: '/reading'
     },
     {
-      title: 'Movies & TV',
-      icon: '/icons/movie_w.png',
-      description: 'Log your watching history and ratings',
-      path: '/movies'
-    },
-    {
-      title: 'Finances',
-      icon: '/icons/finance_w.png',
-      description: 'Track your spending and savings',
-      path: '/finances'
+      title: 'Sport',
+      icon: '/icons/sport_w.png',
+      description: 'Record your workouts and athletic progress',
+      path: '/sport'
     },
     {
       title: 'Work',

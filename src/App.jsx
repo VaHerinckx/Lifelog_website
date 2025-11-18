@@ -4,13 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { DataProvider } from './context/DataContext';
 import Layout from './components/ui/Layout';
 import Homepage from './pages/Home/Homepage';
-import PodcastPage from './pages/Podcast/PodcastPage';
-import MusicPage from './pages/Music/Musicpage';
 import ReadingPage from './pages/Reading/ReadingPage';
-import MoviesPage from './pages/Movies/MoviesPage';
-import HealthPage from './pages/Health/HealthPage';
-import NutritionPage from './pages/Nutrition/NutritionPage';
-import FinancePage from './pages/Finance/FinancePage';
 
 const App = () => {
   return (
@@ -22,9 +16,7 @@ const App = () => {
 
           {/* All other pages wrapped in Layout */}
           <Route element={<Layout />}>
-            <Route path="/podcast" element={<PodcastPage />} />
-            <Route path="/music" element={<MusicPage />} />
-            <Route path="/nutrition" element={<NutritionPage />} />
+            <Route path="/reading" element={<ReadingPage />} />
             <Route
               path="/sport"
               element={
@@ -33,10 +25,6 @@ const App = () => {
                 </div>
               }
             />
-            <Route path="/health" element={<HealthPage />} />
-            <Route path="/reading" element={<ReadingPage />} />
-            <Route path="/movies" element={<MoviesPage />} />
-            <Route path="/finances" element={<FinancePage />} />
             <Route
               path="/work"
               element={
