@@ -1,14 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Book, Book as BookIcon, BookOpen, List, Grid, Star } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Book, Book as BookIcon, List, Grid, Clock, Calendar, Tag, User, Star } from 'lucide-react';
 import _ from 'lodash';
 import { useData } from '../../context/DataContext';
-import { applyFilters } from '../../utils';
 
 // Import components
 import BookDetails from './components/BookDetails';
 import BookCard from './components/BookCard';
 import FilteringPanel from '../../components/ui/Filters/FilteringPanel/FilteringPanel';
-import { readingFilterConfigs } from '../../config/filterConfigs';
+import Filter from '../../components/ui/Filters/Filter/Filter';
 
 // Import new standardized components
 import PageHeader from '../../components/ui/PageHeader';
@@ -17,6 +16,7 @@ import ContentTab from '../../components/ui/ContentTab/ContentTab';
 import AnalysisTab from '../../components/ui/AnalysisTab/AnalysisTab';
 import CardsPanel from '../../components/ui/CardsPanel/CardsPanel';
 import CardGroup from '../../components/ui/CardGroup';
+import KpiCard from '../../components/charts/KpiCard';
 
 // Import chart components for analysis tab
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
@@ -32,14 +32,6 @@ const ReadingPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedBook, setSelectedBook] = useState(null);
   const [activeTab, setActiveTab] = useState('content');
-
-  // Create filter config map for applyFilters utility
-  const filterConfigsMap = useMemo(() => {
-    return readingFilterConfigs.reduce((acc, config) => {
-      acc[config.key] = config;
-      return acc;
-    }, {});
-  }, []);
 
   // Fetch reading data when component mounts
   useEffect(() => {
@@ -86,54 +78,22 @@ const ReadingPage = () => {
   }, [data?.readingBooks, data?.readingSessions]);
 
   // Apply filters when FilteringPanel filters change
-  const handleFiltersChange = (newFilters) => {
-    if (books.length === 0) return;
-
-    // Apply filters to each data source
-    const applyFiltersToSource = (sourceData, sourceName) => {
-      let filtered = [...sourceData];
-
-      // Apply each filter
-      Object.keys(newFilters).forEach(filterKey => {
-        const filterValue = newFilters[filterKey];
-        const config = filterConfigsMap[filterKey];
-
-        // Skip if filter doesn't apply to this data source
-        if (config?.dataSources && config.dataSources.length > 0) {
-          if (!config.dataSources.includes(sourceName)) {
-            return; // Skip this filter for this data source
-          }
-        }
-
-        // Apply filter using utility
-        if (filterValue && (Array.isArray(filterValue) ? filterValue.length > 0 : true)) {
-          const singleFilterObj = { [filterKey]: filterValue };
-          const singleConfigMap = { [filterKey]: config };
-          filtered = applyFilters(filtered, singleFilterObj, singleConfigMap);
-        }
-      });
-
-      return filtered;
-    };
-
-    // Filter both data sources
-    let filteredBooks = applyFiltersToSource(books, 'readingBooks');
-    let filteredSessions = applyFiltersToSource(readingEntries, 'readingSessions');
-
+  // FilteringPanel now returns pre-filtered data per source!
+  const handleFiltersChange = (filteredDataSources) => {
     // Sort by timestamp (most recent first)
-    filteredBooks = _.sortBy(filteredBooks, book => {
+    const sortedBooks = _.sortBy(filteredDataSources.readingBooks || [], book => {
       return book.timestamp instanceof Date && !isNaN(book.timestamp.getTime())
         ? book.timestamp.getTime()
         : -Infinity;
     }).reverse();
 
-    filteredSessions = _.sortBy(filteredSessions, entry => {
+    const sortedSessions = _.sortBy(filteredDataSources.readingSessions || [], entry => {
       const entryDate = new Date(entry.timestamp);
       return !isNaN(entryDate.getTime()) ? entryDate.getTime() : -Infinity;
     }).reverse();
 
-    setFilteredBooks(filteredBooks);
-    setFilteredReadingEntries(filteredSessions);
+    setFilteredBooks(sortedBooks);
+    setFilteredReadingEntries(sortedSessions);
   };
 
   const handleBookClick = (book) => {
@@ -143,62 +103,6 @@ const ReadingPage = () => {
   const handleCloseDetails = () => {
     setSelectedBook(null);
   };
-
-  // Define smart card configurations
-  const statsCards = useMemo(() => {
-    const now = new Date();
-    const lastMonthDate = new Date();
-    lastMonthDate.setMonth(now.getMonth() - 1);
-
-    const cards = [
-      {
-        dataSource: 'readingBooks',
-        computation: 'count',
-        label: "Books Read",
-        icon: <Book size={24} />
-      },
-      {
-        dataSource: 'readingBooks',
-        field: 'pages',
-        computation: 'sum',
-        label: "Total Pages",
-        icon: <BookOpen size={24} />
-      },
-      {
-        dataSource: 'readingBooks',
-        field: 'myRating',
-        computation: 'average',
-        computationOptions: {
-          decimals: 1,
-          filterZeros: true
-        },
-        label: "Average Rating",
-        icon: <Star size={24} />
-      },
-      {
-        dataSource: 'readingBooks',
-        field: 'readingDuration',
-        computation: 'average',
-        computationOptions: {
-          decimals: 0,
-          filterZeros: true
-        },
-        label: "Avg. Days to Read",
-        icon: <BookOpen size={24} />
-      },
-      {
-        dataSource: 'readingBooks',
-        computation: 'count_filtered',
-        computationOptions: {
-          filterFn: (book) => book.timestamp && book.timestamp >= lastMonthDate
-        },
-        label: "Books Last Month",
-        icon: <BookOpen size={24} />
-      }
-    ];
-
-    return cards;
-  }, []);
 
   if ((error && error.readingBooks) || (error && error.readingSessions)) {
     return (
@@ -224,25 +128,102 @@ const ReadingPage = () => {
 
         {!(loading?.readingBooks || loading?.readingSessions) && (
           <>
-            {/* NEW: FilteringPanel replaces all the old filters */}
+            {/* FilteringPanel with Filter children */}
             <FilteringPanel
               data={{
                 readingBooks: books,
                 readingSessions: readingEntries
               }}
-              filterConfigs={readingFilterConfigs}
               onFiltersChange={handleFiltersChange}
-            />
+            >
+              <Filter
+                type="multiselect"
+                label="Reading Years"
+                field="reading_year"
+                icon={<Clock />}
+                placeholder="Select years"
+                dataSources={['readingBooks', 'readingSessions']}
+              />
+              <Filter
+                type="daterange"
+                label="Reading Date"
+                field="timestamp"
+                icon={<Calendar />}
+                dataSources={['readingBooks', 'readingSessions']}
+              />
+              <Filter
+                type="multiselect"
+                label="Genres"
+                field="genre"
+                icon={<Tag />}
+                placeholder="Select genres"
+                dataSources={['readingBooks', 'readingSessions']}
+              />
+              <Filter
+                type="multiselect"
+                label="Authors"
+                field="author"
+                icon={<User />}
+                placeholder="Select authors"
+                dataSources={['readingBooks']}
+              />
+              <Filter
+                type="singleselect"
+                label="Fiction/Non-Fiction"
+                field="fiction"
+                icon={<Book />}
+                defaultValue="all"
+                dataSources={['readingBooks']}
+                options={['all', 'fiction', 'non-fiction']}
+              />
+              <Filter
+                type="multiselect"
+                label="My Rating"
+                field="myRating"
+                icon={<Star />}
+                placeholder="Select ratings"
+                dataSources={['readingBooks']}
+              />
+            </FilteringPanel>
 
-            {/* Statistics Cards */}
+            {/* Statistics Cards with KpiCard children */}
             <CardsPanel
-              cards={statsCards}
               dataSources={{
                 readingBooks: filteredBooks,
                 readingSessions: filteredReadingEntries
               }}
               loading={loading?.readingBooks || loading?.readingSessions}
-            />
+            >
+              <KpiCard
+                dataSource="readingBooks"
+                computation="count"
+                label="Books Read"
+                icon={<Book />}
+              />
+              <KpiCard
+                dataSource="readingBooks"
+                field="pages"
+                computation="sum"
+                label="Total Pages"
+                icon={<BookIcon />}
+              />
+              <KpiCard
+                dataSource="readingBooks"
+                field="myRating"
+                computation="average"
+                computationOptions={{ decimals: 1, filterZeros: true }}
+                label="Average Rating"
+                icon={<Star />}
+              />
+              <KpiCard
+                dataSource="readingBooks"
+                field="readingDuration"
+                computation="average"
+                computationOptions={{ decimals: 0, filterZeros: true }}
+                label="Avg. Reading Duration (days)"
+                icon={<Clock />}
+              />
+            </CardsPanel>
 
             {/* Tab Navigation */}
             <TabNavigation

@@ -50,6 +50,12 @@ export const performComputation = (data, field, computation, options = {}) => {
     case 'average_filtered':
       return computeAverageFiltered(data, field, options);
 
+    case 'count_recent':
+      return computeCountRecent(data, options);
+
+    case 'count_time_range':
+      return computeCountTimeRange(data, options);
+
     default:
       console.warn(`Unknown computation type: ${computation}`);
       return options.defaultValue ?? 0;
@@ -247,6 +253,90 @@ export const computeAverageFiltered = (data, field, options = {}) => {
   }
 
   return computeAverage(filteredData, field, { decimals });
+};
+
+/**
+ * Count items within a recent time period (e.g., last month, last week)
+ *
+ * @param {Array} data - The dataset
+ * @param {Object} options - Must contain dateField and timeframe
+ * @param {string} options.dateField - The field containing the date/timestamp
+ * @param {string} options.timeframe - The timeframe ('day', 'week', 'month', 'quarter', 'year')
+ * @param {number} [options.amount=1] - Number of timeframe units (e.g., 2 months)
+ */
+export const computeCountRecent = (data, options = {}) => {
+  const { dateField = 'timestamp', timeframe = 'month', amount = 1 } = options;
+
+  if (!dateField) {
+    console.warn('computeCountRecent requires a dateField in options');
+    return 0;
+  }
+
+  const now = new Date();
+  const startDate = new Date(now);
+
+  // Calculate start date based on timeframe
+  switch (timeframe.toLowerCase()) {
+    case 'day':
+    case 'days':
+      startDate.setDate(now.getDate() - amount);
+      break;
+    case 'week':
+    case 'weeks':
+      startDate.setDate(now.getDate() - (amount * 7));
+      break;
+    case 'month':
+    case 'months':
+      startDate.setMonth(now.getMonth() - amount);
+      break;
+    case 'quarter':
+    case 'quarters':
+      startDate.setMonth(now.getMonth() - (amount * 3));
+      break;
+    case 'year':
+    case 'years':
+      startDate.setFullYear(now.getFullYear() - amount);
+      break;
+    default:
+      console.warn(`Unknown timeframe: ${timeframe}`);
+      return 0;
+  }
+
+  return data.filter(item => {
+    const itemDate = new Date(_.get(item, dateField));
+    return !isNaN(itemDate.getTime()) && itemDate >= startDate;
+  }).length;
+};
+
+/**
+ * Count items within a specific time range
+ *
+ * @param {Array} data - The dataset
+ * @param {Object} options - Must contain dateField and startDate/endDate
+ * @param {string} options.dateField - The field containing the date/timestamp
+ * @param {Date|string} [options.startDate] - Start date (inclusive)
+ * @param {Date|string} [options.endDate] - End date (inclusive)
+ */
+export const computeCountTimeRange = (data, options = {}) => {
+  const { dateField = 'timestamp', startDate, endDate } = options;
+
+  if (!dateField) {
+    console.warn('computeCountTimeRange requires a dateField in options');
+    return 0;
+  }
+
+  const start = startDate ? new Date(startDate) : null;
+  const end = endDate ? new Date(endDate) : null;
+
+  return data.filter(item => {
+    const itemDate = new Date(_.get(item, dateField));
+    if (isNaN(itemDate.getTime())) return false;
+
+    if (start && itemDate < start) return false;
+    if (end && itemDate > end) return false;
+
+    return true;
+  }).length;
 };
 
 /**

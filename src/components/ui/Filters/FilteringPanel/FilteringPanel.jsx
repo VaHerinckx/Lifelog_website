@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import _ from 'lodash';
 import Papa from 'papaparse';
 import Filter from '../Filter/Filter';
+import { applyFilters } from '../../../../utils/filterUtils';
 import './FilteringPanel.css';
 
 /**
@@ -11,16 +12,15 @@ import './FilteringPanel.css';
  *
  * @param {Object} props
  * @param {Array|Object} props.data - The raw data to filter (array for single source, object for multiple sources)
- * @param {Array} props.filterConfigs - Configuration for each filter
- * @param {Object} props.initialFilters - Initial filter values
+ * @param {React.ReactNode} props.children - Filter components as children
+ * @param {string} [props.fullDataset] - Full dataset for date boundary calculation (music data)
  * @param {Function} props.onFiltersChange - Callback when filters change
  * @param {boolean} [props.loading] - Loading state
  */
 const FilteringPanel = ({
   data = [],
   fullDataset = '',
-  filterConfigs = [],
-  initialFilters = {},
+  children,
   onFiltersChange,
   loading = false
 }) => {
@@ -29,6 +29,40 @@ const FilteringPanel = ({
 
   // For backward compatibility, convert single array to object format
   const dataSources = isMultiSource ? data : { default: data };
+
+  // Extract filter configs from children
+  const filterConfigs = useMemo(() => {
+    const configs = [];
+
+    React.Children.forEach(children, (child) => {
+      if (!React.isValidElement(child)) return;
+
+      // Extract props from Filter child to build config
+      const { type, label, icon, placeholder, searchPlaceholder, searchable, allLabel, defaultValue, ...rest } = child.props;
+
+      // Generate a key from the field or label
+      const key = rest.field || label?.toLowerCase().replace(/\s+/g, '_') || `filter_${configs.length}`;
+
+      configs.push({
+        key,
+        type: type || 'singleselect',
+        label,
+        icon,
+        placeholder,
+        searchPlaceholder,
+        searchable,
+        allLabel,
+        defaultValue,
+        dataField: rest.field,
+        optionsSource: rest.field,
+        dataSources: rest.dataSources,
+        options: rest.options
+      });
+    });
+
+    return configs;
+  }, [children]);
+
   // Initialize filters state with proper defaults
   const [filters, setFilters] = useState(() => {
     const initialState = {};
@@ -36,10 +70,13 @@ const FilteringPanel = ({
     filterConfigs.forEach(config => {
       if (config.type === 'multiselect') {
         // For multiselect, always start with empty array
-        initialState[config.key] = initialFilters[config.key] || [];
+        initialState[config.key] = [];
       } else if (config.type === 'singleselect') {
         // For singleselect, use provided initial value or first option
-        initialState[config.key] = initialFilters[config.key] || config.defaultValue || 'all';
+        initialState[config.key] = config.defaultValue || 'all';
+      } else if (config.type === 'daterange') {
+        // For daterange, start with no selection
+        initialState[config.key] = { startDate: null, endDate: null };
       }
     });
 
@@ -296,13 +333,63 @@ const FilteringPanel = ({
     });
   };
 
-  // Notify parent component when filters change
+  // Apply filters to all data sources and notify parent
   useEffect(() => {
-    console.log('📤 Sending filters to parent:', filters);
-    if (onFiltersChange) {
+    console.log('📤 Applying filters to data sources:', filters);
+
+    if (!onFiltersChange) return;
+
+    // If single-source mode (backward compatibility), just return filters
+    if (!isMultiSource) {
       onFiltersChange(filters);
+      return;
     }
-  }, [filters, onFiltersChange]);
+
+    // Multi-source mode: apply filters to each data source
+    const filteredDataSources = {};
+
+    // Create filter config map for faster lookup
+    const filterConfigsMap = filterConfigs.reduce((acc, config) => {
+      acc[config.key] = config;
+      return acc;
+    }, {});
+
+    Object.keys(dataSources).forEach(sourceName => {
+      const sourceData = dataSources[sourceName];
+      if (!Array.isArray(sourceData)) return;
+
+      let filtered = [...sourceData];
+
+      // Apply each filter
+      Object.keys(filters).forEach(filterKey => {
+        const filterValue = filters[filterKey];
+        const config = filterConfigsMap[filterKey];
+
+        // Skip if filter doesn't apply to this data source
+        if (config?.dataSources && config.dataSources.length > 0) {
+          if (!config.dataSources.includes(sourceName)) {
+            return; // Skip this filter for this data source
+          }
+        }
+
+        // Apply filter using utility
+        if (filterValue && (Array.isArray(filterValue) ? filterValue.length > 0 : true)) {
+          const singleFilterObj = { [filterKey]: filterValue };
+          const singleConfigMap = { [filterKey]: config };
+          filtered = applyFilters(filtered, singleFilterObj, singleConfigMap);
+        }
+      });
+
+      filteredDataSources[sourceName] = filtered;
+    });
+
+    console.log('✅ Filtered data sources:', Object.keys(filteredDataSources).reduce((acc, key) => {
+      acc[key] = filteredDataSources[key].length;
+      return acc;
+    }, {}));
+
+    onFiltersChange(filteredDataSources, filters);
+  }, [filters, onFiltersChange, isMultiSource, dataSources, filterConfigs]);
 
   // Loading state
   if (loading) {
@@ -326,7 +413,15 @@ const FilteringPanel = ({
     <div className="filtering-panel">
       <div className="filtering-panel-content">
         <div className="filters-grid">
-          {filterConfigs.map(config => {
+          {React.Children.map(children, (child) => {
+            if (!React.isValidElement(child)) return null;
+
+            // Find the config for this child
+            const childKey = child.props.field || child.props.label?.toLowerCase().replace(/\s+/g, '_');
+            const config = filterConfigs.find(c => c.key === childKey);
+
+            if (!config) return null;
+
             const availableOptions = filterOptions.options?.[config.key] || [];
             const boundaries = filterOptions.dateBoundaries?.[config.key];
             const currentValue = filters[config.key];
@@ -341,23 +436,16 @@ const FilteringPanel = ({
               return null;
             }
 
+            // Clone the child and inject the computed props
             return (
               <div key={config.key} className="filter-item">
-                <Filter
-                  type={config.type}
-                  options={availableOptions}
-                  value={currentValue}
-                  onChange={(value) => handleFilterChange(config.key, value)}
-                  label={config.label}
-                  icon={config.icon}
-                  placeholder={config.placeholder}
-                  searchPlaceholder={config.searchPlaceholder}
-                  searchable={config.searchable !== false}
-                  allLabel={config.allLabel}
-                  defaultValue={config.defaultValue}
-                  minDate={boundaries?.minDate}
-                  maxDate={boundaries?.maxDate}
-                />
+                {React.cloneElement(child, {
+                  options: availableOptions,
+                  value: currentValue,
+                  onChange: (value) => handleFilterChange(config.key, value),
+                  minDate: boundaries?.minDate,
+                  maxDate: boundaries?.maxDate
+                })}
               </div>
             );
           })}

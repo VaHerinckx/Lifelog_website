@@ -1,23 +1,20 @@
 // src/components/ui/CardsPanel/CardsPanel.jsx
 import React from 'react';
-import KpiCard from '../../charts/KpiCard';
 import './CardsPanel.css';
 
 /**
  * A reusable component for displaying a grid of KPI cards with consistent layout and styling
  *
- * Supports two modes:
- * 1. Legacy mode: Cards array with pre-computed values
- * 2. Smart mode: Cards array with data source configs + dataSources object
+ * Uses children-based API - pass KpiCard components as children
  *
  * @param {Object} props
- * @param {Array} props.cards - Array of card configuration objects
- * @param {Object} [props.dataSources] - Object mapping data source names to data arrays (for smart mode)
+ * @param {React.ReactNode} props.children - KpiCard components
+ * @param {Object} [props.dataSources] - Object mapping data source names to data arrays
  * @param {boolean} [props.loading] - Whether the cards are in a loading state
  * @param {string} [props.className] - Additional CSS classes to apply to the container
  */
 const CardsPanel = ({
-  cards = [],
+  children,
   dataSources = {},
   loading = false,
   className = ''
@@ -40,52 +37,24 @@ const CardsPanel = ({
     );
   }
 
-  // Show empty state if no cards provided
-  if (!cards || cards.length === 0) {
-    return (
-      <div className={`cards-panel ${className}`}>
-        <div className="cards-panel-empty">
-          <p>No statistics available</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={`cards-panel ${className}`}>
       <div className="cards-panel-grid">
-        {cards.map((card, index) => {
-          // Determine if this card is in smart mode or legacy mode
-          const isSmartMode = card.dataSource && card.computation;
+        {React.Children.map(children, (child) => {
+          if (!React.isValidElement(child)) return null;
 
-          if (isSmartMode) {
-            // Smart mode: pass data from dataSources
-            const cardData = dataSources[card.dataSource];
+          // Clone child and inject dataSource data if needed
+          if (child.props.dataSource) {
+            const dataSourceName = child.props.dataSource;
+            const data = dataSources[dataSourceName];
 
-            return (
-              <KpiCard
-                key={`${card.label}-${index}`}
-                data={cardData}
-                dataSource={card.dataSource}
-                field={card.field}
-                computation={card.computation}
-                computationOptions={card.computationOptions}
-                formatOptions={card.formatOptions}
-                label={card.label}
-                icon={card.icon}
-              />
-            );
-          } else {
-            // Legacy mode: use pre-computed value
-            return (
-              <KpiCard
-                key={`${card.label}-${index}`}
-                value={card.value}
-                label={card.label}
-                icon={card.icon}
-              />
-            );
+            return React.cloneElement(child, {
+              data: data
+            });
           }
+
+          // Return child as-is if no dataSource (legacy mode)
+          return child;
         })}
       </div>
     </div>
