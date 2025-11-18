@@ -5,23 +5,9 @@
 /* Page container now uses .page-container--wide modifier from components.css */
 /* Apply in JSX: className="page-container page-container--wide" */
 
-.page-content {
-  width: var(--container-width);
-  max-width: 1800px;
-  margin: 0 auto;
-  padding: var(--spacing-xl);
-  box-sizing: border-box;
-}
-
 .layout-content {
   width: 100%;
   max-width: 100%;
-}
-
-@media (max-width: 768px) {
-  .page-content {
-    padding: var(--container-padding-mobile);
-  }
 }
 
 .page-container h1,

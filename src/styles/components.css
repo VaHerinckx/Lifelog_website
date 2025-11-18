@@ -10,6 +10,14 @@
   box-sizing: border-box;
 }
 
+/* Inner content wrapper for pages */
+.page-content {
+  width: 100%;
+  max-width: 80vw;
+  box-sizing: border-box;
+  margin: 0 auto;
+}
+
 /* Modifier for wider pages (Movies, Health, etc.) */
 .page-container--wide {
   max-width: 1800px;
@@ -833,9 +841,11 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--spacing-xl);
+  width: 100%;
 }
 
 .analysis-chart-section {
+  min-width: 0;
   width: 100%;
 }
 
@@ -856,8 +866,18 @@
 }
 
 /* Responsive grid layouts for analysis tabs */
-@media (min-width: 1200px) {
+/* Mobile: 1 column (default above) */
+
+/* Tablet and up: 2 columns */
+@media (min-width: 768px) {
   .analysis-charts-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Large desktop: 3 columns */
+@media (min-width: 1400px) {
+  .analysis-charts-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }

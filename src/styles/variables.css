@@ -128,7 +128,7 @@
   /* ===== CONTAINER SIZES ===== */
   /* Standardized container dimensions */
   --container-width: 95%;
-  --container-max-width: 1400px;
+  --container-max-width: 96vw;
   --container-padding: var(--spacing-xl);
   --container-padding-mobile: var(--spacing-lg);
 
@@ -148,6 +148,18 @@
   --chart-title-weight: var(--font-weight-semibold);
   --chart-title-margin: var(--spacing-md);
   --chart-title-align: left;
+
+  /* Chart colors */
+  --chart-primary-color: var(--color-primary);      /* #3423A6 - main chart color */
+  --chart-secondary-color: var(--color-accent);     /* #FB4B4E - accent/secondary chart color */
+  --chart-grid-line: rgba(23, 23, 56, 0.2);        /* Subtle grid lines matching background */
+
+  /* Timeline colors for reading visualizations */
+  --timeline-color-1: #3B82F6;    /* Blue */
+  --timeline-color-2: #14B8A6;    /* Teal */
+  --timeline-color-3: #F97316;    /* Orange */
+  --timeline-color-4: #A78BFA;    /* Lavender */
+  --timeline-color-5: #10B981;    /* Green */
 
   /* ===== TRANSITIONS ===== */
   /* Consistent animation timing */

@@ -5,20 +5,6 @@
 /* Page container uses .page-container--wide modifier from components.css */
 /* Apply in JSX: className="page-container page-container--wide" */
 
-.page-content {
-  width: var(--container-width);
-  max-width: 1800px;
-  margin: 0 auto;
-  padding: var(--spacing-xl);
-  box-sizing: border-box;
-}
-
-@media (max-width: 768px) {
-  .page-content {
-    padding: var(--container-padding-mobile);
-  }
-}
-
 .page-container h1,
 .page-container h2 {
   color: var(--color-accent);
@@ -82,11 +68,11 @@
   .data-preview {
     padding: var(--spacing-lg);
   }
-  
+
   .data-sample {
     padding: var(--spacing-sm);
   }
-  
+
   .data-sample p {
     font-size: var(--font-size-xs);
   }

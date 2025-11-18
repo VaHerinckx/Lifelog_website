@@ -1,0 +1,281 @@
+/* BookCard Component Styles */
+@import '../../../styles/variables.css';
+
+/* Base Card Styles (common to both grid and list) */
+.book-card {
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  cursor: pointer;
+}
+
+.book-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Grid View - Vertical Layout */
+.book-card--grid {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.book-card--grid .book-cover-container {
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  background-color: var(--color-primary);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-sm) 0;
+}
+
+.book-card--grid .book-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background-color: var(--color-primary);
+  transition: transform var(--transition-normal);
+}
+
+.book-card--grid:hover .book-cover {
+  transform: scale(1.05);
+}
+
+.book-card--grid .book-info {
+  padding: var(--spacing-sm);
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.95rem;
+}
+
+/* List View - Horizontal Layout */
+.book-card--list {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: var(--spacing-md);
+  gap: var(--spacing-lg);
+}
+
+.book-card--list:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.book-card--list .book-cover-container {
+  flex: 0 0 80px;
+  height: 120px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary);
+}
+
+.book-card--list .book-cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.book-card--list .book-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+/* Book Info Section */
+.book-title {
+  color: var(--background-color);
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.book-card--grid .book-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book-card--list .book-title {
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
+
+.book-author {
+  color: var(--color-primary);
+  font-weight: 500;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+.book-card--grid .book-author {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.book-card--list .book-author {
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+
+.book-meta {
+  color: var(--color-text-gray);
+  font-size: 0.8rem;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.book-card--list .book-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  font-size: 0.9rem;
+}
+
+/* Genre Tags */
+.book-genre-tags {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.book-card--list .book-genre-tags {
+  margin-left: auto;
+  margin-top: 0;
+}
+
+.book-genre {
+  display: inline-block;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+}
+
+.book-card--list .book-genre {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.fiction-tag {
+  background-color: var(--color-rating-star);
+  color: var(--background-color);
+}
+
+.non-fiction-tag {
+  background-color: var(--color-primary);
+}
+
+/* Rating Stars */
+.rating-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0;
+}
+
+.rating-label {
+  font-size: 0.85rem;
+  color: var(--background-color);
+}
+
+.stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  color: var(--color-rating-star);
+}
+
+.empty-star {
+  color: var(--color-border-gray);
+}
+
+.rating-value {
+  margin-left: 5px;
+  font-weight: 600;
+}
+
+/* Reading Dates and Duration */
+.reading-dates {
+  margin-top: 8px;
+  font-size: 0.8rem;
+  color: var(--text-element);
+}
+
+.date-label {
+  font-weight: 500;
+}
+
+.date-value {
+  margin-left: 4px;
+}
+
+.reading-duration {
+  font-size: 0.8rem;
+  color: var(--text-element);
+  margin-top: 4px;
+}
+
+.book-card--list .reading-duration {
+  margin-left: 5px;
+}
+
+.duration-value {
+  font-style: italic;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .book-card--grid .book-cover-container {
+    height: 180px;
+  }
+
+  .book-card--grid .book-title {
+    font-size: 0.9rem;
+  }
+
+  .book-card--grid .book-author {
+    font-size: 0.8rem;
+  }
+
+  .book-card--list {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .book-card--list .book-cover-container {
+    width: 100%;
+    height: 180px;
+    margin-bottom: var(--spacing-sm);
+  }
+
+  .book-card--list .book-info {
+    width: 100%;
+  }
+
+  .book-card--list .book-genre-tags {
+    margin-left: 0;
+    margin-top: 10px;
+  }
+
+  .book-genre {
+    font-size: 0.65rem;
+    padding: 2px 4px;
+  }
+}

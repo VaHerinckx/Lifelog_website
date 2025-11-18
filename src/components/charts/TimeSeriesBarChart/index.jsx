@@ -206,7 +206,7 @@ const TimeSeriesBarChart = ({
           <p>No data available for the selected period.</p>
         </div>
       ) : (
-        <ResponsiveContainer width="100%" height={400}>
+        <ResponsiveContainer width="100%">
           <BarChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis

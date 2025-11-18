@@ -1,6 +1,0 @@
-/* ReadingPageTabs.css */
-@import '../../../styles/variables.css';
-@import '../../../styles/components.css';
-
-/* Tab navigation styles now standardized in components.css */
-/* Uses: .page-tabs, .page-tab, .page-tab.active */

@@ -1,31 +1,8 @@
 /* AnalysisTab.css - Reusable analysis tab component styles */
 /* Most styles inherited from design system components.css */
+/* Responsive layout (1→2→3 columns) defined in components.css */
 
 @import '../../../styles/variables.css';
-
-/* ===== LAYOUT VARIANTS ===== */
-
-/* Single column layout (all screen sizes) */
-.analysis-charts-grid--single {
-  grid-template-columns: 1fr !important;
-}
-
-/* Three column layout (responsive) */
-.analysis-charts-grid--three-column {
-  grid-template-columns: 1fr;
-}
-
-@media (min-width: 768px) {
-  .analysis-charts-grid--three-column {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (min-width: 1200px) {
-  .analysis-charts-grid--three-column {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-}
 
 /* ===== COMPONENT-SPECIFIC OVERRIDES ===== */
 /* Add any component-specific styles here if needed */

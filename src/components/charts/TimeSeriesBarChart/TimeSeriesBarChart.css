@@ -1,15 +1,28 @@
+/* Import design system variables */
+@import '../../../styles/variables.css';
+
 /* src/components/charts/TimeSeriesBarChart/TimeSeriesBarChart.css */
 .time-series-chart-container {
   background-color: var(--chart-background);
   border-radius: var(--chart-border-radius);
   padding: var(--chart-padding);
-  margin-bottom: var(--chart-margin-bottom);
   box-shadow: var(--chart-shadow);
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
   color: var(--color-text-primary);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Responsive chart height - ensures ResponsiveContainer has proper sizing */
+.time-series-chart-container .recharts-responsive-container {
+  min-height: 350px;
+  height: 350px;
+}
+
+@media (min-width: 768px) {
+  .time-series-chart-container .recharts-responsive-container {
+    min-height: 450px;
+    height: 450px;
+  }
 }
 
 .chart-header {
@@ -64,7 +77,7 @@
 }
 
 .recharts-surface {
-  fill: var(--chart-secondary-color);
+  fill: var(--chart-primary-color);
 }
 
 .time-series-chart-container .recharts-legend-item-text {
@@ -73,7 +86,7 @@
 
 /* Define the bar color in CSS instead of inline in JSX */
 .time-series-chart__bar {
-  fill: var(--chart-secondary-color);
+  fill: var(--chart-primary-color);
 }
 
 .no-chart-data {

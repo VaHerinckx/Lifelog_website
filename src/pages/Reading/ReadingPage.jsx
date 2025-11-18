@@ -1,17 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Book, Book as BookIcon, BookOpen, List, Grid, Clock, Star } from 'lucide-react';
+import { Book, Book as BookIcon, BookOpen, List, Grid, Star } from 'lucide-react';
 import Papa from 'papaparse';
 import _ from 'lodash';
-import './ReadingPage.css';
-import './components//ReadingPageTabs.css';
 import { useData } from '../../context/DataContext';
 
 // Import components
 import BookDetails from './components/BookDetails';
-import ReadingTimeline from './components/ReadingTimeline';
 import BookCard from './components/BookCard';
 import FilteringPanel from '../../components/ui/Filters/FilteringPanel/FilteringPanel';
-import StarRating from '../../components/ui/StarRating';
 import { readingFilterConfigs } from '../../config/filterConfigs';
 
 // Import new standardized components
@@ -19,8 +15,8 @@ import PageHeader from '../../components/ui/PageHeader';
 import TabNavigation from '../../components/ui/TabNavigation';
 import ContentTab from '../../components/ui/ContentTab/ContentTab';
 import AnalysisTab from '../../components/ui/AnalysisTab/AnalysisTab';
-import ContentListItem from '../../components/ui/ContentListItem';
 import CardsPanel from '../../components/ui/CardsPanel/CardsPanel';
+import CardGroup from '../../components/ui/CardGroup';
 
 // Import chart components for analysis tab
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
@@ -98,8 +94,8 @@ const ReadingPage = () => {
       const timestamp = new Date(entry.Timestamp || '');
       return {
         ...entry,
-        reading_year: timestamp instanceof Date && !isNaN(timestamp.getTime()) 
-          ? timestamp.getFullYear().toString() 
+        reading_year: timestamp instanceof Date && !isNaN(timestamp.getTime())
+          ? timestamp.getFullYear().toString()
           : null
       };
     });
@@ -134,8 +130,8 @@ const ReadingPage = () => {
           coverUrl: coverUrl,
           readingDuration: readingDuration ? parseInt(readingDuration) : null,
           timestamp: bookTimestamp,
-          reading_year: bookTimestamp instanceof Date && !isNaN(bookTimestamp.getTime()) 
-            ? bookTimestamp.getFullYear().toString() 
+          reading_year: bookTimestamp instanceof Date && !isNaN(bookTimestamp.getTime())
+            ? bookTimestamp.getFullYear().toString()
             : null,
           page_split: latestEntry.page_split || 0
         };
@@ -338,7 +334,7 @@ const ReadingPage = () => {
       cards.splice(3, 0, {
         value: readingStats.avgReadingDuration.toLocaleString(),
         label: "Avg. Days to Read",
-        icon: <Clock size={24} />
+        icon: <BookOpen size={24} />
       });
     }
 
@@ -403,8 +399,7 @@ const ReadingPage = () => {
             onViewModeChange={setViewMode}
             viewModes={[
               { mode: 'grid', icon: Grid },
-              { mode: 'list', icon: List },
-              { mode: 'timeline', icon: Clock }
+              { mode: 'list', icon: List }
             ]}
             items={filteredBooks}
             loadingIcon={Book}
@@ -414,63 +409,33 @@ const ReadingPage = () => {
               message: "No books match your current filters. Try adjusting your criteria."
             }}
             renderGrid={(books) => (
-              <div className="books-grid">
-                {books.map(book => (
+              <CardGroup
+                items={books}
+                viewMode="grid"
+                renderItem={(book) => (
                   <BookCard
                     key={`${book.id}-${book.title}`}
                     book={book}
+                    viewMode="grid"
                     onClick={handleBookClick}
                   />
-                ))}
-              </div>
+                )}
+              />
             )}
             renderList={(books) => (
-              <div className="books-list">
-                {books.map(book => (
-                  <ContentListItem
+              <CardGroup
+                items={books}
+                viewMode="list"
+                renderItem={(book) => (
+                  <BookCard
                     key={`list-${book.id}-${book.title}`}
-                    image={{
-                      url: book.coverUrl,
-                      alt: `${book.title} cover`,
-                      fallback: "/api/placeholder/80/120",
-                      aspectRatio: 'portrait'
-                    }}
-                    title={book.title}
-                    subtitle={book.author}
-                    metadata={[
-                      {
-                        component: (
-                          <div className="rating-container">
-                            <StarRating rating={book.myRating} />
-                            <span className="rating-value">{book.myRating.toFixed(1)}</span>
-                          </div>
-                        )
-                      },
-                      {
-                        icon: <BookOpen size={16} />,
-                        text: `${book.pages} pages`
-                      },
-                      ...(book.readingDuration ? [{
-                        text: `• Read in ${book.readingDuration} days`
-                      }] : [])
-                    ]}
-                    tags={[
-                      {
-                        text: book.fiction ? 'Fiction' : 'Non-Fiction',
-                        className: book.fiction ? 'fiction-tag' : 'non-fiction-tag'
-                      },
-                      ...(book.genre && book.genre !== 'Unknown' ? [{
-                        text: book.genre,
-                        className: 'genre-tag'
-                      }] : [])
-                    ]}
-                    onClick={() => handleBookClick(book)}
-                    className="book-list-item"
+                    book={book}
+                    viewMode="list"
+                    onClick={handleBookClick}
                   />
-                ))}
-              </div>
+                )}
+              />
             )}
-            renderTimeline={(books) => <ReadingTimeline books={books} />}
           />
         )}
 
@@ -478,7 +443,6 @@ const ReadingPage = () => {
         {activeTab === 'analysis' && (
           <AnalysisTab
             data={filteredReadingEntries}
-            chartLayout="two-column"
             emptyState={{
               message: "No reading data available with current filters. Try adjusting your criteria."
             }}
@@ -491,12 +455,12 @@ const ReadingPage = () => {
                   title="Total Pages Read by Period"
                   yAxisLabel="Pages"
                 />
-                <IntensityHeatmap
+                <TimeSeriesBarChart
                   data={books}
                   dateColumnName="Timestamp"
-                  valueColumnName="page_split"
-                  title="Reading Activity by Day and Time"
-                  treatMidnightAsUnknown={true}
+                  metricColumnName="page_split"
+                  title="Total Pages Read by Period (Copy)"
+                  yAxisLabel="Pages"
                 />
               </>
             )}

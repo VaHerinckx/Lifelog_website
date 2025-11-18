@@ -12,13 +12,11 @@ import './AnalysisTab.css';
  * @param {Array} data - Pre-filtered data array (required)
  * @param {Object} emptyState - Empty state configuration
  * @param {string} emptyState.message - Message to display when no data
- * @param {string} chartLayout - Layout option: 'single' | 'two-column' | 'three-column'
  * @param {Function} renderCharts - Function that returns chart JSX elements
  *
  * @example
  * <AnalysisTab
  *   data={filteredData}
- *   chartLayout="two-column"
  *   emptyState={{ message: "No data available with current filters." }}
  *   renderCharts={(data) => (
  *     <>
@@ -31,7 +29,6 @@ import './AnalysisTab.css';
 const AnalysisTab = ({
   data = [],
   emptyState = {},
-  chartLayout = 'two-column',
   renderCharts
 }) => {
   // Default empty state message
@@ -61,19 +58,6 @@ const AnalysisTab = ({
     );
   }
 
-  // Determine grid class based on layout
-  const getGridClass = () => {
-    switch (chartLayout) {
-      case 'single':
-        return 'analysis-charts-grid analysis-charts-grid--single';
-      case 'three-column':
-        return 'analysis-charts-grid analysis-charts-grid--three-column';
-      case 'two-column':
-      default:
-        return 'analysis-charts-grid';
-    }
-  };
-
   // Render charts and wrap each child in analysis-chart-section
   const renderWrappedCharts = () => {
     const charts = renderCharts(data);
@@ -94,7 +78,7 @@ const AnalysisTab = ({
 
   return (
     <div className="analysis-tab-container">
-      <div className={getGridClass()}>
+      <div className="analysis-charts-grid">
         {renderWrappedCharts()}
       </div>
     </div>
@@ -106,14 +90,12 @@ AnalysisTab.propTypes = {
   emptyState: PropTypes.shape({
     message: PropTypes.string
   }),
-  chartLayout: PropTypes.oneOf(['single', 'two-column', 'three-column']),
   renderCharts: PropTypes.func.isRequired
 };
 
 AnalysisTab.defaultProps = {
   data: [],
-  emptyState: {},
-  chartLayout: 'two-column'
+  emptyState: {}
 };
 
 export default AnalysisTab;
