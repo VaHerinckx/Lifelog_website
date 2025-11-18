@@ -455,12 +455,12 @@ const ReadingPage = () => {
                   title="Total Pages Read by Period"
                   yAxisLabel="Pages"
                 />
-                <TimeSeriesBarChart
+                <IntensityHeatmap
                   data={books}
                   dateColumnName="Timestamp"
-                  metricColumnName="page_split"
-                  title="Total Pages Read by Period (Copy)"
-                  yAxisLabel="Pages"
+                  valueColumnName="page_split"
+                  title="Reading Activity by Day and Time"
+                  treatMidnightAsUnknown={true}
                 />
               </>
             )}
