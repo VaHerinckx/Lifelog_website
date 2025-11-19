@@ -336,67 +336,73 @@ const Filter = ({
       {isOpen && (
         <div className="filter-dropdown">
           {/* Date Range Content */}
-          {type === 'daterange' && minDate && maxDate && (
-            <div className="filter-daterange-content">
-              <div className="daterange-inputs">
-                <div className="daterange-input-group">
-                  <label htmlFor="start-date">Start:</label>
-                  <input
-                    type="date"
-                    id="start-date"
-                    value={selectedValues.startDate || ''}
-                    onChange={(e) => handleDateInputChange(e, 'startDate')}
-                    min={formatDateForInput(minDate)}
-                    max={formatDateForInput(maxDate)}
-                  />
+          {type === 'daterange' && (
+            <>
+              {minDate && maxDate ? (
+                <div className="filter-daterange-content">
+                  <div className="daterange-inputs">
+                    <div className="daterange-input-group">
+                      <label htmlFor="start-date">Start:</label>
+                      <input
+                        type="date"
+                        id="start-date"
+                        value={selectedValues.startDate || ''}
+                        onChange={(e) => handleDateInputChange(e, 'startDate')}
+                        min={formatDateForInput(minDate)}
+                        max={formatDateForInput(maxDate)}
+                      />
+                    </div>
+                    <div className="daterange-input-group">
+                      <label htmlFor="end-date">End:</label>
+                      <input
+                        type="date"
+                        id="end-date"
+                        value={selectedValues.endDate || ''}
+                        onChange={(e) => handleDateInputChange(e, 'endDate')}
+                        min={formatDateForInput(minDate)}
+                        max={formatDateForInput(maxDate)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="daterange-slider" ref={sliderRef} onClick={handleTrackClick}>
+                    <div className="slider-track">
+                      {/* Slider fill */}
+                      <div
+                        className="slider-fill"
+                        style={{
+                          left: `${dateToPosition(new Date(selectedValues.startDate || minDate))}%`,
+                          width: `${dateToPosition(new Date(selectedValues.endDate || maxDate)) - dateToPosition(new Date(selectedValues.startDate || minDate))}%`
+                        }}
+                      />
+                    </div>
+
+                    {/* Start handle */}
+                    <div
+                      className="slider-handle slider-handle-start"
+                      style={{ left: `${dateToPosition(new Date(selectedValues.startDate || minDate))}%` }}
+                      onMouseDown={(e) => handleSliderMouseDown(e, 'start')}
+                      title={formatDate(new Date(selectedValues.startDate || minDate))}
+                    />
+
+                    {/* End handle */}
+                    <div
+                      className="slider-handle slider-handle-end"
+                      style={{ left: `${dateToPosition(new Date(selectedValues.endDate || maxDate))}%` }}
+                      onMouseDown={(e) => handleSliderMouseDown(e, 'end')}
+                      title={formatDate(new Date(selectedValues.endDate || maxDate))}
+                    />
+                  </div>
+
+                  <div className="slider-labels">
+                    <div className="slider-label">{formatDate(minDate)}</div>
+                    <div className="slider-label">{formatDate(maxDate)}</div>
+                  </div>
                 </div>
-                <div className="daterange-input-group">
-                  <label htmlFor="end-date">End:</label>
-                  <input
-                    type="date"
-                    id="end-date"
-                    value={selectedValues.endDate || ''}
-                    onChange={(e) => handleDateInputChange(e, 'endDate')}
-                    min={formatDateForInput(minDate)}
-                    max={formatDateForInput(maxDate)}
-                  />
-                </div>
-              </div>
-
-              <div className="daterange-slider" ref={sliderRef} onClick={handleTrackClick}>
-                <div className="slider-track">
-                  {/* Slider fill */}
-                  <div
-                    className="slider-fill"
-                    style={{
-                      left: `${dateToPosition(new Date(selectedValues.startDate || minDate))}%`,
-                      width: `${dateToPosition(new Date(selectedValues.endDate || maxDate)) - dateToPosition(new Date(selectedValues.startDate || minDate))}%`
-                    }}
-                  />
-                </div>
-
-                {/* Start handle */}
-                <div
-                  className="slider-handle slider-handle-start"
-                  style={{ left: `${dateToPosition(new Date(selectedValues.startDate || minDate))}%` }}
-                  onMouseDown={(e) => handleSliderMouseDown(e, 'start')}
-                  title={formatDate(new Date(selectedValues.startDate || minDate))}
-                />
-
-                {/* End handle */}
-                <div
-                  className="slider-handle slider-handle-end"
-                  style={{ left: `${dateToPosition(new Date(selectedValues.endDate || maxDate))}%` }}
-                  onMouseDown={(e) => handleSliderMouseDown(e, 'end')}
-                  title={formatDate(new Date(selectedValues.endDate || maxDate))}
-                />
-              </div>
-
-              <div className="slider-labels">
-                <div className="slider-label">{formatDate(minDate)}</div>
-                <div className="slider-label">{formatDate(maxDate)}</div>
-              </div>
-            </div>
+              ) : (
+                <div className="filter-no-results">No dates available with current filters</div>
+              )}
+            </>
           )}
 
           {/* Search for non-daterange types */}

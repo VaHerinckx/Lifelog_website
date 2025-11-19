@@ -290,9 +290,12 @@ const MoviesPage = () => {
               <TimeSeriesBarChart
                 data={data}
                 dateColumnName="date"
-                metricColumnName="id"
-                title="Movies Watched Over Time"
-                yAxisLabel="Movies"
+                metricOptions={[
+                  { value: 'count', label: 'Watch Count', aggregation: 'count', decimals: 0 },
+                  { value: 'avgRating', label: 'Avg Rating', aggregation: 'average', field: 'rating', suffix: '★', decimals: 1 }
+                ]}
+                defaultMetric="count"
+                title="Movies Over Time"
               />
               <TopChart
                 data={data}

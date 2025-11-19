@@ -401,10 +401,8 @@ const FilteringPanel = ({
               return null;
             }
 
-            // Skip rendering daterange if no date boundaries found
-            if (config.type === 'daterange' && !boundaries) {
-              return null;
-            }
+            // Note: We no longer hide daterange filters when no boundaries exist
+            // Instead, we render them with empty/disabled state for UI stability
 
             // Clone the child and inject the computed props
             return (

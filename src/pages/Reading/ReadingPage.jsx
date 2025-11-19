@@ -21,6 +21,8 @@ import KpiCard from '../../components/charts/KpiCard';
 // Import chart components for analysis tab
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
+import TopChart from '../../components/charts/TopChart';
+
 
 // Import utilities
 import { sortByDateSafely } from '../../utils/sortingUtils';
@@ -268,9 +270,12 @@ const ReadingPage = () => {
                 <TimeSeriesBarChart
                   data={books}
                   dateColumnName="timestamp"
-                  metricColumnName="page_split"
-                  title="Total Pages Read by Period"
-                  yAxisLabel="Pages"
+                  metricOptions={[
+                    { value: 'pages', label: 'Pages Read', aggregation: 'sum', field: 'page_split', decimals: 0 },
+                    { value: 'rating', label: 'Avg Rating', aggregation: 'average', field: 'my_rating', suffix: '★', decimals: 1 }
+                  ]}
+                  defaultMetric="pages"
+                  title="Reading Activity by Period"
                 />
                 <IntensityHeatmap
                   data={books}
@@ -278,6 +283,21 @@ const ReadingPage = () => {
                   valueColumnName="page_split"
                   title="Reading Activity by Day and Time"
                   treatMidnightAsUnknown={true}
+                />
+                <TopChart
+                  data={books}
+                  dimensionOptions={[
+                    { value: 'author', label: 'Author', field: 'author', labelFields: ['author'] },
+                    { value: 'genre', label: 'Genre', field: 'genre', labelFields: ['genre'] }
+                  ]}
+                  metricOptions={[
+                    { value: 'book_id', label: 'Read Count', aggregation: 'count', decimals: 0 },
+                    { value: 'my_rating', label: 'Avg Rating', aggregation: 'average', field: 'my_rating', suffix: '★', decimals: 1 }
+                  ]}
+                  defaultDimension="genre"
+                  defaultMetric="count"
+                  title="Top Books Analysis"
+                  topN={10}
                 />
               </>
             )}
