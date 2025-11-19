@@ -16,6 +16,12 @@ const Homepage = () => {
       path: '/movies'
     },
     {
+      title: 'Nutrition',
+      icon: '/icons/nutrition_w.png',
+      description: 'Track meals, food choices, and nutritional patterns',
+      path: '/nutrition'
+    },
+    {
       title: 'Sport',
       icon: '/icons/sport_w.png',
       description: 'Record your workouts and athletic progress',

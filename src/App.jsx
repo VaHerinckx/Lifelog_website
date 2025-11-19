@@ -6,6 +6,7 @@ import Layout from './components/ui/Layout';
 import Homepage from './pages/Home/Homepage';
 import ReadingPage from './pages/Reading/ReadingPage';
 import MoviesPage from './pages/Movies/MoviesPage';
+import NutritionPage from './pages/Nutrition/NutritionPage';
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
           <Route element={<Layout />}>
             <Route path="/reading" element={<ReadingPage />} />
             <Route path="/movies" element={<MoviesPage />} />
+            <Route path="/nutrition" element={<NutritionPage />} />
             <Route
               path="/sport"
               element={

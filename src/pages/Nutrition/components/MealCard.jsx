@@ -20,11 +20,22 @@ import './MealCard.css';
 const MealCard = ({ meal, viewMode = 'grid', onClick }) => {
   const cardClass = `meal-card meal-card--${viewMode}`;
 
-  // Truncate food list for preview
-  const truncateFoodList = (foodList, maxLength = 60) => {
-    if (!foodList) return '';
-    if (foodList.length <= maxLength) return foodList;
-    return foodList.substring(0, maxLength) + '...';
+  // Combine and truncate food and drinks list for preview
+  const getCombinedFoodDrinks = (foodList, drinksList, maxLength = 60) => {
+    const parts = [];
+
+    if (foodList && foodList.trim()) {
+      parts.push(foodList.trim());
+    }
+
+    if (drinksList && drinksList.trim()) {
+      parts.push(drinksList.trim());
+    }
+
+    const combined = parts.join(' | ');
+
+    if (combined.length <= maxLength) return combined;
+    return combined.substring(0, maxLength) + '...';
   };
 
   // Format USDA score for display
@@ -42,7 +53,7 @@ const MealCard = ({ meal, viewMode = 'grid', onClick }) => {
 
         <div className="meal-info">
           <h3 className="meal-title">{meal.meal}</h3>
-          <p className="meal-food-list">{truncateFoodList(meal.food_list, 80)}</p>
+          <p className="meal-food-list">{getCombinedFoodDrinks(meal.food_list, meal.drinks_list, 80)}</p>
 
           <div className="meal-meta">
             {meal.meal_assessment && parseFloat(meal.meal_assessment) > 0 && (
@@ -91,8 +102,8 @@ const MealCard = ({ meal, viewMode = 'grid', onClick }) => {
         <h3 className="meal-title" title={meal.meal}>{meal.meal}</h3>
         <p className="meal-weekday">{meal.weekday}</p>
 
-        <p className="meal-food-list" title={meal.food_list}>
-          {truncateFoodList(meal.food_list, 60)}
+        <p className="meal-food-list" title={getCombinedFoodDrinks(meal.food_list, meal.drinks_list, 1000)}>
+          {getCombinedFoodDrinks(meal.food_list, meal.drinks_list, 60)}
         </p>
 
         {meal.meal_assessment && parseFloat(meal.meal_assessment) > 0 && (
