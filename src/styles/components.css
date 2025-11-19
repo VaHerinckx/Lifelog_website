@@ -851,7 +851,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  height: var(--chart-height-mobile);
 }
 
 /* Legacy alias - use .empty-state instead */
@@ -878,25 +878,19 @@
   .analysis-charts-grid {
     grid-template-columns: repeat(auto-fit, minmax(min(400px, 100%), 1fr));
   }
-}
 
-/* Large desktop: auto-fit with min 450px charts, max 3 columns */
-@media (min-width: 1400px) {
-  .analysis-charts-grid {
-    grid-template-columns: repeat(auto-fit, minmax(min(450px, 100%), 1fr));
+  .analysis-chart-section {
+    height: var(--chart-height-tablet);
   }
 }
 
-/* Ensure chart containers fill available height while maintaining minimum readability */
-.analysis-chart-section > * {
-  flex: 1;
-  min-height: 400px;
-  max-height: 600px;
-}
+/* Large desktop: auto-fit with min 450px charts, max 3 columns */
+@media (min-width: 1500px) {
+  .analysis-charts-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(500px, 100%), 1fr));
+  }
 
-@media (max-width: 768px) {
-  .analysis-chart-section > * {
-    min-height: 350px;
-    max-height: 500px;
+  .analysis-chart-section {
+    height: var(--chart-height-desktop);
   }
 }

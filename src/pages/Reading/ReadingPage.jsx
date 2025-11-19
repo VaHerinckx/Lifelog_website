@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Book, Book as BookIcon, List, Grid, Clock, Calendar, Tag, User, Star } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 
@@ -28,6 +28,8 @@ import TopChart from '../../components/charts/TopChart';
 import { sortByDateSafely } from '../../utils/sortingUtils';
 
 const ReadingPage = () => {
+  console.log('📚 ReadingPage component mounting/rendering');
+
   const { data, loading, error, fetchData } = useData();
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
@@ -40,13 +42,15 @@ const ReadingPage = () => {
 
   // Fetch reading data when component mounts
   useEffect(() => {
+    console.log('📚 ReadingPage useEffect - fetching data');
+
     if (typeof fetchData === 'function') {
       Promise.all([
         fetchData('readingBooks'),
         fetchData('readingSessions')
       ]);
     }
-  }, [fetchData]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Process books data when it's loaded from new dual-file structure
   useEffect(() => {
@@ -55,12 +59,12 @@ const ReadingPage = () => {
       // Only need to convert timestamp strings to Date objects for JavaScript date operations
       const processedBooks = data.readingBooks.map(book => ({
         ...book,
-        timestamp: new Date(book.timestamp)
+        timestamp: book.timestamp ? new Date(book.timestamp) : null
       }));
 
       const processedSessions = data.readingSessions.map(session => ({
         ...session,
-        timestamp: new Date(session.timestamp)
+        timestamp: session.timestamp ? new Date(session.timestamp) : null
       }));
 
       // Data already sorted by Python, but set in state
@@ -90,6 +94,12 @@ const ReadingPage = () => {
     setSelectedBook(null);
   };
 
+  // Memoize data object to prevent FilteringPanel re-renders
+  const filterPanelData = useMemo(() => ({
+    readingBooks: books,
+    readingSessions: readingEntries
+  }), [books, readingEntries]);
+
   return (
     <PageWrapper
       error={error?.readingBooks || error?.readingSessions}
@@ -105,10 +115,7 @@ const ReadingPage = () => {
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
-              data={{
-                readingBooks: books,
-                readingSessions: readingEntries
-              }}
+              data={filterPanelData}
               onFiltersChange={handleFiltersChange}
             >
               <Filter
@@ -265,10 +272,10 @@ const ReadingPage = () => {
             emptyState={{
               message: "No reading data available with current filters. Try adjusting your criteria."
             }}
-            renderCharts={(books) => (
+            renderCharts={(readingSessions) => (
               <>
                 <TimeSeriesBarChart
-                  data={books}
+                  data={readingSessions}
                   dateColumnName="timestamp"
                   metricOptions={[
                     { value: 'pages', label: 'Pages Read', aggregation: 'sum', field: 'page_split', decimals: 0 },
@@ -278,14 +285,14 @@ const ReadingPage = () => {
                   title="Reading Activity by Period"
                 />
                 <IntensityHeatmap
-                  data={books}
+                  data={readingSessions}
                   dateColumnName="timestamp"
                   valueColumnName="page_split"
                   title="Reading Activity by Day and Time"
                   treatMidnightAsUnknown={true}
                 />
                 <TopChart
-                  data={books}
+                  data={readingSessions}
                   dimensionOptions={[
                     { value: 'author', label: 'Author', field: 'author', labelFields: ['author'] },
                     { value: 'genre', label: 'Genre', field: 'genre', labelFields: ['genre'] }

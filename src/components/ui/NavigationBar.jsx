@@ -13,6 +13,15 @@ const NavigationBar = () => {
     { path: '/work', label: 'Work', icon: '/icons/work_w.png', implemented: false }
   ];
 
+  const handleNavClick = (item) => {
+    console.log('🔍 Navigation item clicked:', {
+      label: item.label,
+      path: item.path,
+      currentLocation: location.pathname,
+      timestamp: new Date().toISOString()
+    });
+  };
+
   return (
     <nav className="navigation-bar">
       <div className="nav-container">
@@ -28,6 +37,7 @@ const NavigationBar = () => {
               key={item.path}
               to={item.path}
               className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+              onClick={() => handleNavClick(item)}
             >
               <img src={item.icon} alt={`${item.label} icon`} className="nav-icon" />
               <span className="nav-label">{item.label}</span>

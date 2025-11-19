@@ -6,37 +6,54 @@
   box-shadow: var(--chart-shadow);
   width: 100%;
   box-sizing: border-box;
+
+  /* Match TimeSeriesBarChart structure */
+  display: flex;
+  flex-direction: column;
+  height: 100%;  /* Fill parent analysis-chart-section */
+  overflow: hidden;  /* Prevent overflow */
 }
 
 .heatmap-title {
   color: var(--chart-title-color);
   font-size: var(--chart-title-size);
   font-weight: var(--chart-title-weight);
-  margin: 0 0 var(--chart-title-margin) 0;
-  text-align: var(--chart-title-align);
+  margin: 0;
+
+  /* Match TimeSeriesBarChart header proportions */
+  height: var(--chart-header-height-ratio);  /* 20% */
+  flex-shrink: 0;  /* Never shrink */
+  display: flex;
+  align-items: center;
 }
 
 .heatmap-table-container {
+  height: var(--chart-content-height-ratio);  /* 80% */
+  flex-shrink: 0;  /* Never shrink */
+  overflow: hidden;  /* No scroll */
   width: 100%;
-  overflow-x: auto;
+  font-size: clamp(0.1rem, 1.5vmin, 1rem);  /* Increased max for better vertical fill */
 }
 
 .heatmap-table {
   width: 100%;
+  height: auto;  /* Natural height, not forced */
   border-collapse: collapse;
   text-align: center;
 }
 
 .heatmap-table th,
 .heatmap-table td {
-  padding: 1rem;
+  padding: clamp(0.1rem, 0.8vmin, 0.5rem);  /* Increased max padding for better vertical fill */
   border: 1px solid rgba(52, 35, 166, 0.1);
+  white-space: nowrap;  /* Prevent text wrapping - keep all columns visible */
 }
 
 .heatmap-table th {
   font-weight: 600;
   color: var(--text-element, #171738);
   background-color: rgba(52, 35, 166, 0.05);
+  white-space: normal;  /* Allow header text to wrap */
 }
 
 .day-label {
@@ -48,7 +65,7 @@
 
 .heatmap-cell {
   transition: all 0.3s ease;
-  font-size: 0.875rem;
+  /* font-size inherited from .heatmap-table-container for responsive scaling */
 }
 
 .heatmap-cell:hover {
@@ -77,18 +94,6 @@
 
 .grand-total-cell {
   font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-lg);
-  background-color: var(--color-active);
-  color: var(--color-text-primary);
-}
-
-.total-row {
-  border-top: var(--border-width-medium) solid var(--border-color-medium);
-}
-
-.grand-total-cell {
-  font-weight: var(--font-weight-bold);
-  font-size: var(--font-size-lg);
   background-color: var(--color-active);
   color: var(--color-text-primary);
 }
@@ -99,44 +104,9 @@
 
 /* Styling for percentage text */
 .percentage {
-  font-size: 0.9em;
   opacity: 0.9;
   white-space: nowrap;
 }
 
-/* Responsive table sizing to avoid horizontal scrolling */
-@media (max-width: 1199px) {
-  .heatmap-table th,
-  .heatmap-table td {
-    padding: 0.7rem;
-    font-size: 0.8rem;
-  }
-
-  .percentage {
-    font-size: 0.75em;
-  }
-}
-
-@media (max-width: 768px) {
-  .heatmap-container {
-    padding: var(--spacing-md);
-  }
-
-  .heatmap-table th,
-  .heatmap-table td {
-    padding: 0.5rem;
-    font-size: 0.7rem;
-  }
-
-  .heatmap-title {
-    font-size: var(--font-size-lg);
-  }
-
-  .day-label {
-    font-size: 0.65rem;
-  }
-
-  .percentage {
-    font-size: 0.6em;
-  }
-}
+/* Responsive table sizing - removed fixed sizes to allow clamp() scaling */
+/* The clamp() values in .heatmap-table-container handle all responsive sizing */

@@ -31,7 +31,10 @@ const FilteringPanel = ({
   const isMultiSource = !Array.isArray(safeData) && typeof safeData === 'object' && safeData !== null;
 
   // For backward compatibility, convert single array to object format
-  const dataSources = isMultiSource ? safeData : { default: safeData };
+  // Memoize to prevent unnecessary re-renders
+  const dataSources = useMemo(() => {
+    return isMultiSource ? safeData : { default: safeData };
+  }, [isMultiSource, safeData]);
 
   // Extract filter configs from children
   const filterConfigs = useMemo(() => {
@@ -359,7 +362,7 @@ const FilteringPanel = ({
     });
 
     onFiltersChangeRef.current(filteredDataSources, filters);
-  }, [filters, isMultiSource, dataSources, filterConfigs]);
+  }, [filters, isMultiSource, filterConfigs]);
 
   // Loading state
   if (loading) {

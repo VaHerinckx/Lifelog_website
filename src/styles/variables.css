@@ -141,6 +141,12 @@
   --chart-shadow: var(--shadow-md);
   --chart-height-default: 500px;
   --chart-height-mobile: 400px;
+  --chart-height-tablet: 500px;
+  --chart-height-desktop: 600px;
+
+  /* Chart layout proportions */
+  --chart-header-height-ratio: 20%;  /* Header takes 1/5 of container */
+  --chart-content-height-ratio: 80%; /* Chart content takes 4/5 of container */
 
   /* Chart typography */
   --chart-title-size: var(--font-size-xl);

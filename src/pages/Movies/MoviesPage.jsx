@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Film, Grid, List, Calendar, Tag, Star } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 
@@ -26,6 +26,8 @@ import TopChart from '../../components/charts/TopChart';
 import { sortByDateSafely } from '../../utils/sortingUtils';
 
 const MoviesPage = () => {
+  console.log('🎬 MoviesPage component mounting/rendering');
+
   const { data, loading, error, fetchData } = useData();
   const [movies, setMovies] = useState([]);
   const [filteredMovies, setFilteredMovies] = useState([]);
@@ -36,10 +38,12 @@ const MoviesPage = () => {
 
   // Fetch movies data when component mounts
   useEffect(() => {
+    console.log('🎬 MoviesPage useEffect - fetching data');
+
     if (typeof fetchData === 'function') {
       fetchData('movies');
     }
-  }, [fetchData]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Process movies data when it's loaded
   useEffect(() => {
@@ -126,6 +130,11 @@ const MoviesPage = () => {
     setSelectedMovie(null);
   };
 
+  // Memoize data object to prevent FilteringPanel re-renders
+  const filterPanelData = useMemo(() => ({
+    movies: movies
+  }), [movies]);
+
   return (
     <PageWrapper
       error={error?.movies}
@@ -141,9 +150,7 @@ const MoviesPage = () => {
         <>
           {/* FilteringPanel with Filter children */}
           <FilteringPanel
-            data={{
-              movies: movies
-            }}
+            data={filterPanelData}
             onFiltersChange={handleFiltersChange}
           >
             <Filter

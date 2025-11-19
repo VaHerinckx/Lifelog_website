@@ -1,5 +1,5 @@
 // src/context/DataContext.jsx
-import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef, useMemo } from 'react';
 import Papa from 'papaparse';
 import { DRIVE_FILES, getDriveDownloadUrl } from '../config/config';
 
@@ -252,9 +252,13 @@ export const DataProvider = ({ children }) => {
   // Track which data types have been logged to avoid duplicates
   const loggedDataTypes = useRef(new Set());
 
+  // Use a ref to track data without causing re-renders
+  const dataRef = useRef(data);
+  dataRef.current = data;
+
   const fetchData = useCallback(async (dataType) => {
-    if (data[dataType]) {
-      return data[dataType];
+    if (dataRef.current[dataType]) {
+      return dataRef.current[dataType];
     }
 
     setLoading(prev => ({ ...prev, [dataType]: true }));
@@ -645,7 +649,8 @@ export const DataProvider = ({ children }) => {
             if (dataType === 'readingSessions') {
               cleanedData = cleanedData.map(session => ({
                 ...session,
-                page_split: session.page_split ? parseInt(session.page_split) : 0
+                page_split: session.page_split ? parseInt(session.page_split) : 0,
+                my_rating: session.my_rating ? parseFloat(session.my_rating) : 0
               }));
             }
 
@@ -666,12 +671,12 @@ export const DataProvider = ({ children }) => {
       setLoading(prev => ({ ...prev, [dataType]: false }));
       throw err;
     }
-  }, [data]);
+  }, []); // Remove data dependency to prevent infinite loops
 
   // Function to calculate filtered stats from full dataset
   const calculateFilteredMusicStats = useCallback((filters) => {
     return new Promise((resolve, reject) => {
-      if (!data.music?.csvText) {
+      if (!dataRef.current.music?.csvText) {
         reject(new Error('No CSV data available for filtering'));
         return;
       }
@@ -685,7 +690,7 @@ export const DataProvider = ({ children }) => {
       let completionSum = 0;
       let completionCount = 0;
 
-      Papa.parse(data.music.csvText, {
+      Papa.parse(dataRef.current.music.csvText, {
         delimiter: "|",
         header: true,
         skipEmptyLines: true,
@@ -805,15 +810,15 @@ export const DataProvider = ({ children }) => {
         }
       });
     });
-  }, [data.music]);
+  }, []); // Remove data.music dependency to prevent infinite loops
 
-  const value = {
+  const value = useMemo(() => ({
     data,
     loading,
     error,
     fetchData,
     calculateFilteredMusicStats
-  };
+  }), [data, loading, error, fetchData, calculateFilteredMusicStats]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };
