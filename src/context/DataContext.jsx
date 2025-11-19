@@ -233,18 +233,12 @@ const generateSampleData = (dataType) => {
 
 export const DataProvider = ({ children }) => {
   const [data, setData] = useState({
-    podcast: null,
-    music: null,
     nutrition: null,
-    sport: null,
-    health: null,
     reading: null,
     readingBooks: null,
     readingSessions: null,
     movies: null,
-    shows: null,
-    finances: null,
-    work: null
+    shows: null
   });
   const [loading, setLoading] = useState({});
   const [error, setError] = useState({});
@@ -266,10 +260,6 @@ export const DataProvider = ({ children }) => {
     try {
       let fileId;
       switch (dataType) {
-        case 'podcast':
-          fileId = DRIVE_FILES.PODCAST.FILE_ID;
-          console.log('🎧 Podcast fileId:', fileId);
-          break;
         case 'reading':
           fileId = DRIVE_FILES.READING.FILE_ID;
           console.log('📚 Reading fileId:', fileId);
@@ -280,10 +270,6 @@ export const DataProvider = ({ children }) => {
         case 'readingSessions':
           fileId = DRIVE_FILES.READING_SESSIONS.FILE_ID;
           break;
-        case 'music':
-          fileId = DRIVE_FILES.MUSIC.FILE_ID;
-          console.log('🎵 Music fileId:', fileId);
-          break;
         case 'movies':
           fileId = DRIVE_FILES.MOVIES.FILE_ID;
           break;
@@ -292,17 +278,9 @@ export const DataProvider = ({ children }) => {
           console.log('📺 Shows fileId:', fileId);
           console.log('📺 DRIVE_FILES.TRAKT:', DRIVE_FILES.TRAKT);
           break;
-        case 'health':
-          fileId = DRIVE_FILES.HEALTH.FILE_ID;
-          console.log('🏥 Health fileId:', fileId);
-          console.log('🏥 DRIVE_FILES.HEALTH:', DRIVE_FILES.HEALTH);
-          break;
         case 'nutrition':
           fileId = DRIVE_FILES.NUTRITION.FILE_ID;
-          break;
-        case 'finances':
-          fileId = DRIVE_FILES.FINANCES.FILE_ID;
-          console.log('💰 Finances fileId:', fileId);
+          console.log('🥗 Nutrition fileId:', fileId);
           break;
         default:
           throw new Error(`Unknown data type: ${dataType}`);
@@ -527,103 +505,6 @@ export const DataProvider = ({ children }) => {
             }
 
             let cleanedData = cleanData(results.data);
-
-            // Special processing for nutrition data (using nutrilio_processed.csv columns)
-            if (dataType === 'nutrition') {
-              console.log('🥗 NUTRITION RAW DATA - Total rows:', cleanedData.length);
-              console.log('🥗 NUTRITION RAW DATA - First 5 rows:');
-              cleanedData.slice(0, 5).forEach((row, index) => {
-                console.log(`🥗 Row ${index + 1}:`, {
-                  date: row.date,
-                  Time: row.Time,
-                  Meal: row.Meal,
-                  food_list: row.food_list,
-                  usda_meal_score: row.usda_meal_score
-                });
-              });
-
-              cleanedData = cleanedData.map(item => {
-                try {
-                  // Parse food_list - remove quotes and split by comma
-                  const foodListRaw = item.food_list || '';
-                  const foodList = foodListRaw
-                    .replace(/'/g, '')
-                    .replace(/"/g, '')
-                    .split(',')
-                    .map(f => f.trim())
-                    .filter(f => f);
-
-                  // Create timestamp from date and Time columns
-                  let timestamp;
-                  try {
-                    if (item.date && item.Time) {
-                      // Extract just the date part (YYYY-MM-DD) in case it's already an ISO string
-                      const dateStr = item.date.split('T')[0];
-                      timestamp = new Date(`${dateStr}T${item.Time}`);
-                    } else if (item.date) {
-                      timestamp = new Date(item.date);
-                    } else {
-                      console.warn('No date found for item:', item);
-                      return null;
-                    }
-
-                    // Check if timestamp is valid
-                    if (isNaN(timestamp.getTime())) {
-                      console.warn('Invalid timestamp for item:', item.date, item.Time);
-                      return null;
-                    }
-                  } catch (e) {
-                    console.warn('Error parsing timestamp:', item.date, item.Time, e);
-                    return null;
-                  }
-
-                  // Food categories are already numeric (if they exist)
-                  const foodCategories = {
-                    meat: parseInt(item.Meat) || 0,
-                    vegetables: parseInt(item.Vegetables) || 0,
-                    fruits: parseInt(item.Fruits) || 0,
-                    carbs: parseInt(item.Carbs) || 0,
-                    dairy: parseInt(item.Dairy) || 0,
-                    sauces: parseInt(item.sauces_spices) || 0,
-                    veggieAlternative: parseInt(item.veggie_alternative) || 0,
-                    fish: parseInt(item.Fish) || 0,
-                    sweets: parseInt(item.Sweets) || 0
-                  };
-
-                  const processedItem = {
-                    ...item,
-                    timestamp: timestamp.toISOString(),
-                    foodList,
-                    mealScore: parseFloat(item.usda_meal_score) || 0,
-                    amountText: item.amount_text || '',
-                    mealType: item.Meal || '',
-                    foodCategories,
-                    // Simple derived fields
-                    year: timestamp.getFullYear().toString(),
-                    month: timestamp.getMonth() + 1,
-                    dayOfWeek: timestamp.getDay()
-                  };
-
-
-                  return processedItem;
-                } catch (error) {
-                  console.warn('Error processing nutrition item:', error, item);
-                  return null; // Skip this item
-                }
-              }).filter(item => item && item.mealType); // Only valid meals with a meal type
-
-              console.log('🥗 NUTRITION PROCESSED DATA - Total meals after filtering:', cleanedData.length);
-              console.log('🥗 NUTRITION PROCESSED DATA - First 3 processed meals:');
-              cleanedData.slice(0, 3).forEach((row, index) => {
-                console.log(`🥗 Processed Meal ${index + 1}:`, {
-                  timestamp: row.timestamp,
-                  mealType: row.mealType,
-                  foodList: row.foodList,
-                  mealScore: row.mealScore,
-                  amountText: row.amountText
-                });
-              });
-            }
 
             // Extra logging for shows cleaned data
             if (dataType === 'shows') {

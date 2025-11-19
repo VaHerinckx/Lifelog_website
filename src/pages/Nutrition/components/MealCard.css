@@ -1,0 +1,221 @@
+/* MealCard.css - Styling for meal cards in grid and list views */
+@import '../../../styles/variables.css';
+
+/* Base meal card */
+.meal-card {
+  background: var(--surface-primary);
+  border: var(--border-default);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  cursor: pointer;
+  transition: var(--transition-default);
+}
+
+.meal-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--primary-color);
+}
+
+/* Grid view (vertical layout) */
+.meal-card--grid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  min-height: 280px;
+}
+
+.meal-card--grid .meal-icon-container {
+  width: 100%;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-secondary);
+  border-radius: var(--border-radius-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.meal-card--grid .meal-icon {
+  color: var(--primary-color);
+}
+
+.meal-card--grid .meal-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1;
+}
+
+.meal-card--grid .meal-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meal-card--grid .meal-weekday {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.meal-card--grid .meal-food-list {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-height: 36px;
+}
+
+/* List view (horizontal layout) */
+.meal-card--list {
+  display: flex;
+  flex-direction: row;
+  gap: var(--spacing-md);
+  align-items: center;
+  min-height: 100px;
+}
+
+.meal-card--list .meal-icon-container {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--background-secondary);
+  border-radius: var(--border-radius-sm);
+}
+
+.meal-card--list .meal-icon {
+  color: var(--primary-color);
+}
+
+.meal-card--list .meal-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1;
+  min-width: 0;
+}
+
+.meal-card--list .meal-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.meal-card--list .meal-food-list {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meal-card--list .meal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Common elements */
+.meal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  align-items: center;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+}
+
+.rating-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.rating-value {
+  font-weight: var(--font-weight-medium);
+  color: var(--text-primary);
+}
+
+.usda-score-badge {
+  background: var(--accent-color);
+  color: white;
+  padding: 2px 8px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.meal-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+}
+
+.meal-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.location-tag {
+  background: var(--primary-color-light);
+  color: var(--primary-color);
+}
+
+.origin-tag {
+  background: var(--background-secondary);
+  color: var(--text-secondary);
+}
+
+.meal-date {
+  display: flex;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-top: var(--spacing-xs);
+  padding-top: var(--spacing-xs);
+  border-top: var(--border-default);
+}
+
+.date-label {
+  font-weight: var(--font-weight-medium);
+}
+
+.date-value {
+  color: var(--text-primary);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .meal-card--list {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .meal-card--list .meal-tags {
+    margin-left: 0;
+    margin-top: var(--spacing-xs);
+  }
+}
