@@ -9,27 +9,26 @@
   box-shadow: var(--chart-shadow);
   color: var(--color-text-primary);
   width: 100%;
+  height: 100%;  /* Fill parent analysis-chart-section */
   box-sizing: border-box;
-}
-
-/* Responsive chart height - ensures ResponsiveContainer has proper sizing */
-.time-series-chart-container .recharts-responsive-container {
-  min-height: 350px;
-  height: 350px;
-}
-
-@media (min-width: 768px) {
-  .time-series-chart-container .recharts-responsive-container {
-    min-height: 450px;
-    height: 450px;
-  }
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;  /* Prevent any overflow */
 }
 
 .chart-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-lg);
+  height: var(--chart-header-height-ratio);  /* 20% from variables */
+  flex-shrink: 0;  /* Never shrink */
+  margin-bottom: 0;  /* Remove margin, use flex spacing */
+}
+
+/* Responsive chart height - ensures ResponsiveContainer has proper sizing */
+.time-series-chart-container .recharts-responsive-container {
+  height: var(--chart-content-height-ratio) !important;  /* 80% from variables */
+  flex-shrink: 0;  /* Never shrink */
 }
 
 .time-series-chart__title {
