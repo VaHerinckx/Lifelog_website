@@ -8,7 +8,7 @@ const formatNumber = (num) => {
   return new Intl.NumberFormat().format(Math.round(num));
 };
 
-const TopChart = ({ data, dimension, metric = 'listeningTime' }) => {
+const TopChart = ({ data, dimension, metric = 'listeningTime', categoryField, title, topN = 10 }) => {
   const [topItems, setTopItems] = useState([]);
 
   useEffect(() => {
@@ -17,6 +17,24 @@ const TopChart = ({ data, dimension, metric = 'listeningTime' }) => {
     let processedData;
 
     switch (dimension) {
+      case 'category':
+        // Generic category aggregation for any field
+        processedData = _(data)
+          .filter(item => item[categoryField] && item[categoryField] !== 'Unknown')
+          .groupBy(categoryField)
+          .map((items, name) => ({
+            name,
+            displayName: name,
+            playCount: items.length,
+            totalMinutes: 0,
+            indicatorValue: 0,
+            indicatorType: null
+          }))
+          .orderBy(['playCount'], ['desc'])
+          .take(topN)
+          .value();
+        break;
+
       case 'artist':
         processedData = _(data)
           .filter(track => {
@@ -100,10 +118,15 @@ const TopChart = ({ data, dimension, metric = 'listeningTime' }) => {
     }
 
     setTopItems(processedData);
-  }, [data, dimension, metric]);
+  }, [data, dimension, metric, categoryField, topN]);
 
   const getTitle = () => {
+    // Use custom title if provided
+    if (title) return title;
+
     switch (dimension) {
+      case 'category':
+        return `Top ${topN} ${categoryField || 'Items'}`;
       case 'artist':
         return 'Top 10 Most Listened Artists';
       case 'track':

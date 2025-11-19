@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Book, Book as BookIcon, List, Grid, Clock, Calendar, Tag, User, Star } from 'lucide-react';
-import _ from 'lodash';
 import { useData } from '../../context/DataContext';
 
 // Import components
@@ -9,7 +8,8 @@ import BookCard from './components/BookCard';
 import FilteringPanel from '../../components/ui/Filters/FilteringPanel/FilteringPanel';
 import Filter from '../../components/ui/Filters/Filter/Filter';
 
-// Import new standardized components
+// Import standardized components
+import PageWrapper from '../../components/ui/PageWrapper/PageWrapper';
 import PageHeader from '../../components/ui/PageHeader';
 import TabNavigation from '../../components/ui/TabNavigation';
 import ContentTab from '../../components/ui/ContentTab/ContentTab';
@@ -21,6 +21,9 @@ import KpiCard from '../../components/charts/KpiCard';
 // Import chart components for analysis tab
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
+
+// Import utilities
+import { sortByDateSafely } from '../../utils/sortingUtils';
 
 const ReadingPage = () => {
   const { data, loading, error, fetchData } = useData();
@@ -46,51 +49,32 @@ const ReadingPage = () => {
   // Process books data when it's loaded from new dual-file structure
   useEffect(() => {
     if (data?.readingBooks && data?.readingSessions) {
-      // Process books - direct mapping from CSV (no aggregation needed)
+      // Python processing now provides correct data types and sorting
+      // Only need to convert timestamp strings to Date objects for JavaScript date operations
       const processedBooks = data.readingBooks.map(book => ({
-        id: book.book_id,
-        title: book.title || '',
-        author: book.author || '',
-        publicationYear: book.original_publication_year ? Math.floor(book.original_publication_year) : '',
-        myRating: parseFloat(book.my_rating) || 0,
-        averageRating: parseFloat(book.average_rating) || 0,
-        genre: book.genre || 'Unknown',
-        fiction: book.fiction_yn && book.fiction_yn.toLowerCase() === 'fiction',
-        pages: parseInt(book.number_of_pages) || 0,
-        coverUrl: book.cover_url || '',
-        readingDuration: book.reading_duration_final ? parseInt(book.reading_duration_final) : null,
-        timestamp: new Date(book.timestamp),
-        reading_year: book.reading_year,
-        reading_month: book.reading_month,
-        reading_quarter: book.reading_quarter,
-        page_split: book.page_split || 0
+        ...book,
+        timestamp: new Date(book.timestamp)
       }));
 
-      // Sort by timestamp (most recent first)
-      const sortedBooks = _.sortBy(processedBooks, book => book.timestamp).reverse();
-      setBooks(sortedBooks);
-      setFilteredBooks(sortedBooks);
+      const processedSessions = data.readingSessions.map(session => ({
+        ...session,
+        timestamp: new Date(session.timestamp)
+      }));
 
-      // Set reading sessions (already have derived date fields from Python)
-      setReadingEntries(data.readingSessions);
-      setFilteredReadingEntries(data.readingSessions);
+      // Data already sorted by Python, but set in state
+      setBooks(processedBooks);
+      setFilteredBooks(processedBooks);
+      setReadingEntries(processedSessions);
+      setFilteredReadingEntries(processedSessions);
     }
   }, [data?.readingBooks, data?.readingSessions]);
 
   // Apply filters when FilteringPanel filters change
   // FilteringPanel now returns pre-filtered data per source!
   const handleFiltersChange = (filteredDataSources) => {
-    // Sort by timestamp (most recent first)
-    const sortedBooks = _.sortBy(filteredDataSources.readingBooks || [], book => {
-      return book.timestamp instanceof Date && !isNaN(book.timestamp.getTime())
-        ? book.timestamp.getTime()
-        : -Infinity;
-    }).reverse();
-
-    const sortedSessions = _.sortBy(filteredDataSources.readingSessions || [], entry => {
-      const entryDate = new Date(entry.timestamp);
-      return !isNaN(entryDate.getTime()) ? entryDate.getTime() : -Infinity;
-    }).reverse();
+    // Re-sort filtered data (most recent first)
+    const sortedBooks = sortByDateSafely(filteredDataSources.readingBooks || []);
+    const sortedSessions = sortByDateSafely(filteredDataSources.readingSessions || []);
 
     setFilteredBooks(sortedBooks);
     setFilteredReadingEntries(sortedSessions);
@@ -104,27 +88,16 @@ const ReadingPage = () => {
     setSelectedBook(null);
   };
 
-  if ((error && error.readingBooks) || (error && error.readingSessions)) {
-    return (
-      <div className="page-container">
-        <div className="page-content">
-          <h1>Reading Tracker</h1>
-          <div className="error">
-            Error loading reading data: {error.readingBooks || error.readingSessions}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="page-container">
-      <div className="page-content">
-        {/* Page Header */}
-        <PageHeader
-          title="Reading Tracker"
-          description="Track your reading habits and discover insights about your books"
-        />
+    <PageWrapper
+      error={error?.readingBooks || error?.readingSessions}
+      errorTitle="Reading Tracker"
+    >
+      {/* Page Header */}
+      <PageHeader
+        title="Reading Tracker"
+        description="Track your reading habits and discover insights about your books"
+      />
 
         {!(loading?.readingBooks || loading?.readingSessions) && (
           <>
@@ -168,18 +141,18 @@ const ReadingPage = () => {
                 dataSources={['readingBooks']}
               />
               <Filter
-                type="singleselect"
+                type="multiselect"
                 label="Fiction/Non-Fiction"
-                field="fiction"
+                field="fiction_yn"
                 icon={<Book />}
                 defaultValue="all"
                 dataSources={['readingBooks']}
-                options={['all', 'fiction', 'non-fiction']}
+                options={['all', 'Fiction', 'Non-Fiction']}
               />
               <Filter
                 type="multiselect"
                 label="My Rating"
-                field="myRating"
+                field="my_rating"
                 icon={<Star />}
                 placeholder="Select ratings"
                 dataSources={['readingBooks']}
@@ -202,14 +175,14 @@ const ReadingPage = () => {
               />
               <KpiCard
                 dataSource="readingBooks"
-                field="pages"
+                field="number_of_pages"
                 computation="sum"
                 label="Total Pages"
                 icon={<BookIcon />}
               />
               <KpiCard
                 dataSource="readingBooks"
-                field="myRating"
+                field="my_rating"
                 computation="average"
                 computationOptions={{ decimals: 1, filterZeros: true }}
                 label="Average Rating"
@@ -217,7 +190,7 @@ const ReadingPage = () => {
               />
               <KpiCard
                 dataSource="readingBooks"
-                field="readingDuration"
+                field="reading_duration_final"
                 computation="average"
                 computationOptions={{ decimals: 0, filterZeros: true }}
                 label="Avg. Reading Duration (days)"
@@ -258,7 +231,7 @@ const ReadingPage = () => {
                 viewMode="grid"
                 renderItem={(book) => (
                   <BookCard
-                    key={`${book.id}-${book.title}`}
+                    key={`${book.book_id}-${book.title}`}
                     book={book}
                     viewMode="grid"
                     onClick={handleBookClick}
@@ -272,7 +245,7 @@ const ReadingPage = () => {
                 viewMode="list"
                 renderItem={(book) => (
                   <BookCard
-                    key={`list-${book.id}-${book.title}`}
+                    key={`list-${book.book_id}-${book.title}`}
                     book={book}
                     viewMode="list"
                     onClick={handleBookClick}
@@ -311,12 +284,11 @@ const ReadingPage = () => {
           />
         )}
 
-        {/* Book Details Modal */}
-        {selectedBook && (
-          <BookDetails book={selectedBook} onClose={handleCloseDetails} />
-        )}
-      </div>
-    </div>
+      {/* Book Details Modal */}
+      {selectedBook && (
+        <BookDetails book={selectedBook} onClose={handleCloseDetails} />
+      )}
+    </PageWrapper>
   );
 };
 

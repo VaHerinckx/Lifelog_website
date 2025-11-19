@@ -51,3 +51,10 @@ export {
   formatNumber,
   formatDuration
 } from './statsUtils';
+
+// Sorting utilities
+export {
+  sortByDateSafely,
+  sortByNumberSafely,
+  sortByStringSafely
+} from './sortingUtils';

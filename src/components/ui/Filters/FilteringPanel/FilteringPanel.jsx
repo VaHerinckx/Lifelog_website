@@ -1,5 +1,5 @@
 // src/components/ui/Filters/FilteringPanel/FilteringPanel.jsx
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import _ from 'lodash';
 import Papa from 'papaparse';
 import Filter from '../Filter/Filter';
@@ -24,11 +24,14 @@ const FilteringPanel = ({
   onFiltersChange,
   loading = false
 }) => {
+  // Ensure data is never null or undefined
+  const safeData = data ?? [];
+
   // Determine if we're working with multiple data sources
-  const isMultiSource = !Array.isArray(data) && typeof data === 'object';
+  const isMultiSource = !Array.isArray(safeData) && typeof safeData === 'object' && safeData !== null;
 
   // For backward compatibility, convert single array to object format
-  const dataSources = isMultiSource ? data : { default: data };
+  const dataSources = isMultiSource ? safeData : { default: safeData };
 
   // Extract filter configs from children
   const filterConfigs = useMemo(() => {
@@ -103,11 +106,9 @@ const FilteringPanel = ({
         
         if (fullDataset && typeof fullDataset === 'string' && fullDataset.length > 0) {
           // Use full dataset to calculate date boundaries
-          console.log(`🎵 Calculating date boundaries from full dataset for ${config.key}`);
-          
           const allDates = [];
           let processedRows = 0;
-          
+
           Papa.parse(fullDataset, {
             delimiter: "|",
             header: true,
@@ -115,28 +116,23 @@ const FilteringPanel = ({
             step: (row) => {
               processedRows++;
               const track = row.data;
-              
+
               // Filter out tracks before 2017
               const trackDate = new Date(track.timestamp);
               if (isNaN(trackDate.getTime()) || trackDate < new Date('2017-01-01')) {
                 return; // Skip this track
               }
-              
+
               // Add listening year for year filter options
               track.listening_year = trackDate.getFullYear().toString();
-              
+
               const dateValue = track[fieldName];
-              
+
               if (dateValue) {
                 const date = new Date(dateValue);
                 if (!isNaN(date.getTime()) && date.getFullYear() > 1900) {
                   allDates.push(date);
                 }
-              }
-              
-              // Log progress every 50k rows
-              if (processedRows % 50000 === 0) {
-                console.log(`🎵 Date boundary calculation: processed ${processedRows} rows, found ${allDates.length} valid dates`);
               }
             },
             complete: () => {
@@ -146,16 +142,6 @@ const FilteringPanel = ({
                   minDate: allDates[0],
                   maxDate: allDates[allDates.length - 1]
                 };
-                
-                console.log(`🎵 Full dataset date boundaries for ${config.key}:`, {
-                  totalDates: allDates.length,
-                  minDate: allDates[0].toISOString(),
-                  maxDate: allDates[allDates.length - 1].toISOString(),
-                  dateRange: {
-                    earliest: allDates[0].getFullYear(),
-                    latest: allDates[allDates.length - 1].getFullYear()
-                  }
-                });
               }
             }
           });
@@ -219,16 +205,6 @@ const FilteringPanel = ({
               minDate: validDates[0],
               maxDate: validDates[validDates.length - 1]
             };
-            
-            console.log(`🎵 Display data date boundaries for ${config.key}:`, {
-              validDatesCount: validDates.length,
-              minDate: validDates[0]?.toISOString(),
-              maxDate: validDates[validDates.length - 1]?.toISOString(),
-              dateRange: {
-                earliest: validDates[0].getFullYear(),
-                latest: validDates[validDates.length - 1].getFullYear()
-              }
-            });
           }
         }
 
@@ -309,39 +285,38 @@ const FilteringPanel = ({
         // Remove duplicates and sort
         values = _.uniq(values).sort();
         options[config.key] = values;
-
-        // Debug logging
-        console.log(`🔍 Filter "${config.key}" options:`, values.length, 'items after applying other filters');
       }
     });
 
     return { options, dateBoundaries };
   }, [dataSources, filterConfigs, filters]); // Important: depends on current filters state
 
+  // Use ref to store callback and prevent infinite loops
+  const onFiltersChangeRef = useRef(onFiltersChange);
+
+  useEffect(() => {
+    onFiltersChangeRef.current = onFiltersChange;
+  }, [onFiltersChange]);
+
   // Handle individual filter changes
   const handleFilterChange = (filterKey, newValue) => {
-    console.log(`🔧 Filter "${filterKey}" changing to:`, newValue);
-
     setFilters(prevFilters => {
       const updatedFilters = {
         ...prevFilters,
         [filterKey]: newValue
       };
 
-      console.log('📋 Updated filters state:', updatedFilters);
       return updatedFilters;
     });
   };
 
   // Apply filters to all data sources and notify parent
   useEffect(() => {
-    console.log('📤 Applying filters to data sources:', filters);
-
-    if (!onFiltersChange) return;
+    if (!onFiltersChangeRef.current) return;
 
     // If single-source mode (backward compatibility), just return filters
     if (!isMultiSource) {
-      onFiltersChange(filters);
+      onFiltersChangeRef.current(filters);
       return;
     }
 
@@ -383,13 +358,8 @@ const FilteringPanel = ({
       filteredDataSources[sourceName] = filtered;
     });
 
-    console.log('✅ Filtered data sources:', Object.keys(filteredDataSources).reduce((acc, key) => {
-      acc[key] = filteredDataSources[key].length;
-      return acc;
-    }, {}));
-
-    onFiltersChange(filteredDataSources, filters);
-  }, [filters, onFiltersChange, isMultiSource, dataSources, filterConfigs]);
+    onFiltersChangeRef.current(filteredDataSources, filters);
+  }, [filters, isMultiSource, dataSources, filterConfigs]);
 
   // Loading state
   if (loading) {

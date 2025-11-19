@@ -10,6 +10,12 @@ const Homepage = () => {
       path: '/reading'
     },
     {
+      title: 'Movies',
+      icon: '/icons/movie_w.png',
+      description: 'Track your viewing habits and movie preferences',
+      path: '/movies'
+    },
+    {
       title: 'Sport',
       icon: '/icons/sport_w.png',
       description: 'Record your workouts and athletic progress',

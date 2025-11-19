@@ -1,39 +1,19 @@
 // src/context/DataContext.jsx
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import Papa from 'papaparse';
 import { DRIVE_FILES, getDriveDownloadUrl } from '../config/config';
 
 const DataContext = createContext();
 
-// Helper function to decode UTF-8 strings properly
+// Helper function to clean UTF-8 strings
 const decodeUTF8 = (str) => {
-  try {
-    // First try to decode as UTF-8
-    return decodeURIComponent(escape(str));
-  } catch (e) {
-    // If that fails, try to fix common encoding issues
-    return str
-      .replace(/[\u0000-\u0019]/g, '') // Remove control characters
-      .replace(/�/g, 'è') // Fix common special characters
-      .replace(/[\u0080-\u00ff]/g, (char) => { // Fix Latin-1 characters
-        const specialChars = {
-          'Ã¨': 'è',
-          'Ã©': 'é',
-          'Ã«': 'ë',
-          'Ã¯': 'ï',
-          'Ã´': 'ô',
-          'Ã¶': 'ö',
-          'Ã¹': 'ù',
-          'Ã»': 'û',
-          'Ã¼': 'ü',
-          'Ã ': 'à',
-          'Ã¢': 'â',
-          // Add more special characters as needed
-        };
-        return specialChars[char] || char;
-      })
-      .trim();
-  }
+  if (!str) return str;
+
+  // Just remove control characters and trim
+  // Modern browsers handle UTF-8 correctly, no need for aggressive decoding
+  return str
+    .replace(/[\u0000-\u0019]/g, '') // Remove control characters
+    .trim();
 };
 
 // In the clean string function in DataContext.jsx
@@ -269,6 +249,9 @@ export const DataProvider = ({ children }) => {
   const [loading, setLoading] = useState({});
   const [error, setError] = useState({});
 
+  // Track which data types have been logged to avoid duplicates
+  const loggedDataTypes = useRef(new Set());
+
   const fetchData = useCallback(async (dataType) => {
     if (data[dataType]) {
       return data[dataType];
@@ -289,22 +272,16 @@ export const DataProvider = ({ children }) => {
           break;
         case 'readingBooks':
           fileId = DRIVE_FILES.READING_BOOKS.FILE_ID;
-          console.log('📚 Reading Books fileId:', fileId);
           break;
         case 'readingSessions':
           fileId = DRIVE_FILES.READING_SESSIONS.FILE_ID;
-          console.log('📚 Reading Sessions fileId:', fileId);
           break;
         case 'music':
           fileId = DRIVE_FILES.MUSIC.FILE_ID;
           console.log('🎵 Music fileId:', fileId);
           break;
         case 'movies':
-          console.log('🎬 DRIVE_FILES.MOVIES:', DRIVE_FILES.MOVIES);
-          console.log('🎬 DRIVE_FILES.MOVIES.FILE_ID:', DRIVE_FILES.MOVIES.FILE_ID);
-          console.log('🎬 import.meta.env.VITE_MOVIES_FILE_ID:', import.meta.env.VITE_MOVIES_FILE_ID);
           fileId = DRIVE_FILES.MOVIES.FILE_ID;
-          console.log('🎬 Movies fileId after assignment:', fileId);
           break;
         case 'shows':
           fileId = DRIVE_FILES.TRAKT.FILE_ID;
@@ -326,10 +303,6 @@ export const DataProvider = ({ children }) => {
         default:
           throw new Error(`Unknown data type: ${dataType}`);
       }
-      
-      console.log(`📁 DRIVE_FILES object:`, DRIVE_FILES);
-
-      console.log(`Fetching ${dataType} data with fileId:`, fileId);
 
 
       // Special handling for music data due to UTF-16 encoding
@@ -488,8 +461,6 @@ export const DataProvider = ({ children }) => {
       }
 
       const csvText = await response.text();
-      console.log(`${dataType} CSV text length:`, csvText.length);
-      console.log(`${dataType} CSV first 500 chars:`, csvText.substring(0, 500));
 
       return new Promise((resolve, reject) => {
         Papa.parse(csvText, {
@@ -499,12 +470,39 @@ export const DataProvider = ({ children }) => {
           encoding: '', // Auto-detect encoding (handles both UTF-8 and UTF-16)
           transform: (value) => cleanString(value), // Clean each value as it's parsed
           complete: (results) => {
-            console.log(`${dataType} Papa parse results:`, {
-              dataLength: results.data.length,
-              fields: results.meta.fields,
-              errors: results.errors,
-              firstRow: results.data[0]
-            });
+            // Simplified logging for reading data types (only log once per data type)
+            if ((dataType === 'readingBooks' || dataType === 'readingSessions') && !loggedDataTypes.current.has(dataType)) {
+              loggedDataTypes.current.add(dataType);
+
+              console.log(`📚 ${dataType} columns:`, results.meta.fields);
+
+              // Find latest date - look for date-related columns
+              const dateColumns = results.meta.fields.filter(f =>
+                f && (f.toLowerCase().includes('date') ||
+                      f.toLowerCase().includes('finish') ||
+                      f.toLowerCase().includes('timestamp'))
+              );
+
+              if (dateColumns.length > 0 && results.data.length > 0) {
+                // Try each date column and find the latest date across all of them
+                let allDates = [];
+
+                dateColumns.forEach(dateColumn => {
+                  const dates = results.data
+                    .map(row => row[dateColumn])
+                    .filter(d => d && d.toString().trim())
+                    .map(d => new Date(d))
+                    .filter(d => !isNaN(d.getTime()));
+
+                  allDates = allDates.concat(dates);
+                });
+
+                if (allDates.length > 0) {
+                  allDates.sort((a, b) => b - a);
+                  console.log(`📚 ${dataType} latest date:`, allDates[0].toISOString().split('T')[0]);
+                }
+              }
+            }
 
             // Extra logging for shows data
             if (dataType === 'shows') {
@@ -525,10 +523,6 @@ export const DataProvider = ({ children }) => {
             }
 
             let cleanedData = cleanData(results.data);
-            console.log(`${dataType} cleaned data:`, {
-              length: cleanedData.length,
-              firstItem: cleanedData[0]
-            });
 
             // Special processing for nutrition data (using nutrilio_processed.csv columns)
             if (dataType === 'nutrition') {
@@ -633,6 +627,26 @@ export const DataProvider = ({ children }) => {
               cleanedData.slice(0, 3).forEach((row, index) => {
                 console.log(`📺 Cleaned Row ${index + 1}:`, row);
               });
+            }
+
+            // Type conversion for reading books
+            if (dataType === 'readingBooks') {
+              cleanedData = cleanedData.map(book => ({
+                ...book,
+                my_rating: book.my_rating ? parseFloat(book.my_rating) : 0,
+                average_rating: book.average_rating ? parseFloat(book.average_rating) : 0,
+                number_of_pages: book.number_of_pages ? parseInt(book.number_of_pages) : 0,
+                original_publication_year: book.original_publication_year ? parseInt(book.original_publication_year) : null,
+                reading_duration_final: book.reading_duration_final ? parseInt(book.reading_duration_final) : null
+              }));
+            }
+
+            // Type conversion for reading sessions
+            if (dataType === 'readingSessions') {
+              cleanedData = cleanedData.map(session => ({
+                ...session,
+                page_split: session.page_split ? parseInt(session.page_split) : 0
+              }));
             }
 
             setData(prev => ({ ...prev, [dataType]: cleanedData }));

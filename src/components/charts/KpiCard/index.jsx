@@ -22,6 +22,7 @@ import './KpiCard.css';
  * @param {string} props.dataSource - Which data source to use (e.g., 'readingBooks')
  * @param {string} props.field - The field name to compute on
  * @param {string} props.computation - Type of computation (count, sum, average, etc.)
+ * @param {Function} [props.customValue] - Custom function to compute value (bypasses computation)
  * @param {Object} [props.computationOptions] - Additional options for computation
  * @param {Object} [props.formatOptions] - Formatting options for display
  * @param {string} props.label - The descriptive label for the KPI
@@ -36,6 +37,7 @@ const KpiCard = ({
   dataSource,
   field,
   computation,
+  customValue,
   computationOptions = {},
   formatOptions = {},
 
@@ -50,6 +52,11 @@ const KpiCard = ({
   const computedValue = useMemo(() => {
     if (isLegacyMode) {
       return value; // Use pre-computed value
+    }
+
+    // Check for custom value function
+    if (customValue && typeof customValue === 'function') {
+      return customValue();
     }
 
     // Smart mode: compute from data
@@ -67,7 +74,7 @@ const KpiCard = ({
     }
 
     return result;
-  }, [isLegacyMode, value, data, field, computation, computationOptions, formatOptions]);
+  }, [isLegacyMode, value, customValue, data, field, computation, computationOptions, formatOptions]);
 
   // Format the display value
   const displayValue = useMemo(() => {

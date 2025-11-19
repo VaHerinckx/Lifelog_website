@@ -5,11 +5,17 @@ import { DataProvider } from './context/DataContext';
 import Layout from './components/ui/Layout';
 import Homepage from './pages/Home/Homepage';
 import ReadingPage from './pages/Reading/ReadingPage';
+import MoviesPage from './pages/Movies/MoviesPage';
 
 const App = () => {
   return (
     <DataProvider>
-      <Router>
+      <Router
+        future={{
+          v7_startTransition: true,
+          v7_relativeSplatPath: true
+        }}
+      >
         <Routes>
           {/* Homepage outside of Layout */}
           <Route path="/" element={<Homepage />} />
@@ -17,6 +23,7 @@ const App = () => {
           {/* All other pages wrapped in Layout */}
           <Route element={<Layout />}>
             <Route path="/reading" element={<ReadingPage />} />
+            <Route path="/movies" element={<MoviesPage />} />
             <Route
               path="/sport"
               element={

@@ -26,7 +26,7 @@ const BookCard = ({ book, viewMode = 'grid', onClick }) => {
       <div className={cardClass} onClick={() => onClick(book)}>
         <div className="book-cover-container">
           <img
-            src={book.coverUrl || "/api/placeholder/80/120"}
+            src={book.cover_url || "/api/placeholder/80/120"}
             alt={`${book.title} cover`}
             className="book-cover"
             onError={(e) => {
@@ -42,28 +42,28 @@ const BookCard = ({ book, viewMode = 'grid', onClick }) => {
 
           <div className="book-meta">
             <div className="rating-container">
-              <StarRating rating={book.myRating} size={16} />
-              <span className="rating-value">{book.myRating.toFixed(1)}</span>
+              <StarRating rating={book.my_rating} size={16} />
+              <span className="rating-value">{book.my_rating.toFixed(1)}</span>
             </div>
 
-            {book.pages > 0 && (
+            {book.number_of_pages > 0 && (
               <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                 <BookOpen size={16} />
-                <span>{book.pages} pages</span>
+                <span>{book.number_of_pages} pages</span>
               </div>
             )}
 
-            {book.readingDuration && (
+            {book.reading_duration_final && (
               <span className="reading-duration">
-                Read in {book.readingDuration} days
+                Read in {book.reading_duration_final} days
               </span>
             )}
           </div>
         </div>
 
         <div className="book-genre-tags">
-          <span className={`book-genre ${book.fiction ? 'fiction-tag' : 'non-fiction-tag'}`}>
-            {book.fiction ? 'Fiction' : 'Non-Fiction'}
+          <span className={`book-genre ${book.fiction_yn === 'Fiction' ? 'fiction-tag' : 'non-fiction-tag'}`}>
+            {book.fiction_yn}
           </span>
           {book.genre && book.genre !== 'Unknown' && (
             <span className="book-genre">{book.genre}</span>
@@ -78,7 +78,7 @@ const BookCard = ({ book, viewMode = 'grid', onClick }) => {
     <div className={cardClass} onClick={() => onClick(book)}>
       <div className="book-cover-container">
         <img
-          src={book.coverUrl || "/api/placeholder/220/320"}
+          src={book.cover_url || "/api/placeholder/220/320"}
           alt={`${book.title} cover`}
           className="book-cover"
           onError={(e) => {
@@ -93,15 +93,15 @@ const BookCard = ({ book, viewMode = 'grid', onClick }) => {
         <p className="book-author" title={book.author}>by {book.author}</p>
 
         <div className="rating-container">
-          <StarRating rating={book.myRating} size={16} />
-          <span>{book.myRating.toFixed(1)}</span>
+          <StarRating rating={book.my_rating} size={16} />
+          <span>{book.my_rating.toFixed(1)}</span>
         </div>
 
         <div className="book-meta">
-          {book.publicationYear && <span>{book.publicationYear}</span>}
+          {book.original_publication_year && <span>{book.original_publication_year}</span>}
           <div className="book-genre-tags">
-            <span className={`book-genre ${book.fiction ? 'fiction-tag' : 'non-fiction-tag'}`}>
-              {book.fiction ? 'Fiction' : 'Non-Fiction'}
+            <span className={`book-genre ${book.fiction_yn === 'Fiction' ? 'fiction-tag' : 'non-fiction-tag'}`}>
+              {book.fiction_yn}
             </span>
           </div>
         </div>
@@ -111,10 +111,10 @@ const BookCard = ({ book, viewMode = 'grid', onClick }) => {
           <span className="date-value">{formatDate(book.timestamp)}</span>
         </div>
 
-        {book.readingDuration && book.timestamp && (
+        {book.reading_duration_final && book.timestamp && (
           <div className="reading-duration">
             <span className="duration-value">
-              {book.readingDuration} days to read
+              {book.reading_duration_final} days to read
             </span>
           </div>
         )}
@@ -127,14 +127,14 @@ BookCard.propTypes = {
   book: PropTypes.shape({
     title: PropTypes.string.isRequired,
     author: PropTypes.string.isRequired,
-    coverUrl: PropTypes.string,
-    myRating: PropTypes.number.isRequired,
-    publicationYear: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    fiction: PropTypes.bool,
+    cover_url: PropTypes.string,
+    my_rating: PropTypes.number.isRequired,
+    original_publication_year: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    fiction_yn: PropTypes.string,
     genre: PropTypes.string,
-    pages: PropTypes.number,
+    number_of_pages: PropTypes.number,
     timestamp: PropTypes.instanceOf(Date),
-    readingDuration: PropTypes.number,
+    reading_duration_final: PropTypes.number,
   }).isRequired,
   viewMode: PropTypes.oneOf(['grid', 'list']),
   onClick: PropTypes.func.isRequired,

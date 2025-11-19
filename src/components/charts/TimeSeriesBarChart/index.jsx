@@ -43,11 +43,8 @@ const TimeSeriesBarChart = ({
       // Get timestamp value from the specified column
       const rawTimestamp = entry[dateColumnName];
 
-      // Get metric value - handle potential variations
-      const metricValue = parseFloat(entry[metricColumnName]) || 0;
-
-      // Skip invalid entries
-      if (!rawTimestamp || metricValue === 0) {
+      // Skip invalid timestamps
+      if (!rawTimestamp || rawTimestamp === null) {
         return;
       }
 
@@ -56,9 +53,22 @@ const TimeSeriesBarChart = ({
         ? rawTimestamp
         : new Date(rawTimestamp);
 
-      // Skip invalid dates
-      if (isNaN(date.getTime())) {
+      // Skip invalid dates (null dates become Invalid Date)
+      if (!date || date === null || isNaN(date.getTime())) {
         return;
+      }
+
+      // Get metric value - handle potential variations
+      // If metricColumnName is 'id' or similar, we're counting items, so use 1
+      let metricValue;
+      if (metricColumnName === 'id' || metricColumnName === 'movie_id' || metricColumnName === 'count') {
+        metricValue = 1; // Count each item once
+      } else {
+        metricValue = parseFloat(entry[metricColumnName]) || 0;
+        // Skip entries with zero metric values (but not for counting)
+        if (metricValue === 0) {
+          return;
+        }
       }
 
       // Update min and max dates

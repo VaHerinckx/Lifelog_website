@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 // src/components/ui/KPICardsPanel/KPICardsPanel.jsx
 import React from 'react';
 import './KPICardsPanel.css';

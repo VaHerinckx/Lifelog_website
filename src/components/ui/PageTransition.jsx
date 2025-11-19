@@ -26,14 +26,6 @@ const PageTransition = ({ children }) => {
   const isGoingRight = currentIndex > previousIndex;
 
   useEffect(() => {
-    console.log('🔄 Transition Details:');
-    console.log('Current Path:', location.pathname);
-    console.log('Current Index:', currentIndex);
-    console.log('Previous Path:', previousPath);
-    console.log('Previous Index:', previousIndex);
-    console.log('Going Right:', isGoingRight);
-    console.log('------------------------');
-
     sessionStorage.setItem('previousPath', JSON.stringify(location.pathname));
   }, [location.pathname]);
 

@@ -13,7 +13,13 @@ import LoadingSpinner from './LoadingSpinner';
  * @param {React.ReactNode} children - Content to render when not empty/loading
  * @param {React.Component} loadingIcon - Icon to use for loading spinner (optional)
  */
-const ContentContainer = ({ isEmpty, loading, emptyState, children, loadingIcon }) => {
+const ContentContainer = ({
+  isEmpty = false,
+  loading = false,
+  emptyState = null,
+  children = null,
+  loadingIcon = null
+}) => {
   // Show loading state
   if (loading) {
     return (
@@ -55,14 +61,6 @@ ContentContainer.propTypes = {
   }),
   children: PropTypes.node,
   loadingIcon: PropTypes.elementType,
-};
-
-ContentContainer.defaultProps = {
-  isEmpty: false,
-  loading: false,
-  emptyState: null,
-  children: null,
-  loadingIcon: null,
 };
 
 export default ContentContainer;

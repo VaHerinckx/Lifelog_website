@@ -28,16 +28,16 @@ import ContentContainer from '../ContentContainer';
  * @param {function} renderTimeline - Optional render function for timeline view (items) => JSX
  */
 const ContentTab = ({
-  loading,
+  loading = false,
   viewMode,
   onViewModeChange,
   viewModes,
   items,
   loadingIcon,
   emptyState,
-  renderGrid,
-  renderList,
-  renderTimeline
+  renderGrid = null,
+  renderList = null,
+  renderTimeline = null
 }) => {
   return (
     <>
@@ -90,13 +90,6 @@ ContentTab.propTypes = {
   renderGrid: PropTypes.func,
   renderList: PropTypes.func,
   renderTimeline: PropTypes.func,
-};
-
-ContentTab.defaultProps = {
-  loading: false,
-  renderGrid: null,
-  renderList: null,
-  renderTimeline: null,
 };
 
 export default ContentTab;

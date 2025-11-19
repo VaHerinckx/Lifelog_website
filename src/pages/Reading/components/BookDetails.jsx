@@ -16,7 +16,7 @@ const BookDetails = ({ book, onClose }) => {
         <div className="book-details-content">
           <div className="book-details-cover">
             <img
-              src={book.coverUrl || "/api/placeholder/300/450"}
+              src={book.cover_url || "/api/placeholder/300/450"}
               alt={`${book.title} cover`}
               onError={(e) => {
                 e.target.onerror = null;
@@ -30,22 +30,22 @@ const BookDetails = ({ book, onClose }) => {
             <h3>by {book.author}</h3>
 
             <div className="book-details-meta">
-              {book.publicationYear && (
+              {book.original_publication_year && (
                 <div className="meta-item">
                   <Calendar size={18} />
-                  <span>Published: {book.publicationYear}</span>
+                  <span>Published: {book.original_publication_year}</span>
                 </div>
               )}
 
               <div className="meta-item">
                 <BookOpen size={18} />
-                <span>{book.pages.toLocaleString()} pages</span>
+                <span>{book.number_of_pages.toLocaleString()} pages</span>
               </div>
 
-              {book.readingDuration && (
+              {book.reading_duration_final && (
                 <div className="meta-item">
                   <Clock size={18} />
-                  <span>Read in {book.readingDuration} days</span>
+                  <span>Read in {book.reading_duration_final} days</span>
                 </div>
               )}
             </div>
@@ -54,23 +54,23 @@ const BookDetails = ({ book, onClose }) => {
               <div className="rating-item">
                 <label>My Rating:</label>
                 <div className="rating-display">
-                  <StarRating rating={book.myRating} size={18} />
-                  <span>{book.myRating.toFixed(1)}</span>
+                  <StarRating rating={book.my_rating} size={18} />
+                  <span>{book.my_rating.toFixed(1)}</span>
                 </div>
               </div>
 
               <div className="rating-item">
                 <label>Community Rating:</label>
                 <div className="rating-display">
-                  <StarRating rating={book.averageRating} size={18} />
-                  <span>{book.averageRating.toFixed(2)}</span>
+                  <StarRating rating={book.average_rating} size={18} />
+                  <span>{book.average_rating.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
             <div className="book-categories">
-              <span className={`book-category ${book.fiction ? 'fiction-tag' : 'non-fiction-tag'}`}>
-                {book.fiction ? 'Fiction' : 'Non-Fiction'}
+              <span className={`book-category ${book.fiction_yn === 'Fiction' ? 'fiction-tag' : 'non-fiction-tag'}`}>
+                {book.fiction_yn}
               </span>
 
               {book.genre && book.genre !== 'Unknown' && (
