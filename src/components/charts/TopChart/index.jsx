@@ -1,162 +1,127 @@
 // src/components/charts/TopChart/index.jsx
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import _ from 'lodash';
 import './TopChart.css';
 
-const formatNumber = (num) => {
+const formatNumber = (num, decimals = 0) => {
+  if (decimals > 0) {
+    return new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    }).format(num);
+  }
   return new Intl.NumberFormat().format(Math.round(num));
 };
 
-const TopChart = ({ data, dimension, metric = 'listeningTime', categoryField, title, topN = 10 }) => {
+const TopChart = ({
+  data,
+  dimensionOptions = [],
+  metricOptions = [],
+  defaultDimension,
+  defaultMetric,
+  title,
+  topN = 10
+}) => {
+  // State for user-selected controls
+  const [selectedDimension, setSelectedDimension] = useState(defaultDimension || dimensionOptions[0]?.value);
+  const [selectedMetric, setSelectedMetric] = useState(defaultMetric || metricOptions[0]?.value);
   const [topItems, setTopItems] = useState([]);
 
+  // Find current dimension and metric configs
+  const currentDimensionConfig = dimensionOptions.find(d => d.value === selectedDimension);
+  const currentMetricConfig = metricOptions.find(m => m.value === selectedMetric);
+
   useEffect(() => {
-    if (!Array.isArray(data)) return;
+    if (!Array.isArray(data) || !currentDimensionConfig || !currentMetricConfig) return;
 
-    let processedData;
+    const dimensionField = currentDimensionConfig.field;
+    const metricField = currentMetricConfig.field;
+    const metricAggregation = currentMetricConfig.aggregation;
+    const labelFields = currentDimensionConfig.labelFields || [dimensionField];
 
-    switch (dimension) {
-      case 'category':
-        // Generic category aggregation for any field
-        processedData = _(data)
-          .filter(item => item[categoryField] && item[categoryField] !== 'Unknown')
-          .groupBy(categoryField)
-          .map((items, name) => ({
-            name,
-            displayName: name,
-            playCount: items.length,
-            totalMinutes: 0,
-            indicatorValue: 0,
-            indicatorType: null
-          }))
-          .orderBy(['playCount'], ['desc'])
-          .take(topN)
-          .value();
-        break;
+    // Filter out invalid/unknown values
+    const filteredData = data.filter(item => {
+      const value = item[dimensionField];
+      return value && value !== 'Unknown' && value.toString().trim() !== '';
+    });
 
-      case 'artist':
-        processedData = _(data)
-          .filter(track => {
-            const artistName = track.artist_name || '';
-            return !(artistName === 'Unknown Artist' || artistName.trim() === '');
-          })
-          .groupBy('artist_name')
-          .map((tracks, name) => ({
-            name,
-            displayName: name,
-            popularity: tracks[0]?.artist_popularity || 0,
-            playCount: tracks.length,
-            totalMinutes: _.sumBy(tracks, track => {
-              const duration = parseFloat(track.track_duration);
-              return isNaN(duration) ? 0 : duration / 1000 / 60;
-            }),
-            indicatorValue: tracks[0]?.artist_popularity || 0,
-            indicatorType: 'popularity'
-          }))
-          .orderBy(['playCount'], ['desc'])
-          .take(10)
-          .value();
-        break;
+    // Group by dimension field
+    const grouped = _(filteredData).groupBy(dimensionField);
 
-      case 'track':
-        processedData = _(data)
-          .filter(track => {
-            const trackName = track.track_name || '';
-            const artistName = track.artist_name || '';
-            return !(
-              (trackName === 'Unknown Track' || trackName.trim() === '') &&
-              (artistName === 'Unknown Artist' || artistName.trim() === '')
-            );
-          })
-          .groupBy(track => track.song_key || `${track.track_name} by ${track.artist_name}`)
-          .map((plays, trackKey) => ({
-            name: trackKey,
-            displayName: `${plays[0]?.track_name || 'Unknown Track'} - ${plays[0]?.artist_name || 'Unknown Artist'}`,
-            playCount: plays.length,
-            totalMinutes: _.sumBy(plays, track => {
-              const duration = parseFloat(track.track_duration);
-              return isNaN(duration) ? 0 : duration / 1000 / 60;
-            }),
-            indicatorValue: plays[0]?.track_popularity || 0,
-            indicatorType: 'popularity'
-          }))
-          .orderBy(['playCount'], ['desc'])
-          .take(10)
-          .value();
-        break;
+    // Calculate metric for each group
+    let processedData = grouped.map((items, groupKey) => {
+      let metricValue;
 
-      case 'album':
-        processedData = _(data)
-          .filter(track => {
-            const albumName = track.album_name || '';
-            const artistName = track.artist_name || '';
-            return !(
-              (albumName === 'Unknown Album' || albumName === 'Unknown' || albumName.trim() === '') ||
-              (artistName === 'Unknown Artist' || artistName.trim() === '')
-            );
-          })
-          .groupBy(track => `${track.album_name} by ${track.artist_name}`)
-          .map((tracks, albumKey) => ({
-            name: albumKey,
-            displayName: `${tracks[0]?.album_name || 'Unknown Album'} - ${tracks[0]?.artist_name || 'Unknown Artist'}`,
-            playCount: tracks.length,
-            totalMinutes: _.sumBy(tracks, track => {
-              const duration = parseFloat(track.track_duration);
-              return isNaN(duration) ? 0 : duration / 1000 / 60;
-            }),
-            indicatorValue: tracks[0]?.album_release_date ? new Date(tracks[0].album_release_date).getFullYear() : null,
-            indicatorType: 'year'
-          }))
-          .orderBy(['playCount'], ['desc'])
-          .take(10)
-          .value();
-        break;
+      switch (metricAggregation) {
+        case 'count':
+          metricValue = items.length;
+          break;
+        case 'sum':
+          metricValue = _.sumBy(items, item => {
+            const val = parseFloat(item[metricField]);
+            return isNaN(val) ? 0 : val;
+          });
+          break;
+        case 'average': {
+          const validItems = items.filter(item => {
+            const val = parseFloat(item[metricField]);
+            return !isNaN(val) && val !== null && val !== undefined;
+          });
+          if (validItems.length === 0) {
+            metricValue = 0;
+          } else {
+            const sum = _.sumBy(validItems, item => parseFloat(item[metricField]));
+            metricValue = sum / validItems.length;
+          }
+          break;
+        }
+        default:
+          metricValue = items.length;
+      }
 
-      default:
-        processedData = [];
-    }
+      // Build display name from label fields
+      const displayName = labelFields
+        .map(field => items[0]?.[field] || groupKey)
+        .filter(val => val && val.toString().trim() !== '')
+        .join(' - ');
+
+      return {
+        name: groupKey,
+        displayName: displayName || groupKey,
+        value: metricValue,
+        count: items.length
+      };
+    }).value();
+
+    // Sort by metric value and take top N
+    processedData = _(processedData)
+      .orderBy(['value'], ['desc'])
+      .take(topN)
+      .value();
 
     setTopItems(processedData);
-  }, [data, dimension, metric, categoryField, topN]);
+  }, [data, selectedDimension, selectedMetric, currentDimensionConfig, currentMetricConfig, topN]);
 
-  const getTitle = () => {
-    // Use custom title if provided
-    if (title) return title;
+  const getMetricLabel = () => {
+    if (!currentMetricConfig) return 'plays';
 
-    switch (dimension) {
-      case 'category':
-        return `Top ${topN} ${categoryField || 'Items'}`;
-      case 'artist':
-        return 'Top 10 Most Listened Artists';
-      case 'track':
-        return 'Top 10 Most Played Tracks';
-      case 'album':
-        return 'Top 10 Most Played Albums';
-      default:
-        return 'Top 10 Chart';
+    const suffix = currentMetricConfig.suffix || '';
+    const label = currentMetricConfig.label || 'Value';
+
+    if (currentMetricConfig.aggregation === 'count') {
+      return 'plays';
+    } else if (currentMetricConfig.aggregation === 'average') {
+      return `avg ${suffix}`;
     }
-  };
-
-  const getIndicatorDisplay = (item) => {
-    if (item.indicatorType === 'popularity') {
-      return Math.round(item.indicatorValue);
-    } else if (item.indicatorType === 'year') {
-      return item.indicatorValue ? item.indicatorValue.toString().slice(-2) : '??';
-    }
-    return '';
-  };
-
-  const getIndicatorOpacity = (item) => {
-    if (item.indicatorType === 'popularity') {
-      return item.indicatorValue / 100;
-    }
-    return 0.8;
+    return suffix || label.toLowerCase();
   };
 
   const CustomBar = (props) => {
-    const { x, y, width, height, displayName } = props;
-    
+    const { x, y, width, height, displayName, value } = props;
+    const decimals = currentMetricConfig?.decimals || 0;
+
     return (
       <g>
         <text
@@ -164,10 +129,11 @@ const TopChart = ({ data, dimension, metric = 'listeningTime', categoryField, ti
           y={y + height/2}
           dy=".35em"
           textAnchor="start"
-          className={`${dimension}-name`}
+          className="chart-label-name"
           title={displayName}
           fontSize="12"
           fontWeight="600"
+          fill="var(--color-text-primary)"
         >
           {displayName.length > 30 ? displayName.substring(0, 30) + '...' : displayName}
         </text>
@@ -176,7 +142,7 @@ const TopChart = ({ data, dimension, metric = 'listeningTime', categoryField, ti
           y={y}
           width={width}
           height={height}
-          fill="#3423A6"
+          fill="var(--chart-primary-color)"
           opacity={0.8}
           rx={4}
         />
@@ -187,16 +153,68 @@ const TopChart = ({ data, dimension, metric = 'listeningTime', categoryField, ti
           textAnchor="start"
           className="value-label"
         >
-          {formatNumber(props.value)} plays
+          {formatNumber(value, decimals)} {getMetricLabel()}
         </text>
       </g>
     );
   };
 
+  CustomBar.propTypes = {
+    x: PropTypes.number,
+    y: PropTypes.number,
+    width: PropTypes.number,
+    height: PropTypes.number,
+    displayName: PropTypes.string,
+    value: PropTypes.number
+  };
+
   return (
-    <div className={`top-${dimension}s-container`}>
-      <h3 className={`top-${dimension}s-title`}>{getTitle()}</h3>
-      <div className={`top-${dimension}s-chart`}>
+    <div className="top-categorys-container">
+      <div className="chart-header">
+        <h3 className="chart-title">{title || 'Top Chart'}</h3>
+
+        <div className="chart-controls">
+          {/* Dimension Selector */}
+          {dimensionOptions.length > 1 && (
+            <div className="chart-filter">
+              <label htmlFor="dimension-select">Group by:</label>
+              <select
+                id="dimension-select"
+                className="filter-select"
+                value={selectedDimension}
+                onChange={(e) => setSelectedDimension(e.target.value)}
+              >
+                {dimensionOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Metric Selector */}
+          {metricOptions.length > 1 && (
+            <div className="chart-filter">
+              <label htmlFor="metric-select">Show:</label>
+              <select
+                id="metric-select"
+                className="filter-select"
+                value={selectedMetric}
+                onChange={(e) => setSelectedMetric(e.target.value)}
+              >
+                {metricOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="top-categorys-chart">
         <ResponsiveContainer width="100%" height={500}>
           <BarChart
             data={topItems}
@@ -205,7 +223,7 @@ const TopChart = ({ data, dimension, metric = 'listeningTime', categoryField, ti
           >
             <XAxis
               type="number"
-              tickFormatter={formatNumber}
+              tickFormatter={(value) => formatNumber(value, currentMetricConfig?.decimals || 0)}
               domain={[0, 'dataMax']}
             />
             <YAxis
@@ -214,7 +232,7 @@ const TopChart = ({ data, dimension, metric = 'listeningTime', categoryField, ti
               hide
             />
             <Bar
-              dataKey="playCount"
+              dataKey="value"
               shape={<CustomBar />}
             />
           </BarChart>
@@ -222,6 +240,32 @@ const TopChart = ({ data, dimension, metric = 'listeningTime', categoryField, ti
       </div>
     </div>
   );
+};
+
+TopChart.propTypes = {
+  data: PropTypes.array.isRequired,
+  dimensionOptions: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      field: PropTypes.string.isRequired,
+      labelFields: PropTypes.arrayOf(PropTypes.string)
+    })
+  ).isRequired,
+  metricOptions: PropTypes.arrayOf(
+    PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      aggregation: PropTypes.oneOf(['count', 'sum', 'average']).isRequired,
+      field: PropTypes.string,
+      suffix: PropTypes.string,
+      decimals: PropTypes.number
+    })
+  ).isRequired,
+  defaultDimension: PropTypes.string,
+  defaultMetric: PropTypes.string,
+  title: PropTypes.string,
+  topN: PropTypes.number
 };
 
 export default TopChart;

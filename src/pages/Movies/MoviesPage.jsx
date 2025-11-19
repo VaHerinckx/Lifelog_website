@@ -296,24 +296,20 @@ const MoviesPage = () => {
               />
               <TopChart
                 data={data}
-                dimension="category"
-                categoryField="genre"
-                title="Top Genres"
+                dimensionOptions={[
+                  { value: 'genre', label: 'Genre', field: 'genre', labelFields: ['genre'] },
+                  { value: 'year', label: 'Year', field: 'year', labelFields: ['year'] },
+                  { value: 'name', label: 'Movie', field: 'name', labelFields: ['name'] },
+                  { value: 'type', label: 'Type', field: 'type', labelFields: ['type'] }
+                ]}
+                metricOptions={[
+                  { value: 'count', label: 'Watch Count', aggregation: 'count', decimals: 0 },
+                  { value: 'avgRating', label: 'Avg Rating', aggregation: 'average', field: 'rating', suffix: '★', decimals: 1 }
+                ]}
+                defaultDimension="genre"
+                defaultMetric="count"
+                title="Top Movies Analysis"
                 topN={10}
-              />
-              <TopChart
-                data={data}
-                dimension="category"
-                categoryField="year"
-                title="Movies by Release Year"
-                topN={15}
-              />
-              <TimeSeriesBarChart
-                data={data}
-                dateColumnName="date"
-                metricColumnName="rating"
-                title="Average Rating Over Time"
-                yAxisLabel="Rating"
               />
             </>
           )}
