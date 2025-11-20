@@ -101,12 +101,10 @@ const MusicPage = () => {
               <Filter
                 type="multiselect"
                 label="Genres"
-                field="genres"
+                field="simplified_genre"
                 icon={<Tag />}
                 placeholder="Select genres"
                 dataSources={['music']}
-                delimiter=", "
-                matchMode="any"
               />
               <Filter
                 type="multiselect"
@@ -157,14 +155,14 @@ const MusicPage = () => {
               <KpiCard
                 dataSource="music"
                 field="artist_name"
-                computation="countUnique"
+                computation="count_distinct"
                 label="Unique Artists"
                 icon={<User />}
               />
               <KpiCard
                 dataSource="music"
                 field="track_name"
-                computation="countUnique"
+                computation="count_distinct"
                 label="Unique Tracks"
                 icon={<MusicIcon />}
               />
@@ -186,14 +184,10 @@ const MusicPage = () => {
               />
               <KpiCard
                 dataSource="music"
-                field="genres"
-                computation="topValue"
-                label="Top Genre"
+                field="simplified_genre"
+                computation="count_distinct"
+                label="Unique Genres"
                 icon={<Tag />}
-                computationOptions={{
-                  splitBy: ', ',
-                  extractFirst: true
-                }}
               />
             </KPICardsPanel>
 
