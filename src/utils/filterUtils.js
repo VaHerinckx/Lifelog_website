@@ -74,9 +74,11 @@ export const applyDateRangeFilter = (data, dateField, dateRange, strictValidatio
  * @param {Array} data - Array of items to filter
  * @param {string} dataField - The field name to filter by
  * @param {Array} selectedValues - Array of selected values
+ * @param {string|null} delimiter - Optional delimiter for splitting field values
+ * @param {string} matchMode - Match mode: 'exact' | 'any' | 'all' (default: 'exact')
  * @returns {Array} Filtered array
  */
-export const applyMultiSelectFilter = (data, dataField, selectedValues) => {
+export const applyMultiSelectFilter = (data, dataField, selectedValues, delimiter = null, matchMode = 'exact') => {
   if (!selectedValues || !Array.isArray(selectedValues) || selectedValues.length === 0) {
     return data;
   }
@@ -86,8 +88,82 @@ export const applyMultiSelectFilter = (data, dataField, selectedValues) => {
       ? getNestedValue(item, dataField)
       : item[dataField];
 
+    // Handle delimited values
+    if (delimiter) {
+      return matchDelimitedValue(itemValue, selectedValues, delimiter, matchMode);
+    }
+
+    // Standard exact match
     return selectedValues.includes(itemValue);
   });
+};
+
+/**
+ * Matches a delimited value against selected values
+ * @param {string} itemValue - The delimited value from the item (e.g., "rock, pop, jazz")
+ * @param {Array} selectedValues - Array of selected values
+ * @param {string} delimiter - Delimiter used to split the value
+ * @param {string} matchMode - Match mode: 'exact' | 'any' | 'all'
+ * @returns {boolean} True if the value matches based on the match mode
+ */
+export const matchDelimitedValue = (itemValue, selectedValues, delimiter, matchMode = 'any') => {
+  if (!itemValue) return false;
+
+  // Split the delimited value and trim each part
+  const itemValues = itemValue
+    .split(delimiter)
+    .map(v => v.trim())
+    .filter(v => v !== '');
+
+  if (itemValues.length === 0) return false;
+
+  // Apply match mode
+  switch (matchMode) {
+    case 'exact':
+      // Exact match - the delimited string must match one of the selected values exactly
+      return selectedValues.includes(itemValue);
+
+    case 'any':
+      // Any match - at least one of the item's delimited values must be in selected values
+      return itemValues.some(v => selectedValues.includes(v));
+
+    case 'all':
+      // All match - all selected values must be present in the item's delimited values
+      return selectedValues.every(sv => itemValues.includes(sv));
+
+    default:
+      return itemValues.some(v => selectedValues.includes(v));
+  }
+};
+
+/**
+ * Extracts unique values from delimited strings in a dataset
+ * @param {Array} data - Array of items
+ * @param {string} field - Field name containing delimited values
+ * @param {string} delimiter - Delimiter used to split the values
+ * @param {boolean} sort - Whether to sort the results (default: true)
+ * @returns {Array} Array of unique individual values
+ */
+export const extractDelimitedUniqueValues = (data, field, delimiter, sort = true) => {
+  const allValues = new Set();
+
+  data.forEach(item => {
+    const itemValue = field.includes('.')
+      ? getNestedValue(item, field)
+      : item[field];
+
+    if (itemValue) {
+      // Split by delimiter and add each trimmed value to the set
+      itemValue
+        .split(delimiter)
+        .map(v => v.trim())
+        .filter(v => v !== '')
+        .forEach(v => allValues.add(v));
+    }
+  });
+
+  const unique = Array.from(allValues);
+  return sort ? unique.sort() : unique;
 };
 
 /**
@@ -190,7 +266,14 @@ export const applyFilters = (data, filters, filterConfigs = {}) => {
     if (config?.type === 'daterange') {
       filtered = applyDateRangeFilter(filtered, config.dataField, filterValue);
     } else if (config?.type === 'multiselect') {
-      filtered = applyMultiSelectFilter(filtered, config.dataField, filterValue);
+      // Pass delimiter and matchMode to applyMultiSelectFilter
+      filtered = applyMultiSelectFilter(
+        filtered,
+        config.dataField,
+        filterValue,
+        config.delimiter || null,
+        config.matchMode || 'exact'
+      );
     } else if (config?.type === 'multigenre') {
       filtered = applyMultiGenreFilter(filtered, config.genreFields, filterValue);
     } else if (config?.type === 'textsearch') {

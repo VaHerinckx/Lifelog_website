@@ -76,7 +76,8 @@ export const DataProvider = ({ children }) => {
     readingSessions: null,
     movies: null,
     shows: null,
-    podcasts: null
+    podcasts: null,
+    music: null
   });
   const [loading, setLoading] = useState({});
   const [error, setError] = useState({});
@@ -123,6 +124,10 @@ export const DataProvider = ({ children }) => {
         case 'podcasts':
           fileId = DRIVE_FILES.PODCASTS.FILE_ID;
           console.log('🎙️ Podcasts fileId:', fileId);
+          break;
+        case 'music':
+          fileId = DRIVE_FILES.MUSIC.FILE_ID;
+          console.log('🎵 Music fileId:', fileId);
           break;
         default:
           throw new Error(`Unknown data type: ${dataType}`);
@@ -219,6 +224,23 @@ export const DataProvider = ({ children }) => {
                 completion_percent: episode.completion_percent ? parseFloat(episode.completion_percent) : 0,
                 is_new_podcast: episode.is_new_podcast ? parseInt(episode.is_new_podcast) : 0,
                 is_recurring_podcast: episode.is_recurring_podcast ? parseInt(episode.is_recurring_podcast) : 0
+              }));
+            }
+
+            // Type conversion for music
+            if (dataType === 'music') {
+              cleanedData = cleanedData.map(toggle => ({
+                ...toggle,
+                toggle_id: toggle.toggle_id ? parseInt(toggle.toggle_id) : 0,
+                followers: toggle.followers ? parseInt(toggle.followers) : 0,
+                artist_popularity: toggle.artist_popularity ? parseInt(toggle.artist_popularity) : 0,
+                track_popularity: toggle.track_popularity ? parseInt(toggle.track_popularity) : 0,
+                track_duration: toggle.track_duration ? parseInt(toggle.track_duration) : 0,
+                completion: toggle.completion ? parseFloat(toggle.completion) : 0,
+                skip_next_track: toggle.skip_next_track ? parseFloat(toggle.skip_next_track) : 0,
+                listening_seconds: toggle.listening_seconds ? parseInt(toggle.listening_seconds) : 0,
+                new_artist_yn: toggle.new_artist_yn ? parseInt(toggle.new_artist_yn) : 0,
+                new_track_yn: toggle.new_track_yn ? parseInt(toggle.new_track_yn) : 0
               }));
             }
 

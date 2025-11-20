@@ -16,6 +16,12 @@ const Homepage = () => {
       path: '/movies'
     },
     {
+      title: 'Music',
+      icon: '/icons/music_w.png',
+      description: 'Explore your listening history and music preferences',
+      path: '/music'
+    },
+    {
       title: 'Nutrition',
       icon: '/icons/nutrition_w.png',
       description: 'Track meals, food choices, and nutritional patterns',

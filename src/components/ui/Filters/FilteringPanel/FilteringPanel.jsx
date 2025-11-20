@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import _ from 'lodash';
 import Papa from 'papaparse';
 import Filter from '../Filter/Filter';
-import { applyFilters } from '../../../../utils/filterUtils';
+import { applyFilters, extractDelimitedUniqueValues, matchDelimitedValue } from '../../../../utils/filterUtils';
 import './FilteringPanel.css';
 
 /**
@@ -44,7 +44,7 @@ const FilteringPanel = ({
       if (!React.isValidElement(child)) return;
 
       // Extract props from Filter child to build config
-      const { type, label, icon, placeholder, searchPlaceholder, searchable, allLabel, defaultValue, ...rest } = child.props;
+      const { type, label, icon, placeholder, searchPlaceholder, searchable, allLabel, defaultValue, delimiter, matchMode, ...rest } = child.props;
 
       // Generate a key from the field or label
       const key = rest.field || label?.toLowerCase().replace(/\s+/g, '_') || `filter_${configs.length}`;
@@ -62,7 +62,9 @@ const FilteringPanel = ({
         dataField: rest.field,
         optionsSource: rest.field,
         dataSources: rest.dataSources,
-        options: rest.options
+        options: rest.options,
+        delimiter: delimiter || null,
+        matchMode: matchMode || 'exact'
       });
     });
 
@@ -180,6 +182,13 @@ const FilteringPanel = ({
                   const itemValue = dataField.includes('.')
                     ? _.get(item, dataField)
                     : item[dataField];
+
+                  // Handle delimited values
+                  if (otherConfig.delimiter) {
+                    return matchDelimitedValue(itemValue, filterValue, otherConfig.delimiter, otherConfig.matchMode);
+                  }
+
+                  // Standard exact match
                   return filterValue.includes(itemValue);
                 });
               }
@@ -244,6 +253,13 @@ const FilteringPanel = ({
                 const itemValue = dataField.includes('.')
                   ? _.get(item, dataField)
                   : item[dataField];
+
+                // Handle delimited values
+                if (otherConfig.delimiter) {
+                  return matchDelimitedValue(itemValue, filterValue, otherConfig.delimiter, otherConfig.matchMode);
+                }
+
+                // Standard exact match
                 return filterValue.includes(itemValue);
               });
             }
@@ -285,21 +301,29 @@ const FilteringPanel = ({
         // Extract unique values from the filtered data for the current filter
         const fieldName = config.dataField || config.optionsSource;
 
-        let values = filteredData
-          .map(item => {
-            const value = fieldName.includes('.')
-              ? _.get(item, fieldName)
-              : item[fieldName];
-            return value;
-          })
-          .filter(value =>
-            value &&
-            value !== 'Unknown' &&
-            value.toString().trim() !== ''
-          );
+        let values;
+        if (config.delimiter) {
+          // Use delimiter-aware extraction for delimited values
+          values = extractDelimitedUniqueValues(filteredData, fieldName, config.delimiter, true);
+        } else {
+          // Standard unique value extraction
+          values = filteredData
+            .map(item => {
+              const value = fieldName.includes('.')
+                ? _.get(item, fieldName)
+                : item[fieldName];
+              return value;
+            })
+            .filter(value =>
+              value &&
+              value !== 'Unknown' &&
+              value.toString().trim() !== ''
+            );
 
-        // Remove duplicates and sort
-        values = _.uniq(values).sort();
+          // Remove duplicates and sort
+          values = _.uniq(values).sort();
+        }
+
         options[config.key] = values;
       }
     });

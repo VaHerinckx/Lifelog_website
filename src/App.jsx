@@ -6,6 +6,7 @@ import { Layout } from './components/ui';
 import Homepage from './pages/Home/Homepage';
 import ReadingPage from './pages/Reading/ReadingPage';
 import MoviesPage from './pages/Movies/MoviesPage';
+import MusicPage from './pages/Music/MusicPage';
 import NutritionPage from './pages/Nutrition/NutritionPage';
 import PodcastPage from './pages/Podcast/PodcastPage';
 
@@ -26,6 +27,7 @@ const App = () => {
           <Route element={<Layout />}>
             <Route path="/reading" element={<ReadingPage />} />
             <Route path="/movies" element={<MoviesPage />} />
+            <Route path="/music" element={<MusicPage />} />
             <Route path="/nutrition" element={<NutritionPage />} />
             <Route path="/podcasts" element={<PodcastPage />} />
             <Route
