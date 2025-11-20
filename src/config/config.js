@@ -27,12 +27,6 @@ export const DRIVE_FILES = {
   NUTRITION: {
     FILE_ID: import.meta.env.VITE_NUTRITION_FILE_ID
   },
-  NUTRITION_MEALS: {
-    FILE_ID: import.meta.env.VITE_NUTRITION_MEALS_FILE_ID
-  },
-  NUTRITION_ITEMS: {
-    FILE_ID: import.meta.env.VITE_NUTRITION_ITEMS_FILE_ID
-  },
   FINANCES: {
     FILE_ID: import.meta.env.VITE_FINANCES_FILE_ID
   }

@@ -71,8 +71,6 @@ const cleanData = (data) => {
 export const DataProvider = ({ children }) => {
   const [data, setData] = useState({
     nutrition: null,
-    nutritionMeals: null,
-    nutritionItems: null,
     reading: null,
     readingBooks: null,
     readingSessions: null,
@@ -121,14 +119,6 @@ export const DataProvider = ({ children }) => {
         case 'nutrition':
           fileId = DRIVE_FILES.NUTRITION.FILE_ID;
           console.log('🥗 Nutrition fileId:', fileId);
-          break;
-        case 'nutritionMeals':
-          fileId = DRIVE_FILES.NUTRITION_MEALS.FILE_ID;
-          console.log('🥗 Nutrition Meals fileId:', fileId);
-          break;
-        case 'nutritionItems':
-          fileId = DRIVE_FILES.NUTRITION_ITEMS.FILE_ID;
-          console.log('🥗 Nutrition Items fileId:', fileId);
           break;
         case 'podcasts':
           fileId = DRIVE_FILES.PODCASTS.FILE_ID;

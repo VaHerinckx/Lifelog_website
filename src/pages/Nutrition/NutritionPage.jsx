@@ -28,12 +28,43 @@ const parseTimeToMinutes = (timeString) => {
   return (hours || 0) * 60 + (minutes || 0);
 };
 
+// Helper function to group nutrition items by meal_id
+const groupItemsByMealId = (items) => {
+  const mealMap = new Map();
+
+  items.forEach(item => {
+    const mealId = item.meal_id;
+
+    if (!mealMap.has(mealId)) {
+      // First occurrence of this meal_id - use this item's meal-level data
+      mealMap.set(mealId, {
+        meal_id: mealId,
+        date: item.date,
+        weekday: item.weekday,
+        time: item.time,
+        timeInMinutes: item.timeInMinutes,
+        meal: item.meal,
+        food_list: item.food_list,
+        drinks_list: item.drinks_list,
+        usda_meal_score: item.usda_meal_score,
+        places: item.places,
+        origin: item.origin,
+        amount: item.amount,
+        amount_text: item.amount_text,
+        meal_assessment: item.meal_assessment,
+        meal_assessment_text: item.meal_assessment_text,
+      });
+    }
+  });
+
+  return Array.from(mealMap.values());
+};
+
 const NutritionPage = () => {
   console.log('🥗 NutritionPage component mounting/rendering');
 
   const { data, loading, error, fetchData } = useData();
-  const [meals, setMeals] = useState([]); // Meal-level data (pre-grouped from CSV)
-  const [nutritionItems, setNutritionItems] = useState([]); // Item-level data (for ingredient filtering)
+  const [nutritionItems, setNutritionItems] = useState([]); // Item-level data
   const [filteredMeals, setFilteredMeals] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]); // For ingredient-level KPIs
 
@@ -41,79 +72,87 @@ const NutritionPage = () => {
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [activeTab, setActiveTab] = useState('content');
 
-  // Fetch nutrition data when component mounts (dual-file strategy like Reading page)
+  // Fetch nutrition data when component mounts
   useEffect(() => {
-    console.log('🥗 NutritionPage useEffect - fetching dual data sources');
+    console.log('🥗 NutritionPage useEffect - fetching data');
 
     if (typeof fetchData === 'function') {
-      Promise.all([
-        fetchData('nutritionMeals'),
-        fetchData('nutritionItems')
-      ]);
+      fetchData('nutrition');
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Process meals data when loaded (pre-grouped from CSV)
+  // Process nutrition items: convert dates, parse numbers, pre-compute time values
+  const processedItems = useMemo(() => {
+    if (!data?.nutrition) return [];
+
+    console.log('🥗 Raw nutrition data:', data.nutrition.slice(0, 3));
+
+    const processed = data.nutrition.map(item => ({
+      ...item,
+      date: item.date ? new Date(item.date) : null,
+      meal_id: String(item.meal_id), // Ensure meal_id is string for grouping
+      food_quantity: parseFloat(item.food_quantity) || 0,
+      drink_quantity: parseFloat(item.drink_quantity) || 0,
+      usda_meal_score: parseFloat(item.usda_meal_score) || 0,
+      meal_assessment: parseFloat(item.meal_assessment) || 0,
+      amount: parseFloat(item.amount) || 0,
+      timeInMinutes: parseTimeToMinutes(item.time), // Pre-compute for efficient sorting
+    }));
+
+    console.log('🥗 Processed items:', processed.slice(0, 3));
+    return processed;
+  }, [data?.nutrition]);
+
+  // Group items into meals and sort (computed once, cached)
+  const meals = useMemo(() => {
+    if (!processedItems.length) return [];
+
+    const groupedMeals = groupItemsByMealId(processedItems);
+
+    // Sort meals by date and time (most recent first)
+    groupedMeals.sort((a, b) => {
+      // First compare dates
+      const dateCompare = b.date - a.date;
+      if (dateCompare !== 0) return dateCompare;
+
+      // If dates are the same, compare pre-computed time values
+      return b.timeInMinutes - a.timeInMinutes;
+    });
+
+    console.log('🥗 Grouped meals:', groupedMeals.length, 'meals from', processedItems.length, 'items');
+    console.log('🥗 First 3 meals (sorted):', groupedMeals.slice(0, 3));
+
+    return groupedMeals;
+  }, [processedItems]);
+
+  // Update state when meals/items change
   useEffect(() => {
-    if (data?.nutritionMeals && data?.nutritionItems) {
-      console.log('🥗 Raw nutrition meals:', data.nutritionMeals.slice(0, 3));
-      console.log('🥗 Raw nutrition items:', data.nutritionItems.slice(0, 3));
+    setNutritionItems(processedItems);
+    setFilteredMeals(meals);
+    setFilteredItems(processedItems);
+  }, [processedItems, meals]);
 
-      // Process meals: convert dates and parse numbers
-      const processedMeals = data.nutritionMeals.map(meal => ({
-        ...meal,
-        date: meal.date ? new Date(meal.date) : null,
-        meal_id: String(meal.meal_id),
-        usda_meal_score: parseFloat(meal.usda_meal_score) || 0,
-        meal_assessment: parseFloat(meal.meal_assessment) || 0,
-        amount: parseFloat(meal.amount) || 0,
-        timeInMinutes: parseTimeToMinutes(meal.time), // Pre-compute for efficient sorting
-      }));
-
-      // Process items: convert dates and parse numbers
-      const processedItems = data.nutritionItems.map(item => ({
-        ...item,
-        date: item.date ? new Date(item.date) : null,
-        meal_id: String(item.meal_id),
-        food_quantity: parseFloat(item.food_quantity) || 0,
-        drink_quantity: parseFloat(item.drink_quantity) || 0,
-        usda_meal_score: parseFloat(item.usda_meal_score) || 0,
-        meal_assessment: parseFloat(item.meal_assessment) || 0,
-        amount: parseFloat(item.amount) || 0,
-        timeInMinutes: parseTimeToMinutes(item.time),
-      }));
-
-      console.log('🥗 Processed meals:', processedMeals.length);
-      console.log('🥗 Processed items:', processedItems.length);
-
-      // Data already sorted by Python, just set in state
-      setMeals(processedMeals);
-      setFilteredMeals(processedMeals);
-      setNutritionItems(processedItems);
-      setFilteredItems(processedItems);
-    }
-  }, [data?.nutritionMeals, data?.nutritionItems]);
-
-  // Apply filters when FilteringPanel filters change (dual-file strategy)
+  // Apply filters when FilteringPanel filters change
   // Wrapped in useCallback to prevent unnecessary re-renders
   const handleFiltersChange = useCallback((filteredDataSources) => {
     console.log('🥗 Filters changed:', filteredDataSources);
 
-    const filteredMealsData = filteredDataSources.nutritionMeals || [];
-    const filteredItemsData = filteredDataSources.nutritionItems || [];
+    const filteredNutritionItems = filteredDataSources.nutrition || [];
+
+    // Group filtered items by meal_id and sort
+    const groupedFilteredMeals = groupItemsByMealId(filteredNutritionItems);
 
     // Sort filtered meals by date and time (most recent first)
-    const sortedMeals = filteredMealsData.sort((a, b) => {
+    groupedFilteredMeals.sort((a, b) => {
       const dateCompare = b.date - a.date;
       if (dateCompare !== 0) return dateCompare;
       return b.timeInMinutes - a.timeInMinutes;
     });
 
-    console.log('🥗 Filtered meals:', sortedMeals.length);
-    console.log('🥗 Filtered items:', filteredItemsData.length);
+    console.log('🥗 Filtered meals:', groupedFilteredMeals.length);
 
-    setFilteredMeals(sortedMeals);
-    setFilteredItems(filteredItemsData); // Store filtered items for KPI calculations
+    setFilteredMeals(groupedFilteredMeals);
+    setFilteredItems(filteredNutritionItems); // Store filtered items for KPI calculations
   }, []);
 
   const handleMealClick = useCallback((meal) => {
@@ -124,15 +163,14 @@ const NutritionPage = () => {
     setSelectedMeal(null);
   }, []);
 
-  // Memoize data object to prevent FilteringPanel re-renders (dual-file strategy)
+  // Memoize data object to prevent FilteringPanel re-renders
   const filterPanelData = useMemo(() => ({
-    nutritionMeals: meals,        // Pass meal-level data for meal filters (4,604 rows)
-    nutritionItems: nutritionItems // Pass item-level data for ingredient filters (14,693 rows)
-  }), [meals, nutritionItems]);
+    nutrition: nutritionItems // Pass item-level data for filtering
+  }), [nutritionItems]);
 
   return (
     <PageWrapper
-      error={error?.nutritionMeals || error?.nutritionItems}
+      error={error?.nutrition}
       errorTitle="Nutrition Tracker"
     >
       {/* Page Header */}
@@ -141,7 +179,7 @@ const NutritionPage = () => {
         description="Track meals, food choices, and nutritional patterns across breakfast, lunch, dinner, and snacks"
       />
 
-        {!(loading?.nutritionMeals || loading?.nutritionItems) && (
+        {!loading?.nutrition && (
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
@@ -154,14 +192,14 @@ const NutritionPage = () => {
                 field="meal"
                 icon={<Utensils />}
                 placeholder="Select meal types"
-                dataSources={['nutritionMeals', 'nutritionItems']}
+                dataSources={['nutrition']}
               />
               <Filter
                 type="daterange"
                 label="Date Range"
                 field="date"
                 icon={<Calendar />}
-                dataSources={['nutritionMeals', 'nutritionItems']}
+                dataSources={['nutrition']}
               />
               <Filter
                 type="multiselect"
@@ -169,7 +207,7 @@ const NutritionPage = () => {
                 field="places"
                 icon={<MapPin />}
                 placeholder="Select locations"
-                dataSources={['nutritionMeals', 'nutritionItems']}
+                dataSources={['nutrition']}
               />
               <Filter
                 type="multiselect"
@@ -177,7 +215,7 @@ const NutritionPage = () => {
                 field="origin"
                 icon={<Tag />}
                 placeholder="Select meal origins"
-                dataSources={['nutritionMeals', 'nutritionItems']}
+                dataSources={['nutrition']}
               />
               <Filter
                 type="multiselect"
@@ -185,7 +223,7 @@ const NutritionPage = () => {
                 field="food"
                 icon={<Utensils />}
                 placeholder="Select individual foods"
-                dataSources={['nutritionItems']}
+                dataSources={['nutrition']}
               />
               <Filter
                 type="multiselect"
@@ -193,7 +231,7 @@ const NutritionPage = () => {
                 field="drink"
                 icon={<Utensils />}
                 placeholder="Select individual drinks"
-                dataSources={['nutritionItems']}
+                dataSources={['nutrition']}
               />
             </FilteringPanel>
 
@@ -203,7 +241,7 @@ const NutritionPage = () => {
                 nutrition: filteredMeals, // Use meal-level data for meal-based KPIs
                 nutritionItems: filteredItems // Use item-level data for ingredient KPIs
               }}
-              loading={loading?.nutritionMeals || loading?.nutritionItems}
+              loading={loading?.nutrition}
             >
               <KpiCard
                 dataSource="nutrition"
@@ -250,7 +288,7 @@ const NutritionPage = () => {
         {/* Meals Tab Content */}
         {activeTab === 'content' && (
           <ContentTab
-            loading={loading?.nutritionMeals || loading?.nutritionItems}
+            loading={loading?.nutrition}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             viewModes={[
