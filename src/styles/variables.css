@@ -84,6 +84,11 @@
   --color-error: #EF4444;
   --color-info: #3B82F6;
 
+  /* Badge colors */
+  --color-badge-new: var(--color-success);        /* #10B981 - Green for "New" badges */
+  --color-badge-recurring: var(--color-info);     /* #3B82F6 - Blue for "Recurring" badges */
+  --color-badge-language: var(--color-purple-light);  /* #6D62C4 - Purple for language badges */
+
   /* Utility colors */
   --color-white: #ffffff;
   --color-rating-star: #EAC435;        /* Yellow/gold for rating stars */

@@ -49,7 +49,9 @@ export {
   calculateDistribution,
   calculateStats,
   formatNumber,
-  formatDuration
+  formatDuration,
+  formatPodcastDuration,
+  formatCompletion
 } from './statsUtils';
 
 // Sorting utilities

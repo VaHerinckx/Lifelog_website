@@ -1,10 +1,23 @@
 /* CardGroup - Generic container for grid/list/timeline views */
 @import '../../../styles/variables.css';
 
+/* Wrapper for pagination support */
+.card-group-wrapper {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 /* Base container */
 .card-group {
   width: 100%;
   box-sizing: border-box;
+}
+
+/* Virtual scrolling container */
+.virtual-list {
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  background: var(--surface-color);
 }
 
 /* Grid View Layout */

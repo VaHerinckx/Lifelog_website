@@ -333,3 +333,24 @@ export const formatDuration = (ms, format = 'short') => {
   if (hours > 0) return `${hours}h ${minutes % 60}m`;
   return `${minutes}m`;
 };
+
+/**
+ * Formats duration in seconds to minutes for podcast episodes
+ * @param {number} seconds - Duration in seconds
+ * @returns {string} Formatted duration string (e.g., "45 min")
+ */
+export const formatPodcastDuration = (seconds) => {
+  if (!seconds || seconds === 0) return 'Unknown';
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes} min`;
+};
+
+/**
+ * Formats completion percentage for podcast episodes
+ * @param {number} percent - Completion percentage (0-100)
+ * @returns {number} Rounded completion percentage
+ */
+export const formatCompletion = (percent) => {
+  if (percent === null || percent === undefined) return 0;
+  return Math.round(percent);
+};

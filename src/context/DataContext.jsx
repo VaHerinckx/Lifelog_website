@@ -71,11 +71,14 @@ const cleanData = (data) => {
 export const DataProvider = ({ children }) => {
   const [data, setData] = useState({
     nutrition: null,
+    nutritionMeals: null,
+    nutritionItems: null,
     reading: null,
     readingBooks: null,
     readingSessions: null,
     movies: null,
-    shows: null
+    shows: null,
+    podcasts: null
   });
   const [loading, setLoading] = useState({});
   const [error, setError] = useState({});
@@ -118,6 +121,18 @@ export const DataProvider = ({ children }) => {
         case 'nutrition':
           fileId = DRIVE_FILES.NUTRITION.FILE_ID;
           console.log('🥗 Nutrition fileId:', fileId);
+          break;
+        case 'nutritionMeals':
+          fileId = DRIVE_FILES.NUTRITION_MEALS.FILE_ID;
+          console.log('🥗 Nutrition Meals fileId:', fileId);
+          break;
+        case 'nutritionItems':
+          fileId = DRIVE_FILES.NUTRITION_ITEMS.FILE_ID;
+          console.log('🥗 Nutrition Items fileId:', fileId);
+          break;
+        case 'podcasts':
+          fileId = DRIVE_FILES.PODCASTS.FILE_ID;
+          console.log('🎙️ Podcasts fileId:', fileId);
           break;
         default:
           throw new Error(`Unknown data type: ${dataType}`);
@@ -202,6 +217,18 @@ export const DataProvider = ({ children }) => {
                 ...session,
                 page_split: session.page_split ? parseInt(session.page_split) : 0,
                 my_rating: session.my_rating ? parseFloat(session.my_rating) : 0
+              }));
+            }
+
+            // Type conversion for podcasts
+            if (dataType === 'podcasts') {
+              cleanedData = cleanedData.map(episode => ({
+                ...episode,
+                duration_seconds: episode.duration_seconds ? parseInt(episode.duration_seconds) : 0,
+                listened_seconds: episode.listened_seconds ? parseInt(episode.listened_seconds) : 0,
+                completion_percent: episode.completion_percent ? parseFloat(episode.completion_percent) : 0,
+                is_new_podcast: episode.is_new_podcast ? parseInt(episode.is_new_podcast) : 0,
+                is_recurring_podcast: episode.is_recurring_podcast ? parseInt(episode.is_recurring_podcast) : 0
               }));
             }
 

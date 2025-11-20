@@ -22,6 +22,12 @@ const Homepage = () => {
       path: '/nutrition'
     },
     {
+      title: 'Podcasts',
+      icon: '/icons/podcast_w.png',
+      description: 'Track your podcast listening habits and discover insights',
+      path: '/podcasts'
+    },
+    {
       title: 'Sport',
       icon: '/icons/sport_w.png',
       description: 'Record your workouts and athletic progress',

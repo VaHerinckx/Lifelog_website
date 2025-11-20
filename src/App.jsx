@@ -7,6 +7,7 @@ import Homepage from './pages/Home/Homepage';
 import ReadingPage from './pages/Reading/ReadingPage';
 import MoviesPage from './pages/Movies/MoviesPage';
 import NutritionPage from './pages/Nutrition/NutritionPage';
+import PodcastPage from './pages/Podcast/PodcastPage';
 
 const App = () => {
   return (
@@ -26,6 +27,7 @@ const App = () => {
             <Route path="/reading" element={<ReadingPage />} />
             <Route path="/movies" element={<MoviesPage />} />
             <Route path="/nutrition" element={<NutritionPage />} />
+            <Route path="/podcasts" element={<PodcastPage />} />
             <Route
               path="/sport"
               element={

@@ -89,6 +89,19 @@ const FilteringPanel = ({
     return initialState;
   });
 
+  // Debounced filters state for cascading options calculation
+  // This prevents expensive recalculation on every filter click
+  const [debouncedFilters, setDebouncedFilters] = useState(filters);
+
+  // Debounce filter updates for options calculation (150ms delay)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedFilters(filters);
+    }, 150);
+
+    return () => clearTimeout(timer);
+  }, [filters]);
+
   // Calculate filtered options based on current filter selections (bi-directional cascading)
   const filterOptions = useMemo(() => {
     // Get primary data source for option calculation (first non-empty source)
@@ -156,7 +169,7 @@ const FilteringPanel = ({
           filterConfigs.forEach(otherConfig => {
             if (otherConfig.key === config.key || otherConfig.type === 'daterange') return;
 
-            const filterValue = filters[otherConfig.key];
+            const filterValue = debouncedFilters[otherConfig.key];
             const dataField = otherConfig.dataField || otherConfig.optionsSource;
 
             if (!filterValue || !dataField) return;
@@ -219,7 +232,7 @@ const FilteringPanel = ({
         filterConfigs.forEach(otherConfig => {
           if (otherConfig.key === config.key) return; // Skip the current filter
 
-          const filterValue = filters[otherConfig.key];
+          const filterValue = debouncedFilters[otherConfig.key];
           const dataField = otherConfig.dataField || otherConfig.optionsSource;
 
           if (!filterValue || !dataField) return;
@@ -292,7 +305,7 @@ const FilteringPanel = ({
     });
 
     return { options, dateBoundaries };
-  }, [dataSources, filterConfigs, filters]); // Important: depends on current filters state
+  }, [dataSources, filterConfigs, debouncedFilters, fullDataset]); // Use debounced filters for cascading options
 
   // Use ref to store callback and prevent infinite loops
   const onFiltersChangeRef = useRef(onFiltersChange);
