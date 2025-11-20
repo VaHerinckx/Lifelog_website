@@ -35,6 +35,7 @@ const MoviesPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [activeTab, setActiveTab] = useState('content');
+  const [isContentReady, setIsContentReady] = useState(false);
 
   // Fetch movies data when component mounts
   useEffect(() => {
@@ -103,6 +104,8 @@ const MoviesPage = () => {
 
       setMovies(sortedMovies);
       setFilteredMovies(sortedMovies);
+      // Reset content ready state when new data arrives
+      setIsContentReady(false);
     }
   }, [data?.movies]);
 
@@ -122,6 +125,10 @@ const MoviesPage = () => {
     setSelectedMovie(null);
   };
 
+  const handleContentReady = () => {
+    setIsContentReady(true);
+  };
+
   // Memoize data object to prevent FilteringPanel re-renders
   const filterPanelData = useMemo(() => ({
     movies: movies
@@ -138,7 +145,7 @@ const MoviesPage = () => {
         description="Track your viewing habits and discover insights about your movie preferences"
       />
 
-      {!loading?.movies && (
+      {!loading?.movies && isContentReady && (
         <>
           {/* FilteringPanel with Filter children */}
           <FilteringPanel
@@ -246,6 +253,7 @@ const MoviesPage = () => {
             title: "No movies found",
             message: "No movies match your current filters. Try adjusting your criteria."
           }}
+          onContentReady={handleContentReady}
           renderGrid={(movies) => (
             <ContentCardsGroup
               items={movies}

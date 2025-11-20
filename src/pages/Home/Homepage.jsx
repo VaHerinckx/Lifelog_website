@@ -34,6 +34,12 @@ const Homepage = () => {
       path: '/podcasts'
     },
     {
+      title: 'Finance',
+      icon: '/icons/finance_w.png',
+      description: 'Track your income, expenses, and financial patterns over time',
+      path: '/finance'
+    },
+    {
       title: 'Sport',
       icon: '/icons/sport_w.png',
       description: 'Record your workouts and athletic progress',

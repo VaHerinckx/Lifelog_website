@@ -34,6 +34,7 @@ const MusicPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedToggle, setSelectedToggle] = useState(null);
   const [activeTab, setActiveTab] = useState('content');
+  const [isContentReady, setIsContentReady] = useState(false);
 
   // Fetch music data when component mounts
   useEffect(() => {
@@ -57,6 +58,8 @@ const MusicPage = () => {
 
       setMusicToggles(sortedToggles);
       setFilteredToggles(sortedToggles);
+      // Reset content ready state when new data arrives
+      setIsContentReady(false);
     }
   }, [data?.music]);
 
@@ -75,6 +78,10 @@ const MusicPage = () => {
     setSelectedToggle(null);
   };
 
+  const handleContentReady = () => {
+    setIsContentReady(true);
+  };
+
   // Memoize data object to prevent FilteringPanel re-renders
   const filterPanelData = useMemo(() => ({
     music: musicToggles
@@ -91,7 +98,7 @@ const MusicPage = () => {
         description="Explore your listening history and music preferences across 9+ years"
       />
 
-        {!loading?.music && (
+        {!loading?.music && isContentReady && (
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
@@ -218,6 +225,7 @@ const MusicPage = () => {
               title: "No toggles found",
               message: "No listening events match your current filters. Try adjusting your criteria."
             }}
+            onContentReady={handleContentReady}
             renderGrid={(toggles) => (
               <ContentCardsGroup
                 items={toggles}

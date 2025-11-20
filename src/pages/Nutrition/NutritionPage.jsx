@@ -73,6 +73,7 @@ const NutritionPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [activeTab, setActiveTab] = useState('content');
+  const [isContentReady, setIsContentReady] = useState(false);
 
   // Fetch nutrition data when component mounts
   useEffect(() => {
@@ -132,6 +133,8 @@ const NutritionPage = () => {
     setNutritionItems(processedItems);
     setFilteredMeals(meals);
     setFilteredItems(processedItems);
+    // Reset content ready state when new data arrives
+    setIsContentReady(false);
   }, [processedItems, meals]);
 
   // Apply filters when FilteringPanel filters change
@@ -165,6 +168,10 @@ const NutritionPage = () => {
     setSelectedMeal(null);
   }, []);
 
+  const handleContentReady = () => {
+    setIsContentReady(true);
+  };
+
   // Memoize data object to prevent FilteringPanel re-renders
   const filterPanelData = useMemo(() => ({
     nutrition: nutritionItems // Pass item-level data for filtering
@@ -181,7 +188,7 @@ const NutritionPage = () => {
         description="Track meals, food choices, and nutritional patterns across breakfast, lunch, dinner, and snacks"
       />
 
-        {!loading?.nutrition && (
+        {!loading?.nutrition && isContentReady && (
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
@@ -304,6 +311,7 @@ const NutritionPage = () => {
               title: "No meals found",
               message: "No meals match your current filters. Try adjusting your criteria."
             }}
+            onContentReady={handleContentReady}
             renderGrid={(meals) => (
               <ContentCardsGroup
                 items={meals}

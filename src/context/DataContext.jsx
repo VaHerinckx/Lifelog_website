@@ -77,7 +77,8 @@ export const DataProvider = ({ children }) => {
     movies: null,
     shows: null,
     podcasts: null,
-    music: null
+    music: null,
+    finance: null
   });
   const [loading, setLoading] = useState({});
   const [error, setError] = useState({});
@@ -128,6 +129,10 @@ export const DataProvider = ({ children }) => {
         case 'music':
           fileId = DRIVE_FILES.MUSIC.FILE_ID;
           console.log('🎵 Music fileId:', fileId);
+          break;
+        case 'finance':
+          fileId = DRIVE_FILES.FINANCES.FILE_ID;
+          console.log('💰 Finance fileId:', fileId);
           break;
         default:
           throw new Error(`Unknown data type: ${dataType}`);

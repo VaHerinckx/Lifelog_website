@@ -12,6 +12,7 @@ const NavigationBar = () => {
     { path: '/music', label: 'Music', icon: '/icons/music_w.png', implemented: true },
     { path: '/nutrition', label: 'Nutrition', icon: '/icons/food_w.png', implemented: true },
     { path: '/podcasts', label: 'Podcasts', icon: '/icons/podcast_w.png', implemented: true },
+    { path: '/finance', label: 'Finance', icon: '/icons/finance_w.png', implemented: true },
     { path: '/sport', label: 'Sport', icon: '/icons/sport_w.png', implemented: false },
     { path: '/work', label: 'Work', icon: '/icons/work_w.png', implemented: false }
   ];

@@ -44,6 +44,9 @@ export const performComputation = (data, field, computation, options = {}) => {
     case 'max':
       return computeMax(data, field, options);
 
+    case 'mode':
+      return computeMode(data, field, options);
+
     case 'count_filtered':
       return computeCountFiltered(data, options);
 
@@ -217,6 +220,45 @@ export const computeMax = (data, field, options = {}) => {
   }
 
   return _.max(values);
+};
+
+/**
+ * Find the most frequent value (mode) of a field
+ */
+export const computeMode = (data, field, options = {}) => {
+  if (!field) {
+    console.warn('computeMode requires a field parameter');
+    return options.defaultValue ?? 'N/A';
+  }
+
+  // Get all values from the field
+  const values = data
+    .map(item => _.get(item, field))
+    .filter(v => v !== null && v !== undefined && v !== '');
+
+  if (values.length === 0) {
+    return options.defaultValue ?? 'N/A';
+  }
+
+  // Count frequency of each value
+  const frequencyMap = {};
+  values.forEach(value => {
+    const key = String(value);
+    frequencyMap[key] = (frequencyMap[key] || 0) + 1;
+  });
+
+  // Find the value with the highest frequency
+  let modeValue = null;
+  let maxFrequency = 0;
+
+  Object.entries(frequencyMap).forEach(([value, frequency]) => {
+    if (frequency > maxFrequency) {
+      maxFrequency = frequency;
+      modeValue = value;
+    }
+  });
+
+  return modeValue ?? options.defaultValue ?? 'N/A';
 };
 
 /**

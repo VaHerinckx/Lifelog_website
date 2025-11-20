@@ -39,6 +39,7 @@ const ReadingPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedBook, setSelectedBook] = useState(null);
   const [activeTab, setActiveTab] = useState('content');
+  const [isContentReady, setIsContentReady] = useState(false);
 
   // Fetch reading data when component mounts
   useEffect(() => {
@@ -72,6 +73,8 @@ const ReadingPage = () => {
       setFilteredBooks(sortedBooks);
       setReadingEntries(sortedSessions);
       setFilteredReadingEntries(sortedSessions);
+      // Reset content ready state when new data arrives
+      setIsContentReady(false);
     }
   }, [data?.readingBooks, data?.readingSessions]);
 
@@ -94,6 +97,10 @@ const ReadingPage = () => {
     setSelectedBook(null);
   };
 
+  const handleContentReady = () => {
+    setIsContentReady(true);
+  };
+
   // Memoize data object to prevent FilteringPanel re-renders
   const filterPanelData = useMemo(() => ({
     readingBooks: books,
@@ -111,7 +118,7 @@ const ReadingPage = () => {
         description="Track your reading habits and discover insights about your books"
       />
 
-        {!(loading?.readingBooks || loading?.readingSessions) && (
+        {!(loading?.readingBooks || loading?.readingSessions) && isContentReady && (
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
@@ -234,6 +241,7 @@ const ReadingPage = () => {
               title: "No books found",
               message: "No books match your current filters. Try adjusting your criteria."
             }}
+            onContentReady={handleContentReady}
             renderGrid={(books) => (
               <ContentCardsGroup
                 items={books}

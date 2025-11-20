@@ -446,12 +446,17 @@ const FilteringPanel = ({
 
             if (!config) return null;
 
-            const availableOptions = filterOptions.options?.[config.key] || [];
+            // Use custom options if provided, otherwise use auto-calculated options
+            const customOptions = config.options || child.props.options;
+            const calculatedOptions = filterOptions.options?.[config.key] || [];
+            const availableOptions = customOptions || calculatedOptions;
+
             const boundaries = filterOptions.dateBoundaries?.[config.key];
             const currentValue = filters[config.key];
 
             // Skip rendering if no options available for data-driven filters (except daterange)
-            if (config.type !== 'daterange' && availableOptions.length === 0 && config.optionsSource !== 'static') {
+            // Don't skip if custom options are provided
+            if (config.type !== 'daterange' && !customOptions && availableOptions.length === 0 && config.optionsSource !== 'static') {
               return null;
             }
 
