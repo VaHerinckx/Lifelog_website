@@ -23,6 +23,7 @@ import './KpiCard.css';
  * @param {string} props.field - The field name to compute on
  * @param {string} props.computation - Type of computation (count, sum, average, etc.)
  * @param {Function} [props.customValue] - Custom function to compute value (bypasses computation)
+ * @param {Function} [props.filterCondition] - Filter function to apply before computation
  * @param {Object} [props.computationOptions] - Additional options for computation
  * @param {Object} [props.formatOptions] - Formatting options for display
  * @param {string} props.label - The descriptive label for the KPI
@@ -38,6 +39,7 @@ const KpiCard = ({
   field,
   computation,
   customValue,
+  filterCondition,
   computationOptions = {},
   formatOptions = {},
 
@@ -65,8 +67,13 @@ const KpiCard = ({
       return 0;
     }
 
-    // Perform the computation
-    const result = performComputation(data, field, computation, computationOptions);
+    // Apply filterCondition if provided
+    const dataToCompute = filterCondition && typeof filterCondition === 'function'
+      ? data.filter(filterCondition)
+      : data;
+
+    // Perform the computation on filtered data
+    const result = performComputation(dataToCompute, field, computation, computationOptions);
 
     // Format if options provided
     if (formatOptions && Object.keys(formatOptions).length > 0) {
@@ -74,7 +81,7 @@ const KpiCard = ({
     }
 
     return result;
-  }, [isLegacyMode, value, customValue, data, field, computation, computationOptions, formatOptions]);
+  }, [isLegacyMode, value, customValue, data, field, computation, filterCondition, computationOptions, formatOptions]);
 
   // Format the display value
   const displayValue = useMemo(() => {

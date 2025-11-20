@@ -107,6 +107,10 @@ const TimeSeriesBarChart = ({
         if (isNaN(metricValue) || metricValue === null || metricValue === undefined) {
           return;
         }
+        // Convert seconds to hours if requested
+        if (currentMetricConfig?.convertToHours) {
+          metricValue = metricValue / 3600;
+        }
       }
 
       // Update min and max dates

@@ -64,7 +64,7 @@
   margin: 0 var(--spacing-sm);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-medium);
-  color: var(--text-primary);
+  color: var(--text-secondary);
   min-width: 120px;
   text-align: center;
 }

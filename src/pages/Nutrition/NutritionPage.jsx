@@ -250,7 +250,7 @@ const NutritionPage = () => {
         {/* Meals Tab Content */}
         {activeTab === 'content' && (
           <ContentTab
-            loading={loading?.nutrition}
+            loading={loading?.nutritionMeals || loading?.nutritionItems}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             viewModes={[

@@ -91,6 +91,8 @@ export const computeSum = (data, field, options = {}) => {
     return 0;
   }
 
+  const { convertToHours = false, decimals = null } = options;
+
   const values = data
     .map(item => {
       const value = _.get(item, field);
@@ -98,7 +100,15 @@ export const computeSum = (data, field, options = {}) => {
     })
     .filter(v => !isNaN(v));
 
-  return _.sum(values);
+  let sum = _.sum(values);
+
+  // Convert seconds to hours if requested
+  if (convertToHours) {
+    sum = sum / 3600;
+  }
+
+  // Apply decimal rounding if specified
+  return decimals !== null ? parseFloat(sum.toFixed(decimals)) : sum;
 };
 
 /**
