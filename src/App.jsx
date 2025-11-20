@@ -9,6 +9,7 @@ import MoviesPage from './pages/Movies/MoviesPage';
 import MusicPage from './pages/Music/MusicPage';
 import NutritionPage from './pages/Nutrition/NutritionPage';
 import PodcastPage from './pages/Podcast/PodcastPage';
+import ShowsPage from './pages/Shows/ShowsPage';
 import FinancePage from './pages/Finance/FinancePage';
 
 const App = () => {
@@ -31,6 +32,7 @@ const App = () => {
             <Route path="/music" element={<MusicPage />} />
             <Route path="/nutrition" element={<NutritionPage />} />
             <Route path="/podcasts" element={<PodcastPage />} />
+            <Route path="/shows" element={<ShowsPage />} />
             <Route path="/finance" element={<FinancePage />} />
             <Route
               path="/sport"

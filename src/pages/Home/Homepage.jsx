@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { BookOpen, Film, Music, UtensilsCrossed, Mic, Tv, DollarSign, Dumbbell, Briefcase } from 'lucide-react';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import './Homepage.css';
 
@@ -7,49 +8,55 @@ const Homepage = () => {
   const categories = [
     {
       title: 'Reading',
-      icon: '/icons/book_w.png',
+      icon: BookOpen,
       description: 'Keep track of your reading journey',
       path: '/reading'
     },
     {
       title: 'Movies',
-      icon: '/icons/movie_w.png',
+      icon: Film,
       description: 'Track your viewing habits and movie preferences',
       path: '/movies'
     },
     {
       title: 'Music',
-      icon: '/icons/music_w.png',
+      icon: Music,
       description: 'Explore your listening history and music preferences',
       path: '/music'
     },
     {
       title: 'Nutrition',
-      icon: '/icons/nutrition_w.png',
+      icon: UtensilsCrossed,
       description: 'Track meals, food choices, and nutritional patterns',
       path: '/nutrition'
     },
     {
       title: 'Podcasts',
-      icon: '/icons/podcast_w.png',
+      icon: Mic,
       description: 'Track your podcast listening habits and discover insights',
       path: '/podcasts'
     },
     {
+      title: 'TV Shows',
+      icon: Tv,
+      description: 'Track your TV show watching history and viewing patterns',
+      path: '/shows'
+    },
+    {
       title: 'Finance',
-      icon: '/icons/finance_w.png',
+      icon: DollarSign,
       description: 'Track your income, expenses, and financial patterns over time',
       path: '/finance'
     },
     {
       title: 'Sport',
-      icon: '/icons/sport_w.png',
+      icon: Dumbbell,
       description: 'Record your workouts and athletic progress',
       path: '/sport'
     },
     {
       title: 'Work',
-      icon: '/icons/work_w.png',
+      icon: Briefcase,
       description: 'Monitor your productivity and tasks',
       path: '/work'
     }
@@ -83,30 +90,29 @@ const Homepage = () => {
       </section>
       <main className="main-section">
         <div className="category-grid">
-          {categories.map((category) => (
-            <div key={category.title} className="category-card">
-              <div className="card-body">
-                <div className="card-header">
-                  <img
-                    src={category.icon}
-                    alt={`${category.title} icon`}
-                    className="card-icon"
-                  />
-                  <h3 className="card-title">
-                    {category.title}
-                  </h3>
-                </div>
-                <p className="card-description">
-                  {category.description}
-                </p>
-                <div className="card-action">
-                  <Link to={category.path} className="explore-link">
-                    Explore →
-                  </Link>
+          {categories.map((category) => {
+            const IconComponent = category.icon;
+            return (
+              <div key={category.title} className="category-card">
+                <div className="card-body">
+                  <div className="card-header">
+                    <IconComponent className="card-icon" size={40} />
+                    <h3 className="card-title">
+                      {category.title}
+                    </h3>
+                  </div>
+                  <p className="card-description">
+                    {category.description}
+                  </p>
+                  <div className="card-action">
+                    <Link to={category.path} className="explore-link">
+                      Explore →
+                    </Link>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </main>
       <footer className="bottom-footer">

@@ -114,9 +114,8 @@ export const DataProvider = ({ children }) => {
           fileId = DRIVE_FILES.MOVIES.FILE_ID;
           break;
         case 'shows':
-          fileId = DRIVE_FILES.TRAKT.FILE_ID;
+          fileId = DRIVE_FILES.SHOWS.FILE_ID;
           console.log('📺 Shows fileId:', fileId);
-          console.log('📺 DRIVE_FILES.TRAKT:', DRIVE_FILES.TRAKT);
           break;
         case 'nutrition':
           fileId = DRIVE_FILES.NUTRITION.FILE_ID;

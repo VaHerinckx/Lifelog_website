@@ -1,0 +1,214 @@
+/* EpisodeDetails Component Styles */
+@import '../../../styles/variables.css';
+@import '../../../styles/components.css';
+
+/* Overlay extends modal-overlay from components.css */
+.episode-details-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(23, 23, 56, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+/* Modal extends modal-container from components.css */
+.episode-details-modal {
+  background-color: var(--color-surface);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Close button extends modal-close-button from components.css */
+.close-button {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: var(--color-text-on-surface);
+  cursor: pointer;
+  z-index: 10;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.close-button:hover {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+.episode-details-content {
+  display: flex;
+  padding: 30px;
+}
+
+.episode-details-poster {
+  flex: 0 0 300px;
+  margin-right: 30px;
+  position: relative;
+}
+
+.episode-details-poster .icon-container {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  z-index: 1;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  border-radius: 50%;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.episode-details-poster img {
+  width: 100%;
+  max-height: 450px;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  background-color: var(--color-primary);
+}
+
+.episode-details-info {
+  flex: 1;
+  color: var(--color-text-on-surface);
+}
+
+.episode-details-info h2 {
+  font-size: 1.8rem;
+  color: var(--color-text-on-surface);
+  margin-bottom: 5px;
+}
+
+.episode-details-info h3 {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--color-primary);
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+/* Section Styles */
+.episode-section {
+  margin-bottom: 25px;
+}
+
+.episode-section h4 {
+  font-size: 1.1rem;
+  color: var(--color-primary);
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.episode-details-meta {
+  background-color: rgba(52, 35, 166, 0.1);
+  border-radius: 8px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+}
+
+.meta-item .label {
+  font-weight: 500;
+  min-width: 120px;
+}
+
+.progress-value {
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+/* External Links */
+.external-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.external-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
+  background-color: rgba(52, 35, 166, 0.1);
+  border-radius: var(--radius-md);
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.external-link:hover {
+  background-color: rgba(52, 35, 166, 0.2);
+  transform: translateX(5px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .episode-details-content {
+    flex-direction: column;
+    padding: 20px;
+    padding-top: 40px;
+  }
+
+  .episode-details-poster {
+    margin-right: 0;
+    margin-bottom: 20px;
+    align-self: center;
+    max-width: 220px;
+  }
+
+  .episode-details-modal {
+    max-height: 95vh;
+    margin: 10px;
+  }
+
+  .episode-details-info h2 {
+    font-size: 1.5rem;
+  }
+
+  .episode-details-info h3 {
+    font-size: 1.1rem;
+  }
+
+  .meta-item {
+    font-size: 0.9rem;
+    flex-wrap: wrap;
+  }
+
+  .meta-item .label {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .external-link {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+}

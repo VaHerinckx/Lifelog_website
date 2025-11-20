@@ -29,6 +29,9 @@ export const DRIVE_FILES = {
   },
   FINANCES: {
     FILE_ID: import.meta.env.VITE_FINANCES_FILE_ID
+  },
+  SHOWS: {
+    FILE_ID: import.meta.env.VITE_SHOWS_FILE_ID
   }
 };
 
