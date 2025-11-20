@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import ViewControls from '../ViewControls';
-import ContentContainer from '../ContentContainer';
+import ViewControls from '../../content/ViewControls';
+import ContentContainer from '../../content/ContentContainer';
 
 /**
  * ContentTab - Standardized content tab component for pages

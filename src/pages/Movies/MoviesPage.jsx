@@ -5,17 +5,19 @@ import { useData } from '../../context/DataContext';
 // Import components
 import MovieDetails from './components/MovieDetails';
 import MovieCard from './components/MovieCard';
-import FilteringPanel from '../../components/ui/Filters/FilteringPanel/FilteringPanel';
-import Filter from '../../components/ui/Filters/Filter/Filter';
 
-// Import standardized components
-import PageWrapper from '../../components/ui/PageWrapper/PageWrapper';
-import PageHeader from '../../components/ui/PageHeader';
-import TabNavigation from '../../components/ui/TabNavigation';
-import ContentTab from '../../components/ui/ContentTab/ContentTab';
-import AnalysisTab from '../../components/ui/AnalysisTab/AnalysisTab';
-import KPICardsPanel from '../../components/ui/KPICardsPanel/KPICardsPanel';
-import ContentCardsGroup from '../../components/ui/ContentCardsGroup';
+// Import standardized UI components
+import {
+  FilteringPanel,
+  Filter,
+  PageWrapper,
+  PageHeader,
+  TabNavigation,
+  ContentTab,
+  AnalysisTab,
+  KPICardsPanel,
+  ContentCardsGroup
+} from '../../components/ui';
 import KpiCard from '../../components/charts/KpiCard';
 
 // Import chart components for analysis tab
@@ -26,8 +28,6 @@ import TopChart from '../../components/charts/TopChart';
 import { sortByDateSafely } from '../../utils/sortingUtils';
 
 const MoviesPage = () => {
-  console.log('🎬 MoviesPage component mounting/rendering');
-
   const { data, loading, error, fetchData } = useData();
   const [movies, setMovies] = useState([]);
   const [filteredMovies, setFilteredMovies] = useState([]);
@@ -38,8 +38,6 @@ const MoviesPage = () => {
 
   // Fetch movies data when component mounts
   useEffect(() => {
-    console.log('🎬 MoviesPage useEffect - fetching data');
-
     if (typeof fetchData === 'function') {
       fetchData('movies');
     }
@@ -102,12 +100,6 @@ const MoviesPage = () => {
         if (!b.date) return -1;
         return b.date - a.date;
       });
-
-      // Log the most recent movie with a date
-      const mostRecentMovie = sortedMovies.find(m => m.date !== null);
-      if (mostRecentMovie) {
-        console.log('   Last movie watched:', mostRecentMovie.name, 'on', mostRecentMovie.date.toLocaleDateString());
-      }
 
       setMovies(sortedMovies);
       setFilteredMovies(sortedMovies);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Utensils, Calendar, Clock, MapPin, TrendingUp } from 'lucide-react';
 import './MealDetails.css';
-import StarRating from '../../../components/ui/StarRating';
+import { StarRating } from '../../../components/ui';
 import { formatDate } from '../../../utils';
 
 const MealDetails = ({ meal, onClose }) => {

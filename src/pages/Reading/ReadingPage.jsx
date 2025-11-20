@@ -5,17 +5,19 @@ import { useData } from '../../context/DataContext';
 // Import components
 import BookDetails from './components/BookDetails';
 import BookCard from './components/BookCard';
-import FilteringPanel from '../../components/ui/Filters/FilteringPanel/FilteringPanel';
-import Filter from '../../components/ui/Filters/Filter/Filter';
 
-// Import standardized components
-import PageWrapper from '../../components/ui/PageWrapper/PageWrapper';
-import PageHeader from '../../components/ui/PageHeader';
-import TabNavigation from '../../components/ui/TabNavigation';
-import ContentTab from '../../components/ui/ContentTab/ContentTab';
-import AnalysisTab from '../../components/ui/AnalysisTab/AnalysisTab';
-import KPICardsPanel from '../../components/ui/KPICardsPanel/KPICardsPanel';
-import ContentCardsGroup from '../../components/ui/ContentCardsGroup';
+// Import standardized UI components
+import {
+  FilteringPanel,
+  Filter,
+  PageWrapper,
+  PageHeader,
+  TabNavigation,
+  ContentTab,
+  AnalysisTab,
+  KPICardsPanel,
+  ContentCardsGroup
+} from '../../components/ui';
 import KpiCard from '../../components/charts/KpiCard';
 
 // Import chart components for analysis tab
@@ -28,8 +30,6 @@ import TopChart from '../../components/charts/TopChart';
 import { sortByDateSafely } from '../../utils/sortingUtils';
 
 const ReadingPage = () => {
-  console.log('📚 ReadingPage component mounting/rendering');
-
   const { data, loading, error, fetchData } = useData();
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
@@ -42,8 +42,6 @@ const ReadingPage = () => {
 
   // Fetch reading data when component mounts
   useEffect(() => {
-    console.log('📚 ReadingPage useEffect - fetching data');
-
     if (typeof fetchData === 'function') {
       Promise.all([
         fetchData('readingBooks'),
@@ -55,8 +53,7 @@ const ReadingPage = () => {
   // Process books data when it's loaded from new dual-file structure
   useEffect(() => {
     if (data?.readingBooks && data?.readingSessions) {
-      // Python processing now provides correct data types and sorting
-      // Only need to convert timestamp strings to Date objects for JavaScript date operations
+      // Convert timestamp strings to Date objects for JavaScript date operations
       const processedBooks = data.readingBooks.map(book => ({
         ...book,
         timestamp: book.timestamp ? new Date(book.timestamp) : null
@@ -67,11 +64,14 @@ const ReadingPage = () => {
         timestamp: session.timestamp ? new Date(session.timestamp) : null
       }));
 
-      // Data already sorted by Python, but set in state
-      setBooks(processedBooks);
-      setFilteredBooks(processedBooks);
-      setReadingEntries(processedSessions);
-      setFilteredReadingEntries(processedSessions);
+      // Sort by most recent first
+      const sortedBooks = sortByDateSafely(processedBooks);
+      const sortedSessions = sortByDateSafely(processedSessions);
+
+      setBooks(sortedBooks);
+      setFilteredBooks(sortedBooks);
+      setReadingEntries(sortedSessions);
+      setFilteredReadingEntries(sortedSessions);
     }
   }, [data?.readingBooks, data?.readingSessions]);
 

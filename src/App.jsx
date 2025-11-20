@@ -2,7 +2,7 @@
 import './styles/variables.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { DataProvider } from './context/DataContext';
-import Layout from './components/ui/Layout';
+import { Layout } from './components/ui';
 import Homepage from './pages/Home/Homepage';
 import ReadingPage from './pages/Reading/ReadingPage';
 import MoviesPage from './pages/Movies/MoviesPage';

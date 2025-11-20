@@ -1,5 +1,5 @@
 /* CardGroup - Generic container for grid/list/timeline views */
-@import '../../../styles/variables.css';
+@import '../../../../styles/variables.css';
 
 /* Wrapper for pagination support */
 .card-group-wrapper {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Calendar, Film, ExternalLink, RotateCcw } from 'lucide-react';
 import './MovieDetails.css';
-import StarRating from '../../../components/ui/StarRating';
+import { StarRating } from '../../../components/ui';
 import { formatDate } from '../../../utils';
 
 const MovieDetails = ({ movie, onClose }) => {

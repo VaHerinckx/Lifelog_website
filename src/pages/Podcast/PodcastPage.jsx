@@ -5,17 +5,19 @@ import { useData } from '../../context/DataContext';
 // Import components
 import EpisodeDetails from './components/EpisodeDetails';
 import EpisodeCard from './components/EpisodeCard';
-import FilteringPanel from '../../components/ui/Filters/FilteringPanel/FilteringPanel';
-import Filter from '../../components/ui/Filters/Filter/Filter';
 
-// Import standardized components
-import PageWrapper from '../../components/ui/PageWrapper/PageWrapper';
-import PageHeader from '../../components/ui/PageHeader';
-import TabNavigation from '../../components/ui/TabNavigation';
-import ContentTab from '../../components/ui/ContentTab/ContentTab';
-import AnalysisTab from '../../components/ui/AnalysisTab/AnalysisTab';
-import KPICardsPanel from '../../components/ui/KPICardsPanel/KPICardsPanel';
-import ContentCardsGroup from '../../components/ui/ContentCardsGroup';
+// Import standardized UI components
+import {
+  FilteringPanel,
+  Filter,
+  PageWrapper,
+  PageHeader,
+  TabNavigation,
+  ContentTab,
+  AnalysisTab,
+  KPICardsPanel,
+  ContentCardsGroup
+} from '../../components/ui';
 import KpiCard from '../../components/charts/KpiCard';
 
 // Import chart components for analysis tab

@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { Calendar, RotateCcw } from 'lucide-react';
-import StarRating from '../../../components/ui/StarRating';
+import { StarRating } from '../../../components/ui';
 import { formatDate } from '../../../utils';
 import './MovieCard.css';
 

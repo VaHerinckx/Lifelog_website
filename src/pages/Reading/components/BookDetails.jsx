@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, BookOpen, Calendar, Clock } from 'lucide-react';
 import './BookDetails.css';
-import StarRating from '../../../components/ui/StarRating';
+import { StarRating } from '../../../components/ui';
 
 const BookDetails = ({ book, onClose }) => {
   if (!book) return null;

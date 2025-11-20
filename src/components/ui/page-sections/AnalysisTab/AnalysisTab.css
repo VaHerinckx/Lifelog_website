@@ -2,7 +2,7 @@
 /* Most styles inherited from design system components.css */
 /* Responsive layout (1→2→3 columns) defined in components.css */
 
-@import '../../../styles/variables.css';
+@import '../../../../styles/variables.css';
 
 /* ===== COMPONENT-SPECIFIC OVERRIDES ===== */
 /* Add any component-specific styles here if needed */

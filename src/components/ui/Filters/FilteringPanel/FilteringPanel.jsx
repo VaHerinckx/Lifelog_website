@@ -307,12 +307,22 @@ const FilteringPanel = ({
     return { options, dateBoundaries };
   }, [dataSources, filterConfigs, debouncedFilters, fullDataset]); // Use debounced filters for cascading options
 
-  // Use ref to store callback and prevent infinite loops
+  // Use refs to store callback and configs to prevent infinite loops
   const onFiltersChangeRef = useRef(onFiltersChange);
+  const filterConfigsRef = useRef(filterConfigs);
+  const dataSourcesRef = useRef(dataSources);
 
   useEffect(() => {
     onFiltersChangeRef.current = onFiltersChange;
   }, [onFiltersChange]);
+
+  useEffect(() => {
+    filterConfigsRef.current = filterConfigs;
+  }, [filterConfigs]);
+
+  useEffect(() => {
+    dataSourcesRef.current = dataSources;
+  }, [dataSources]);
 
   // Handle individual filter changes
   const handleFilterChange = (filterKey, newValue) => {
@@ -330,6 +340,10 @@ const FilteringPanel = ({
   useEffect(() => {
     if (!onFiltersChangeRef.current) return;
 
+    // Use refs to get current values
+    const currentFilterConfigs = filterConfigsRef.current;
+    const currentDataSources = dataSourcesRef.current;
+
     // If single-source mode (backward compatibility), just return filters
     if (!isMultiSource) {
       onFiltersChangeRef.current(filters);
@@ -340,13 +354,13 @@ const FilteringPanel = ({
     const filteredDataSources = {};
 
     // Create filter config map for faster lookup
-    const filterConfigsMap = filterConfigs.reduce((acc, config) => {
+    const filterConfigsMap = currentFilterConfigs.reduce((acc, config) => {
       acc[config.key] = config;
       return acc;
     }, {});
 
-    Object.keys(dataSources).forEach(sourceName => {
-      const sourceData = dataSources[sourceName];
+    Object.keys(currentDataSources).forEach(sourceName => {
+      const sourceData = currentDataSources[sourceName];
       if (!Array.isArray(sourceData)) return;
 
       let filtered = [...sourceData];
@@ -375,7 +389,7 @@ const FilteringPanel = ({
     });
 
     onFiltersChangeRef.current(filteredDataSources, filters);
-  }, [filters, isMultiSource, filterConfigs]);
+  }, [filters, isMultiSource]); // Removed filterConfigs and dataSources - using refs instead
 
   // Loading state
   if (loading) {

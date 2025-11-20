@@ -7,7 +7,7 @@
   padding: var(--spacing-lg);
   margin-top: var(--spacing-lg);
   background: var(--surface-color);
-  border: var(--border-width) solid var(--border-color);
+  border: var(--border-width) solid var(--text-primary);
   border-radius: var(--border-radius-lg);
 }
 
@@ -19,7 +19,7 @@
 
 .pagination-range {
   font-size: var(--font-size-sm);
-  color: var(--text-secondary);
+  color: var(--color-white);
   font-weight: var(--font-weight-medium);
 }
 
@@ -36,18 +36,18 @@
   width: var(--icon-size-lg);
   height: var(--icon-size-lg);
   padding: 0;
-  background: var(--background-color);
-  border: var(--border-width) solid var(--border-color);
+  background: transparent;
+  border: var(--border-width) solid var(--color-white);
   border-radius: var(--border-radius-md);
-  color: var(--text-primary);
+  color: var(--color-white);
   cursor: pointer;
   transition: all var(--transition-normal);
 }
 
 .pagination-button:hover:not(:disabled) {
-  background: var(--primary-color);
-  color: var(--text-on-primary);
-  border-color: var(--primary-color);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-white);
+  border-color: var(--color-white);
   transform: translateY(-1px);
 }
 
@@ -64,7 +64,7 @@
   margin: 0 var(--spacing-sm);
   font-size: var(--font-size-base);
   font-weight: var(--font-weight-medium);
-  color: var(--text-secondary);
+  color: var(--color-white);
   min-width: 120px;
   text-align: center;
 }
@@ -77,16 +77,16 @@
 
 .pagination-label {
   font-size: var(--font-size-sm);
-  color: var(--text-secondary);
+  color: var(--color-white);
   font-weight: var(--font-weight-medium);
 }
 
 .pagination-select {
   padding: var(--spacing-xs) var(--spacing-sm);
-  background: var(--background-color);
-  border: var(--border-width) solid var(--border-color);
+  background: transparent;
+  border: var(--border-width) solid var(--color-white);
   border-radius: var(--border-radius-md);
-  color: var(--text-primary);
+  color: var(--color-white);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
@@ -94,13 +94,13 @@
 }
 
 .pagination-select:hover {
-  border-color: var(--primary-color);
+  border-color: var(--color-white);
 }
 
 .pagination-select:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px var(--primary-color-alpha);
+  border-color: var(--color-white);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
 }
 
 /* Responsive Design */

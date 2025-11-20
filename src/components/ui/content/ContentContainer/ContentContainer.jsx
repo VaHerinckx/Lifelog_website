@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import LoadingSpinner from './LoadingSpinner';
+import LoadingSpinner from '../../common/LoadingSpinner';
 
 /**
  * ContentContainer - Standardized content container with loading and empty states
