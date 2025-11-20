@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Film, Grid, List, Calendar, Tag, Star } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 // Import components
 import MovieDetails from './components/MovieDetails';
@@ -28,6 +29,7 @@ import TopChart from '../../components/charts/TopChart';
 import { sortByDateSafely } from '../../utils/sortingUtils';
 
 const MoviesPage = () => {
+  usePageTitle('Movies');
   const { data, loading, error, fetchData } = useData();
   const [movies, setMovies] = useState([]);
   const [filteredMovies, setFilteredMovies] = useState([]);

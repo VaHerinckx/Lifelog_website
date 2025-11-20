@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Music, Music as MusicIcon, List, Grid, Calendar, Tag, User, Disc } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 // Import components
 import MusicDetails from './MusicDetails';
@@ -27,6 +28,7 @@ import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 import { sortByDateSafely } from '../../utils/sortingUtils';
 
 const MusicPage = () => {
+  usePageTitle('Music');
   const { data, loading, error, fetchData } = useData();
   const [musicToggles, setMusicToggles] = useState([]);
   const [filteredToggles, setFilteredToggles] = useState([]);

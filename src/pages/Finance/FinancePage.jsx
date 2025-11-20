@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { DollarSign, List, Grid, Calendar, Tag, Building, TrendingUp, FileText } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 // Import components
 import TransactionDetails from './components/TransactionDetails';
@@ -27,6 +28,7 @@ import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 import { sortByDateSafely } from '../../utils/sortingUtils';
 
 const FinancePage = () => {
+  usePageTitle('Finance');
   const { data, loading, error, fetchData } = useData();
   const [transactions, setTransactions] = useState([]);
   const [filteredTransactions, setFilteredTransactions] = useState([]);
@@ -53,7 +55,7 @@ const FinancePage = () => {
       }));
 
       // Sort by most recent first
-      const sortedTransactions = sortByDateSafely(processedTransactions);
+      const sortedTransactions = sortByDateSafely(processedTransactions, 'date');
 
       setTransactions(sortedTransactions);
       setFilteredTransactions(sortedTransactions);
@@ -66,7 +68,7 @@ const FinancePage = () => {
   // FilteringPanel now returns pre-filtered data per source!
   const handleFiltersChange = (filteredDataSources) => {
     // Re-sort filtered data (most recent first)
-    const sortedTransactions = sortByDateSafely(filteredDataSources.finance || []);
+    const sortedTransactions = sortByDateSafely(filteredDataSources.finance || [], 'date');
 
     setFilteredTransactions(sortedTransactions);
   };

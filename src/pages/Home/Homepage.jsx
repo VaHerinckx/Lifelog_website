@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
+import { usePageTitle } from '../../hooks/usePageTitle';
 import './Homepage.css';
 
 const Homepage = () => {
+  usePageTitle('Dashboard');
   const categories = [
     {
       title: 'Reading',

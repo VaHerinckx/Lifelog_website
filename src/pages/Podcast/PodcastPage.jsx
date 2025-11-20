@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Mic, Headphones, List, Grid, Clock, Calendar, Tag, Globe, Sparkles, Repeat, TrendingUp } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 // Import components
 import EpisodeDetails from './components/EpisodeDetails';
@@ -27,6 +28,7 @@ import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 import { sortByDateSafely } from '../../utils/sortingUtils';
 
 const PodcastPage = () => {
+  usePageTitle('Podcasts');
   const { data, loading, error, fetchData } = useData();
   const [podcasts, setPodcasts] = useState([]);
   const [filteredPodcasts, setFilteredPodcasts] = useState([]);

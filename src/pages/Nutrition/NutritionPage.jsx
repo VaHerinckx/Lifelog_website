@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Utensils, List, Grid, Calendar, MapPin, Tag } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 // Import components
 import MealDetails from './components/MealDetails';
@@ -63,6 +64,7 @@ const groupItemsByMealId = (items) => {
 };
 
 const NutritionPage = () => {
+  usePageTitle('Nutrition');
   console.log('🥗 NutritionPage component mounting/rendering');
 
   const { data, loading, error, fetchData } = useData();

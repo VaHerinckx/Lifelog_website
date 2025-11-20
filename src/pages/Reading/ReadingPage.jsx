@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Book, Book as BookIcon, List, Grid, Clock, Calendar, Tag, User, Star } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import { usePageTitle } from '../../hooks/usePageTitle';
 
 // Import components
 import BookDetails from './components/BookDetails';
@@ -30,6 +31,7 @@ import TopChart from '../../components/charts/TopChart';
 import { sortByDateSafely } from '../../utils/sortingUtils';
 
 const ReadingPage = () => {
+  usePageTitle('Reading');
   const { data, loading, error, fetchData } = useData();
   const [books, setBooks] = useState([]);
   const [filteredBooks, setFilteredBooks] = useState([]);
