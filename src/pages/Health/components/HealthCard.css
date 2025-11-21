@@ -34,10 +34,21 @@
   margin-bottom: var(--spacing-md);
 }
 
+/* When showing evaluation face, use transparent background */
+.health-card--grid .health-icon-container:has(.evaluation-face) {
+  background: transparent;
+  border: 2px solid var(--color-border);
+}
+
 .health-card--grid .health-icon {
   width: var(--icon-size-xl);
   height: var(--icon-size-xl);
   color: var(--color-white);
+}
+
+.health-card--grid .evaluation-face {
+  width: 60px;
+  height: 60px;
 }
 
 .health-card--grid .health-info {
@@ -71,10 +82,21 @@
   border-radius: var(--radius-md);
 }
 
+/* When showing evaluation face, use transparent background */
+.health-card--list .health-icon-container:has(.evaluation-face) {
+  background: transparent;
+  border: 2px solid var(--color-border);
+}
+
 .health-card--list .health-icon {
   width: var(--icon-size-lg);
   height: var(--icon-size-lg);
   color: var(--color-white);
+}
+
+.health-card--list .evaluation-face {
+  width: 45px;
+  height: 45px;
 }
 
 .health-card--list .health-info {

@@ -273,9 +273,13 @@ const HealthPage = () => {
                   metricOptions={[
                     { value: 'steps', label: 'Daily Steps', aggregation: 'average', field: 'daily_steps', decimals: 0 },
                     { value: 'sleep', label: 'Sleep Duration (min)', aggregation: 'average', field: 'sleep_minutes', decimals: 0 },
+                    { value: 'sleep quality', label: 'Sleep Quality (1-5)', aggregation: 'average', field: 'sleep_quality', decimals: 1 },
+                    { value: 'sleep rest feeling', label: 'Rest Feeling (1-5)', aggregation: 'average', field: 'sleep_rest_feeling', decimals: 1 },
                     { value: 'energy', label: 'Active Energy (kcal)', aggregation: 'average', field: 'daily_active_energy', decimals: 0 },
                     { value: 'heart', label: 'Heart Rate (bpm)', aggregation: 'average', field: 'avg_heart_rate', decimals: 0 },
-                    { value: 'weight', label: 'Body Weight (kg)', aggregation: 'average', field: 'avg_body_weight', decimals: 1 }
+                    { value: 'weight', label: 'Body Weight (kg)', aggregation: 'average', field: 'avg_body_weight', decimals: 1 },
+                    { value: 'fitness', label: 'Fitness Feeling (1-5)', aggregation: 'average', field: 'fitness_feeling', decimals: 1 },
+                    { value: 'evaluation', label: 'Day Score (1-5)', aggregation: 'average', field: 'overall_evaluation', decimals: 1 }
                   ]}
                   defaultMetric="steps"
                   title="Health Metrics by Period"

@@ -2,6 +2,7 @@ import PropTypes from 'prop-types';
 import { Activity, Moon, Heart, StickyNote, Brain } from 'lucide-react';
 import { StarRating } from '../../../components/ui';
 import { formatDate } from '../../../utils';
+import EvaluationFace from './EvaluationFace';
 import './HealthCard.css';
 
 /**
@@ -48,7 +49,11 @@ const HealthCard = ({ day, viewMode = 'grid', onClick }) => {
     return (
       <div className={cardClass} onClick={() => onClick(day)}>
         <div className="health-icon-container">
-          <Activity className="health-icon" />
+          {day.overall_evaluation && day.overall_evaluation > 0 ? (
+            <EvaluationFace rating={day.overall_evaluation} size="lg" />
+          ) : (
+            <Activity className="health-icon" />
+          )}
         </div>
 
         <div className="health-info">
@@ -110,7 +115,11 @@ const HealthCard = ({ day, viewMode = 'grid', onClick }) => {
   return (
     <div className={cardClass} onClick={() => onClick(day)}>
       <div className="health-icon-container">
-        <Activity className="health-icon" />
+        {day.overall_evaluation && day.overall_evaluation > 0 ? (
+          <EvaluationFace rating={day.overall_evaluation} size="lg" />
+        ) : (
+          <Activity className="health-icon" />
+        )}
       </div>
 
       <div className="health-info">

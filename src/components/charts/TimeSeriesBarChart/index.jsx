@@ -102,7 +102,7 @@ const TimeSeriesBarChart = ({
       if (aggregationType === 'count') {
         metricValue = 1; // Count each item once
       } else {
-        metricValue = parseFloat(entry[metricField]) || 0;
+        metricValue = parseFloat(entry[metricField]);
         // Skip entries with invalid values for sum/average
         if (isNaN(metricValue) || metricValue === null || metricValue === undefined) {
           return;
@@ -249,7 +249,7 @@ const TimeSeriesBarChart = ({
 
       return {
         period: item.period,
-        value: decimals > 0 ? finalValue : Math.round(finalValue),
+        value: decimals > 0 ? parseFloat(finalValue.toFixed(decimals)) : Math.round(finalValue),
         sortKey: item.sortKey
       };
     });
