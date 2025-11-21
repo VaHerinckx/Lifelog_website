@@ -78,7 +78,8 @@ export const DataProvider = ({ children }) => {
     shows: null,
     podcasts: null,
     music: null,
-    finance: null
+    finance: null,
+    health: null
   });
   const [loading, setLoading] = useState({});
   const [error, setError] = useState({});
@@ -132,6 +133,10 @@ export const DataProvider = ({ children }) => {
         case 'finance':
           fileId = DRIVE_FILES.FINANCES.FILE_ID;
           console.log('💰 Finance fileId:', fileId);
+          break;
+        case 'health':
+          fileId = DRIVE_FILES.HEALTH.FILE_ID;
+          console.log('💪 Health fileId:', fileId);
           break;
         default:
           throw new Error(`Unknown data type: ${dataType}`);
@@ -245,6 +250,43 @@ export const DataProvider = ({ children }) => {
                 listening_seconds: toggle.listening_seconds ? parseInt(toggle.listening_seconds) : 0,
                 new_artist_yn: toggle.new_artist_yn ? parseInt(toggle.new_artist_yn) : 0,
                 new_track_yn: toggle.new_track_yn ? parseInt(toggle.new_track_yn) : 0
+              }));
+            }
+
+            // Type conversion for health
+            if (dataType === 'health') {
+              cleanedData = cleanedData.map(day => ({
+                ...day,
+                daily_steps: day.daily_steps ? parseFloat(day.daily_steps) : 0,
+                daily_walking_dist: day.daily_walking_dist ? parseFloat(day.daily_walking_dist) : 0,
+                daily_flights_climbed: day.daily_flights_climbed ? parseFloat(day.daily_flights_climbed) : 0,
+                daily_resting_energy: day.daily_resting_energy ? parseFloat(day.daily_resting_energy) : 0,
+                daily_active_energy: day.daily_active_energy ? parseFloat(day.daily_active_energy) : 0,
+                avg_step_length: day.avg_step_length ? parseFloat(day.avg_step_length) : 0,
+                avg_walking_speed: day.avg_walking_speed ? parseFloat(day.avg_walking_speed) : 0,
+                avg_heart_rate: day.avg_heart_rate ? parseFloat(day.avg_heart_rate) : 0,
+                avg_body_weight: day.avg_body_weight ? parseFloat(day.avg_body_weight) : 0,
+                avg_body_fat_percent: day.avg_body_fat_percent ? parseFloat(day.avg_body_fat_percent) : 0,
+                avg_audio_exposure: day.avg_audio_exposure ? parseFloat(day.avg_audio_exposure) : 0,
+                sleep_awake_minutes: day.sleep_awake_minutes ? parseFloat(day.sleep_awake_minutes) : 0,
+                sleep_core_sleep_minutes: day.sleep_core_sleep_minutes ? parseFloat(day.sleep_core_sleep_minutes) : 0,
+                sleep_deep_sleep_minutes: day.sleep_deep_sleep_minutes ? parseFloat(day.sleep_deep_sleep_minutes) : 0,
+                sleep_in_bed_minutes: day.sleep_in_bed_minutes ? parseFloat(day.sleep_in_bed_minutes) : 0,
+                sleep_rem_sleep_minutes: day.sleep_rem_sleep_minutes ? parseFloat(day.sleep_rem_sleep_minutes) : 0,
+                sleep_unspecified_minutes: day.sleep_unspecified_minutes ? parseFloat(day.sleep_unspecified_minutes) : 0,
+                sleep_minutes: day.sleep_minutes ? parseFloat(day.sleep_minutes) : 0,
+                cities_visited: day.cities_visited ? parseInt(day.cities_visited) : 0,
+                countries_visited: day.countries_visited ? parseInt(day.countries_visited) : 0,
+                timezone_changes: day.timezone_changes ? parseInt(day.timezone_changes) : 0,
+                percent_time_home: day.percent_time_home ? parseFloat(day.percent_time_home) : 0,
+                percent_time_other: day.percent_time_other ? parseFloat(day.percent_time_other) : 0,
+                total_screen_minutes: day.total_screen_minutes ? parseFloat(day.total_screen_minutes) : 0,
+                total_pickups: day.total_pickups ? parseFloat(day.total_pickups) : 0,
+                screen_before_sleep_minutes: day.screen_before_sleep_minutes ? parseFloat(day.screen_before_sleep_minutes) : 0,
+                sleep_quality: day.sleep_quality ? parseFloat(day.sleep_quality) : 0,
+                overall_evaluation: day.overall_evaluation ? parseFloat(day.overall_evaluation) : 0,
+                fitness_feeling: day.fitness_feeling ? parseFloat(day.fitness_feeling) : 0,
+                sleep_rest_feeling: day.sleep_rest_feeling ? parseFloat(day.sleep_rest_feeling) : 0
               }));
             }
 

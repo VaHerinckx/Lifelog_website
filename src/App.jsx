@@ -11,6 +11,7 @@ import NutritionPage from './pages/Nutrition/NutritionPage';
 import PodcastPage from './pages/Podcast/PodcastPage';
 import ShowsPage from './pages/Shows/ShowsPage';
 import FinancePage from './pages/Finance/FinancePage';
+import HealthPage from './pages/Health/HealthPage';
 
 const App = () => {
   return (
@@ -34,6 +35,7 @@ const App = () => {
             <Route path="/podcasts" element={<PodcastPage />} />
             <Route path="/shows" element={<ShowsPage />} />
             <Route path="/finance" element={<FinancePage />} />
+            <Route path="/health" element={<HealthPage />} />
             <Route
               path="/sport"
               element={

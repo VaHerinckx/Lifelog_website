@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { BookOpen, Film, Music, UtensilsCrossed, Mic, Tv, DollarSign, Dumbbell, Briefcase } from 'lucide-react';
+import { BookOpen, Film, Music, UtensilsCrossed, Mic, Tv, DollarSign, Activity, Dumbbell, Briefcase } from 'lucide-react';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import './Homepage.css';
 
@@ -47,6 +47,12 @@ const Homepage = () => {
       icon: DollarSign,
       description: 'Track your income, expenses, and financial patterns over time',
       path: '/finance'
+    },
+    {
+      title: 'Health',
+      icon: Activity,
+      description: 'Track daily activity, sleep patterns, and overall wellness',
+      path: '/health'
     },
     {
       title: 'Sport',

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, Film, Music, UtensilsCrossed, Mic, Tv, DollarSign, Dumbbell, Briefcase } from 'lucide-react';
+import { Home, BookOpen, Film, Music, UtensilsCrossed, Mic, Tv, DollarSign, Activity, Dumbbell, Briefcase } from 'lucide-react';
 import './NavigationBar.css';
 
 const NavigationBar = () => {
@@ -15,6 +15,7 @@ const NavigationBar = () => {
     { path: '/podcasts', label: 'Podcasts', icon: Mic, implemented: true },
     { path: '/shows', label: 'TV Shows', icon: Tv, implemented: true },
     { path: '/finance', label: 'Finance', icon: DollarSign, implemented: true },
+    { path: '/health', label: 'Health', icon: Activity, implemented: true },
     { path: '/sport', label: 'Sport', icon: Dumbbell, implemented: false },
     { path: '/work', label: 'Work', icon: Briefcase, implemented: false }
   ];
