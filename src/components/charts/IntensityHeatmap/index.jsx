@@ -45,13 +45,13 @@ const IntensityHeatmap = ({
   const [heatmapData, setHeatmapData] = useState({});
   const [maxValue, setMaxValue] = useState(0);
 
-  // Dynamically determine time periods based on the treatMidnightAsUnknown prop
-  const TIME_PERIODS = treatMidnightAsUnknown
-    ? { ...BASE_TIME_PERIODS, ...UNKNOWN_TIME_PERIOD }
-    : { ...BASE_TIME_PERIODS };
-
   useEffect(() => {
     if (!Array.isArray(data) || data.length === 0) return;
+
+    // Dynamically determine time periods based on the treatMidnightAsUnknown prop
+    const TIME_PERIODS = treatMidnightAsUnknown
+      ? { ...BASE_TIME_PERIODS, ...UNKNOWN_TIME_PERIOD }
+      : { ...BASE_TIME_PERIODS };
 
     const processDataForHeatmap = () => {
       try {
@@ -150,7 +150,12 @@ const IntensityHeatmap = ({
     };
 
     processDataForHeatmap();
-  }, [data, dateColumnName, valueColumnName, treatMidnightAsUnknown, TIME_PERIODS]);
+  }, [data, dateColumnName, valueColumnName, treatMidnightAsUnknown]);
+
+  // Dynamically determine time periods for rendering (outside useEffect)
+  const TIME_PERIODS = treatMidnightAsUnknown
+    ? { ...BASE_TIME_PERIODS, ...UNKNOWN_TIME_PERIOD }
+    : { ...BASE_TIME_PERIODS };
 
   return (
     <div className="heatmap-container">

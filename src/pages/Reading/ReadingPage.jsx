@@ -302,19 +302,28 @@ const ReadingPage = () => {
                   treatMidnightAsUnknown={true}
                 />
                 <TopChart
-                  data={readingSessions}
+                  data={filteredBooks}
                   dimensionOptions={[
                     { value: 'author', label: 'Author', field: 'author', labelFields: ['author'] },
-                    { value: 'genre', label: 'Genre', field: 'genre', labelFields: ['genre'] }
+                    { value: 'genre', label: 'Genre', field: 'genre', labelFields: ['genre'] },
+                    { value: 'title', label: 'Book Title', field: 'title', labelFields: ['title', 'author'] }
                   ]}
                   metricOptions={[
-                    { value: 'book_id', label: 'Read Count', aggregation: 'count', decimals: 0 },
+                    { value: 'pages', label: 'Total Pages', aggregation: 'sum', field: 'number_of_pages', countLabel: 'pages', decimals: 0 },
+                    { value: 'books', label: 'Total Books', aggregation: 'count_distinct', field: 'book_id', countLabel: 'books', decimals: 0 },
+                    { value: 'pages per day', label: 'Avg pages per day', aggregation: 'average', field: 'pages_per_day', countLabel: 'pages per day', decimals: 0 },
                     { value: 'my_rating', label: 'Avg Rating', aggregation: 'average', field: 'my_rating', suffix: '★', decimals: 1 }
                   ]}
-                  defaultDimension="genre"
-                  defaultMetric="count"
+                  defaultDimension="author"
+                  defaultMetric="pages"
                   title="Top Books Analysis"
                   topN={10}
+                  imageField="cover_url"
+                  enableTopNControl={true}
+                  topNOptions={[5, 10, 15, 20, 25, 30]}
+                  enableSortToggle={true}
+                  scrollable={true}
+                  barHeight={50}
                 />
               </>
             )}

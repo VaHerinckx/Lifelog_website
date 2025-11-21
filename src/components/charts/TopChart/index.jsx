@@ -22,11 +22,20 @@ const TopChart = ({
   defaultDimension,
   defaultMetric,
   title,
-  topN = 10
+  topN = 10,
+  // New customization props
+  imageField,
+  enableTopNControl = false,
+  topNOptions = [5, 10, 15, 20],
+  enableSortToggle = false,
+  scrollable = false,
+  barHeight = 40
 }) => {
   // State for user-selected controls
   const [selectedDimension, setSelectedDimension] = useState(defaultDimension || dimensionOptions[0]?.value);
   const [selectedMetric, setSelectedMetric] = useState(defaultMetric || metricOptions[0]?.value);
+  const [topNValue, setTopNValue] = useState(topN);
+  const [sortDirection, setSortDirection] = useState('desc');
   const [topItems, setTopItems] = useState([]);
 
   // Find current dimension and metric configs
@@ -87,31 +96,36 @@ const TopChart = ({
         .filter(val => val && val.toString().trim() !== '')
         .join(' - ');
 
+      // Get image URL if imageField is provided
+      const artwork = imageField ? items[0]?.[imageField] : null;
+
       return {
         name: groupKey,
         displayName: displayName || groupKey,
         value: metricValue,
-        count: items.length
+        count: items.length,
+        artwork: artwork
       };
     }).value();
 
     // Sort by metric value and take top N
     processedData = _(processedData)
-      .orderBy(['value'], ['desc'])
-      .take(topN)
+      .orderBy(['value'], [sortDirection])
+      .take(topNValue)
       .value();
 
     setTopItems(processedData);
-  }, [data, selectedDimension, selectedMetric, currentDimensionConfig, currentMetricConfig, topN]);
+  }, [data, selectedDimension, selectedMetric, currentDimensionConfig, currentMetricConfig, topNValue, sortDirection]);
 
   const getMetricLabel = () => {
     if (!currentMetricConfig) return 'plays';
 
     const suffix = currentMetricConfig.suffix || '';
     const label = currentMetricConfig.label || 'Value';
+    const countLabel = currentMetricConfig.countLabel || 'plays';
 
     if (currentMetricConfig.aggregation === 'count') {
-      return 'plays';
+      return countLabel;
     } else if (currentMetricConfig.aggregation === 'average') {
       return `avg ${suffix}`;
     }
@@ -119,13 +133,33 @@ const TopChart = ({
   };
 
   const CustomBar = (props) => {
-    const { x, y, width, height, displayName, value } = props;
+    const { x, y, width, height, displayName, value, artwork } = props;
     const decimals = currentMetricConfig?.decimals || 0;
+
+    // Only show artwork for "title" dimension (Book Title)
+    const showArtwork = artwork && imageField && selectedDimension === 'title';
+    const artworkSize = 24;
+    const artworkPadding = 8;
+    const labelStartX = showArtwork ? x - 190 + artworkSize + artworkPadding : x - 190;
 
     return (
       <g>
+        {/* Render artwork image if available */}
+        {showArtwork && (
+          <image
+            x={x - 190}
+            y={y + (height - artworkSize) / 2}
+            width={artworkSize}
+            height={artworkSize}
+            href={artwork}
+            className="chart-item-artwork"
+            preserveAspectRatio="xMidYMid slice"
+          />
+        )}
+
+        {/* Item label */}
         <text
-          x={x - 190}
+          x={labelStartX}
           y={y + height/2}
           dy=".35em"
           textAnchor="start"
@@ -137,6 +171,8 @@ const TopChart = ({
         >
           {displayName.length > 30 ? displayName.substring(0, 30) + '...' : displayName}
         </text>
+
+        {/* Bar */}
         <rect
           x={x}
           y={y}
@@ -146,6 +182,8 @@ const TopChart = ({
           opacity={0.8}
           rx={4}
         />
+
+        {/* Value label */}
         <text
           x={x + width + 5}
           y={y + height/2}
@@ -165,7 +203,8 @@ const TopChart = ({
     width: PropTypes.number,
     height: PropTypes.number,
     displayName: PropTypes.string,
-    value: PropTypes.number
+    value: PropTypes.number,
+    artwork: PropTypes.string
   };
 
   return (
@@ -211,11 +250,75 @@ const TopChart = ({
               </select>
             </div>
           )}
+
+          {/* Top N Selector */}
+          {enableTopNControl && (
+            <div className="chart-filter">
+              <label htmlFor="topn-select">Show top:</label>
+              <select
+                id="topn-select"
+                className="filter-select"
+                value={topNValue}
+                onChange={(e) => setTopNValue(Number(e.target.value))}
+              >
+                {topNOptions.map(option => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Sort Direction Toggle */}
+          {enableSortToggle && (
+            <button
+              className="sort-toggle-button"
+              onClick={() => setSortDirection(prev => prev === 'desc' ? 'asc' : 'desc')}
+              title={sortDirection === 'desc' ? 'Click to show lowest first' : 'Click to show highest first'}
+            >
+              {sortDirection === 'desc' ? 'Highest First ↓' : 'Lowest First ↑'}
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="top-categorys-chart">
-        <ResponsiveContainer width="100%" height={500}>
+      {/* Chart content - scrollable or responsive based on prop */}
+      {scrollable ? (
+        <div
+          className="chart-scrollable-container"
+          style={{
+            height: `calc(${topItems.length * barHeight}px + 40px)`,
+            maxHeight: '100%',
+            overflowY: 'auto'
+          }}
+        >
+          <ResponsiveContainer width="100%" height={topItems.length * barHeight + 40}>
+            <BarChart
+              data={topItems}
+              layout="vertical"
+              margin={{ top: 20, right: 100, bottom: 20, left: 200 }}
+              barSize={barHeight - 10}
+            >
+              <XAxis
+                type="number"
+                tickFormatter={(value) => formatNumber(value, currentMetricConfig?.decimals || 0)}
+                domain={[0, 'dataMax']}
+              />
+              <YAxis
+                type="category"
+                dataKey="name"
+                hide
+              />
+              <Bar
+                dataKey="value"
+                shape={<CustomBar />}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={topItems}
             layout="vertical"
@@ -237,7 +340,7 @@ const TopChart = ({
             />
           </BarChart>
         </ResponsiveContainer>
-      </div>
+      )}
     </div>
   );
 };
@@ -259,13 +362,20 @@ TopChart.propTypes = {
       aggregation: PropTypes.oneOf(['count', 'sum', 'average']).isRequired,
       field: PropTypes.string,
       suffix: PropTypes.string,
-      decimals: PropTypes.number
+      decimals: PropTypes.number,
+      countLabel: PropTypes.string
     })
   ).isRequired,
   defaultDimension: PropTypes.string,
   defaultMetric: PropTypes.string,
   title: PropTypes.string,
-  topN: PropTypes.number
+  topN: PropTypes.number,
+  imageField: PropTypes.string,
+  enableTopNControl: PropTypes.bool,
+  topNOptions: PropTypes.arrayOf(PropTypes.number),
+  enableSortToggle: PropTypes.bool,
+  scrollable: PropTypes.bool,
+  barHeight: PropTypes.number
 };
 
 export default TopChart;

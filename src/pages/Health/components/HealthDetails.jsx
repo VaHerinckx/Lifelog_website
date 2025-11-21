@@ -79,6 +79,83 @@ const HealthDetails = ({ day, onClose }) => {
           </div>
 
           <div className="health-details-body">
+
+            {/* Subjective Evaluations Section */}
+            <div className="health-section">
+              <h3 className="section-title">
+                <Dumbbell size={20} />
+                Evaluations
+              </h3>
+              <div className="section-content">
+                {day.overall_evaluation && day.overall_evaluation > 0 && (
+                  <div className="rating-item">
+                    <label>Overall Feeling:</label>
+                    <div className="rating-display">
+                      <StarRating rating={day.overall_evaluation} maxRating={5} size={18} />
+                      <span>{day.overall_evaluation.toFixed(1)}</span>
+                    </div>
+                  </div>
+                )}
+                {day.sleep_quality && day.sleep_quality > 0 && (
+                  <div className="rating-item">
+                    <label>Sleep Quality:</label>
+                    <div className="rating-display">
+                      <StarRating rating={day.sleep_quality} maxRating={5} size={18} />
+                      <span>{day.sleep_quality.toFixed(1)} ({day.sleep_quality_text || 'N/A'})</span>
+                    </div>
+                  </div>
+                )}
+                {day.fitness_feeling && day.fitness_feeling > 0 && (
+                  <div className="rating-item">
+                    <label>Fitness Feeling:</label>
+                    <div className="rating-display">
+                      <StarRating rating={day.fitness_feeling} maxRating={5} size={18} />
+                      <span>{day.fitness_feeling.toFixed(1)}</span>
+                    </div>
+                  </div>
+                )}
+                {day.sleep_rest_feeling && day.sleep_rest_feeling > 0 && (
+                  <div className="rating-item">
+                    <label>Rest Feeling:</label>
+                    <div className="rating-display">
+                      <StarRating rating={day.sleep_rest_feeling} maxRating={5} size={18} />
+                      <span>{day.sleep_rest_feeling.toFixed(1)}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Subjective Notes Section */}
+            {(day.notes_summary || day.dream_description) && (
+              <div className="health-section health-notes-section">
+                <h3 className="section-title">
+                  <StickyNote size={20} />
+                  Notes & Reflections
+                </h3>
+                <div className="section-content">
+                  {day.dream_description && (
+                    <div className="note-item">
+                      <div className="note-header">
+                        <Brain size={16} />
+                        <label>Dream:</label>
+                      </div>
+                      <p className="note-text">{day.dream_description}</p>
+                    </div>
+                  )}
+                  {day.notes_summary && (
+                    <div className="note-item">
+                      <div className="note-header">
+                        <StickyNote size={16} />
+                        <label>Daily Notes:</label>
+                      </div>
+                      <p className="note-text">{day.notes_summary}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Activity Metrics Section */}
             <div className="health-section">
               <h3 className="section-title">
@@ -228,82 +305,6 @@ const HealthDetails = ({ day, onClose }) => {
                 </div>
               </div>
             </div>
-
-            {/* Subjective Evaluations Section */}
-            <div className="health-section">
-              <h3 className="section-title">
-                <Dumbbell size={20} />
-                Evaluations
-              </h3>
-              <div className="section-content">
-                {day.overall_evaluation && day.overall_evaluation > 0 && (
-                  <div className="rating-item">
-                    <label>Overall Feeling:</label>
-                    <div className="rating-display">
-                      <StarRating rating={day.overall_evaluation} maxRating={5} size={18} />
-                      <span>{day.overall_evaluation.toFixed(1)}</span>
-                    </div>
-                  </div>
-                )}
-                {day.sleep_quality && day.sleep_quality > 0 && (
-                  <div className="rating-item">
-                    <label>Sleep Quality:</label>
-                    <div className="rating-display">
-                      <StarRating rating={day.sleep_quality} maxRating={5} size={18} />
-                      <span>{day.sleep_quality.toFixed(1)} ({day.sleep_quality_text || 'N/A'})</span>
-                    </div>
-                  </div>
-                )}
-                {day.fitness_feeling && day.fitness_feeling > 0 && (
-                  <div className="rating-item">
-                    <label>Fitness Feeling:</label>
-                    <div className="rating-display">
-                      <StarRating rating={day.fitness_feeling} maxRating={5} size={18} />
-                      <span>{day.fitness_feeling.toFixed(1)}</span>
-                    </div>
-                  </div>
-                )}
-                {day.sleep_rest_feeling && day.sleep_rest_feeling > 0 && (
-                  <div className="rating-item">
-                    <label>Rest Feeling:</label>
-                    <div className="rating-display">
-                      <StarRating rating={day.sleep_rest_feeling} maxRating={5} size={18} />
-                      <span>{day.sleep_rest_feeling.toFixed(1)}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Subjective Notes Section */}
-            {(day.notes_summary || day.dream_description) && (
-              <div className="health-section health-notes-section">
-                <h3 className="section-title">
-                  <StickyNote size={20} />
-                  Notes & Reflections
-                </h3>
-                <div className="section-content">
-                  {day.dream_description && (
-                    <div className="note-item">
-                      <div className="note-header">
-                        <Brain size={16} />
-                        <label>Dream:</label>
-                      </div>
-                      <p className="note-text">{day.dream_description}</p>
-                    </div>
-                  )}
-                  {day.notes_summary && (
-                    <div className="note-item">
-                      <div className="note-header">
-                        <StickyNote size={16} />
-                        <label>Daily Notes:</label>
-                      </div>
-                      <p className="note-text">{day.notes_summary}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

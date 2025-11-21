@@ -102,9 +102,4 @@ AnalysisTab.propTypes = {
   renderCharts: PropTypes.func.isRequired
 };
 
-AnalysisTab.defaultProps = {
-  data: [],
-  emptyState: {}
-};
-
 export default AnalysisTab;

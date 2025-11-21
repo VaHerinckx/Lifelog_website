@@ -3,23 +3,29 @@
 .top-tracks-container,
 .top-albums-container,
 .top-categorys-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+
   background-color: var(--chart-background);
   border-radius: var(--chart-border-radius);
   padding: var(--chart-padding);
-  margin-bottom: var(--chart-margin-bottom);
+  padding-bottom: calc(var(--chart-padding) + var(--spacing-lg));
   box-shadow: var(--chart-shadow);
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
 }
 
 /* Chart header with title and controls */
-.chart-header {
+.top-artists-container .chart-header,
+.top-tracks-container .chart-header,
+.top-albums-container .chart-header,
+.top-categorys-container .chart-header {
+  flex-shrink: 0;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--spacing-lg);
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-bottom: var(--chart-title-margin);
 }
 
 .top-artists-title,
@@ -37,7 +43,8 @@
 .chart-controls {
   display: flex;
   align-items: center;
-  gap: var(--spacing-md);
+  gap: var(--chart-control-gap);
+  flex-wrap: wrap;
 }
 
 /* Individual filter control */
@@ -55,8 +62,8 @@
 }
 
 .chart-filter .filter-select {
-  width: 140px;
-  padding: var(--spacing-xs);
+  width: var(--chart-control-width-lg);
+  padding: var(--chart-control-padding);
   border-radius: var(--radius-sm);
   color: var(--color-text-primary);
   border: var(--border-width-thin) solid var(--border-color-medium);
@@ -68,11 +75,65 @@
   border-color: var(--color-primary);
 }
 
-.top-artists-chart,
-.top-tracks-chart,
-.top-albums-chart {
-  width: 100%;
-  height: var(--chart-height-default);
+/* Chart content area - fills remaining space */
+.top-artists-container .recharts-responsive-container,
+.top-tracks-container .recharts-responsive-container,
+.top-albums-container .recharts-responsive-container,
+.top-categorys-container .recharts-responsive-container {
+  flex-grow: 1;
+  flex-shrink: 0;
+  min-height: 0;
+}
+
+/* Scrollable container for fixed bar height mode */
+.chart-scrollable-container {
+  overflow-y: auto;
+  flex-grow: 1;
+  min-height: 0;
+}
+
+.chart-scrollable-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chart-scrollable-container::-webkit-scrollbar-track {
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-sm);
+}
+
+.chart-scrollable-container::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: var(--radius-sm);
+}
+
+.chart-scrollable-container::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent);
+}
+
+/* Artwork image styling */
+.chart-item-artwork {
+  border-radius: var(--radius-xs);
+  border: 1px solid var(--border-color-light);
+}
+
+/* Sort toggle button */
+.sort-toggle-button {
+  padding: var(--chart-control-padding);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  border: var(--border-width-thin) solid var(--border-color-medium);
+  background-color: var(--color-surface-elevated);
+  cursor: pointer;
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.sort-toggle-button:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
 }
 
 /* Indicator styles */
@@ -173,19 +234,18 @@
     font-size: var(--font-size-lg);
   }
 
-  .top-artists-chart,
-  .top-tracks-chart,
-  .top-albums-chart {
-    height: var(--chart-height-mobile);
-  }
-
   .artist-name,
   .track-name,
   .album-name {
-    font-size: 10px;
+    font-size: var(--chart-fluid-text-small);
   }
 
   .value-label {
-    font-size: 10px;
+    font-size: var(--chart-fluid-text-small);
+  }
+
+  .sort-toggle-button {
+    width: 100%;
+    justify-content: center;
   }
 }

@@ -211,7 +211,8 @@ export const DataProvider = ({ children }) => {
                 average_rating: book.average_rating ? parseFloat(book.average_rating) : 0,
                 number_of_pages: book.number_of_pages ? parseInt(book.number_of_pages) : 0,
                 original_publication_year: book.original_publication_year ? parseInt(book.original_publication_year) : null,
-                reading_duration_final: book.reading_duration_final ? parseInt(book.reading_duration_final) : null
+                reading_duration_final: book.reading_duration_final ? parseInt(book.reading_duration_final) : null,
+                pages_per_day : book.pages_per_day ? parseFloat(book.pages_per_day) : 0
               }));
             }
 

@@ -315,13 +315,19 @@ const MoviesPage = () => {
                   { value: 'type', label: 'Type', field: 'type', labelFields: ['type'] }
                 ]}
                 metricOptions={[
-                  { value: 'count', label: 'Watch Count', aggregation: 'count', decimals: 0 },
-                  { value: 'avgRating', label: 'Avg Rating', aggregation: 'average', field: 'rating', suffix: '★', decimals: 1 }
+                  { value: 'avgRating', label: 'Avg Rating', aggregation: 'average', field: 'rating', suffix: '★', decimals: 1 },
+                  { value: 'movies', label: 'Movies', aggregation: 'count_distinct', field: 'movie_id', countLabel: 'movies', decimals: 0 }
                 ]}
                 defaultDimension="genre"
-                defaultMetric="count"
+                defaultMetric="pages"
                 title="Top Movies Analysis"
                 topN={10}
+                imageField="poster_url"
+                enableTopNControl={true}
+                topNOptions={[5, 10, 15, 20, 25, 30]}
+                enableSortToggle={true}
+                scrollable={true}
+                barHeight={50}
               />
             </>
           )}
