@@ -1,0 +1,30 @@
+/* ===== CHART TOKENS ===== */
+/* Specific design tokens for chart and visualization components */
+
+:root {
+  /* ===== CHART CONTAINER STYLING ===== */
+  /* Visual styling for chart containers */
+  --chart-border-radius: var(--radius-lg);      /* Chart container rounding (12px) */
+  --chart-padding: var(--spacing-lg);           /* Chart internal padding (24px) */
+  --chart-margin-bottom: var(--spacing-xl);     /* Space between charts (32px) */
+  --chart-shadow: var(--shadow-md);             /* Chart elevation shadow */
+
+  /* ===== CHART DIMENSIONS ===== */
+  /* Responsive height scale for chart containers */
+  --chart-height-default: 500px;   /* Default chart height */
+  --chart-height-mobile: 400px;    /* Mobile chart height */
+  --chart-height-tablet: 500px;    /* Tablet chart height */
+  --chart-height-desktop: 600px;   /* Desktop chart height */
+
+  /* ===== CHART LAYOUT PROPORTIONS ===== */
+  /* Internal layout ratios for chart components */
+  --chart-header-height-ratio: 20%;  /* Header takes 1/5 of container */
+  --chart-content-height-ratio: 80%; /* Chart content takes 4/5 of container */
+
+  /* ===== CHART TYPOGRAPHY ===== */
+  /* Text styling for chart titles and labels */
+  --chart-title-size: var(--font-size-xl);           /* Chart title font size (20px) */
+  --chart-title-weight: var(--font-weight-semibold); /* Chart title weight (600) */
+  --chart-title-margin: var(--spacing-md);           /* Space below title (16px) */
+  --chart-title-align: left;                         /* Chart title alignment */
+}

@@ -1,5 +1,6 @@
 /* Import design system */
-@import './styles/variables.css';
+/* Using tokens/index.css directly for optimal bundle size */
+@import './styles/tokens/index.css';
 @import './styles/components.css';
 
 :root {

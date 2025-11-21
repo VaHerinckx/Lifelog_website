@@ -1,201 +1,32 @@
-/* LifeLog Design System Variables */
-/* All styling should reference these variables for consistency */
+/* ===== LIFELOG DESIGN SYSTEM VARIABLES ===== */
+/* This file re-exports all design tokens for backward compatibility */
+/* All new imports should use ./tokens/index.css directly */
 
-/* Import fonts */
-@import '../assets/fonts/fonts.css';
+/* Import the complete design token system */
+@import './tokens/index.css';
 
-/* ===== SPACING SCALE ===== */
-/* 8px base scale using rem units */
-:root {
-  --spacing-xs: 0.5rem;    /* 8px */
-  --spacing-sm: 0.75rem;   /* 12px */
-  --spacing-md: 1rem;      /* 16px */
-  --spacing-lg: 1.5rem;    /* 24px */
-  --spacing-xl: 2rem;      /* 32px */
-  --spacing-2xl: 3rem;     /* 48px */
-  --spacing-3xl: 4rem;     /* 64px */
-  --spacing-4xl: 5rem;     /* 80px */
+/* ===== HOW TO CHANGE THE WEBSITE THEME ===== */
+/*
+To change the entire website color scheme:
+1. Open ./tokens/colors.base.css
+2. Update the base color values (21 foundation colors)
+3. All semantic colors throughout the site will automatically update
 
-  /* ===== ICON SIZES ===== */
-  /* Consistent icon sizing scale */
-  --icon-size-xs: 1rem;    /* 16px */
-  --icon-size-sm: 1.25rem; /* 20px */
-  --icon-size-md: 1.5rem;  /* 24px */
-  --icon-size-lg: 2rem;    /* 32px */
-  --icon-size-xl: 3rem;    /* 48px */
+Example theme changes:
 
-  /* ===== TYPOGRAPHY SCALE ===== */
-  /* Modular scale for consistent typography hierarchy */
-  --font-size-xs: 0.75rem;     /* 12px */
-  --font-size-sm: 0.875rem;    /* 14px */
-  --font-size-base: 1rem;      /* 16px */
-  --font-size-lg: 1.125rem;    /* 18px */
-  --font-size-xl: 1.25rem;     /* 20px */
-  --font-size-2xl: 1.5rem;     /* 24px */
-  --font-size-3xl: 2rem;       /* 32px */
-  --font-size-4xl: 2.5rem;     /* 40px */
+CURRENT THEME (Purple):
+--base-color-primary: #3423A6
+--base-color-accent: #FB4B4E
 
-  /* Line heights for optimal readability */
-  --line-height-tight: 1.25;
-  --line-height-normal: 1.5;
-  --line-height-relaxed: 1.75;
+ANTWARP BLUE THEME:
+--base-color-primary: #0066A3
+--base-color-primary-dark: #004d7a
+--base-color-primary-light: #cce5f0
 
-  /* Font weights */
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
+BENZOL GREEN THEME:
+--base-color-primary: #001288
+--base-color-primary-dark: #000b5c
+--base-color-primary-light: #ccd0e8
 
-  /* Font families */
-  --font-primary: 'Wotfard', Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  --font-secondary: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-
-  /* ===== COLOR SYSTEM ===== */
-  /* Primary brand colors */
-    /* Antwarp Blue #0066A3, Benzol Green #001288*/
-  --color-primary: #3423A6;
-  --color-primary-dark: #2A1C85;
-  --color-primary-light: #D8DCFF;
-  --color-accent: #FB4B4E;
-  --color-accent-dark: #DC2626;
-
-  /* Background colors */
-  --color-background: #171738;
-  --color-dark-background: #210F04;
-  --color-surface: #D8DCFF;
-  --color-surface-elevated: #D8DCFF;
-
-  /* Text colors */
-  --color-text-primary: #2A1C85;
-  --color-text-secondary: rgba(255, 255, 255, 0.7);
-  --color-text-inverse: #171738;
-  --color-text-muted: #9CA3AF;
-  --color-text-on-surface: #171738;
-  --color-text-on-surface-secondary: #555;
-
-  /* Interactive colors */
-  --color-hover: rgba(52, 35, 166, 0.1);
-  --color-active: rgba(52, 35, 166, 0.2);
-  --color-focus: rgba(52, 35, 166, 0.3);
-
-  /* Status colors */
-  --color-success: #10B981;
-  --color-warning: #F59E0B;
-  --color-error: #EF4444;
-  --color-info: #3B82F6;
-
-  /* Badge colors */
-  --color-badge-new: var(--color-success);        /* #10B981 - Green for "New" badges */
-  --color-badge-recurring: var(--color-info);     /* #3B82F6 - Blue for "Recurring" badges */
-  --color-badge-language: var(--color-purple-light);  /* #6D62C4 - Purple for language badges */
-
-  /* Utility colors */
-  --color-white: #ffffff;
-  --color-rating-star: #EAC435;        /* Yellow/gold for rating stars */
-  --color-purple-light: #6D62C4;       /* Light purple for tags/badges */
-  --color-border-gray: #cccccc;        /* Light gray for borders */
-  --color-text-gray: #555555;          /* Gray text for secondary content */
-
-  /* ===== BORDER & RADIUS ===== */
-  /* Consistent border radius scale */
-  --radius-none: 0;
-  --radius-sm: 0.25rem;    /* 4px */
-  --radius-md: 0.5rem;     /* 8px */
-  --radius-lg: 0.75rem;    /* 12px */
-  --radius-xl: 1rem;       /* 16px */
-
-  /* Border widths */
-  --border-width-thin: 1px;
-  --border-width-medium: 2px;
-  --border-width-thick: 4px;
-
-  /* Border colors */
-  --border-color-light: rgba(255, 255, 255, 0.1);
-  --border-color-medium: rgba(52, 35, 166, 0.2);
-  --border-color-dark: #171738;
-
-  /* ===== SHADOWS ===== */
-  /* Consistent shadow system for depth */
-  --shadow-none: none;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
-
-  /* ===== BREAKPOINTS ===== */
-  /* Responsive design breakpoints */
-  --breakpoint-sm: 640px;    /* Mobile */
-  --breakpoint-md: 768px;    /* Tablet */
-  --breakpoint-lg: 1024px;   /* Desktop */
-  --breakpoint-xl: 1280px;   /* Large desktop */
-  --breakpoint-2xl: 1536px;  /* Extra large */
-
-  /* ===== CONTAINER SIZES ===== */
-  /* Standardized container dimensions */
-  --container-width: 95%;
-  --container-max-width: 96vw;
-  --container-padding: var(--spacing-xl);
-  --container-padding-mobile: var(--spacing-lg);
-
-  /* ===== CHART SPECIFIC ===== */
-  /* Chart container styling */
-  --chart-background: var(--color-surface);
-  --chart-border-radius: var(--radius-lg);
-  --chart-padding: var(--spacing-lg);
-  --chart-margin-bottom: var(--spacing-xl);
-  --chart-shadow: var(--shadow-md);
-  --chart-height-default: 500px;
-  --chart-height-mobile: 400px;
-  --chart-height-tablet: 500px;
-  --chart-height-desktop: 600px;
-
-  /* Chart layout proportions */
-  --chart-header-height-ratio: 20%;  /* Header takes 1/5 of container */
-  --chart-content-height-ratio: 80%; /* Chart content takes 4/5 of container */
-
-  /* Chart typography */
-  --chart-title-size: var(--font-size-xl);
-  --chart-title-color: var(--color-accent);
-  --chart-title-weight: var(--font-weight-semibold);
-  --chart-title-margin: var(--spacing-md);
-  --chart-title-align: left;
-
-  /* Chart colors */
-  --chart-primary-color: var(--color-primary);      /* #3423A6 - main chart color */
-  --chart-secondary-color: var(--color-accent);     /* #FB4B4E - accent/secondary chart color */
-  --chart-grid-line: rgba(23, 23, 56, 0.2);        /* Subtle grid lines matching background */
-
-  /* Timeline colors for reading visualizations */
-  --timeline-color-1: #3B82F6;    /* Blue */
-  --timeline-color-2: #14B8A6;    /* Teal */
-  --timeline-color-3: #F97316;    /* Orange */
-  --timeline-color-4: #A78BFA;    /* Lavender */
-  --timeline-color-5: #10B981;    /* Green */
-
-  /* ===== TRANSITIONS ===== */
-  /* Consistent animation timing */
-  --transition-fast: 150ms ease-in-out;
-  --transition-normal: 250ms ease-in-out;
-  --transition-slow: 350ms ease-in-out;
-
-  /* ===== Z-INDEX SCALE ===== */
-  /* Consistent layering */
-  --z-dropdown: 1000;
-  --z-sticky: 1010;
-  --z-fixed: 1020;
-  --z-modal-backdrop: 1030;
-  --z-modal: 1040;
-  --z-popover: 1050;
-  --z-tooltip: 1060;
-}
-
-/* ===== LEGACY VARIABLE MAPPINGS ===== */
-/* Map old variables to new system for backward compatibility */
-:root {
-  /* Map existing variables to new system */
-  --title-color: var(--color-accent);
-  --text-element: var(--color-text-primary);
-  --text-secondary: var(--color-text-secondary);
-  --element-background-color: var(--color-surface);
-  --background-color: var(--color-background);
-}
+For more details, see documentation in ./tokens/colors.base.css
+*/
