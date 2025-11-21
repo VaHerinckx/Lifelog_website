@@ -55,16 +55,7 @@ PURPLE THEME (Current):
 - Primary: #3423A6 (Royal Purple)
 - Accent: #FB4B4E (Coral Red)
 
-ALTERNATIVE THEMES:
-Antwarp Blue Theme:
-- --base-color-primary: #0066A3
-- --base-color-primary-dark: #004d7a
-- --base-color-primary-light: #cce5f0
 
-Benzol Green Theme:
-- --base-color-primary: #001288
-- --base-color-primary-dark: #000b5c
-- --base-color-primary-light: #ccd0e8
 
 All semantic color variables (defined in colors.semantic.css) will
 automatically update to reflect your base color changes.

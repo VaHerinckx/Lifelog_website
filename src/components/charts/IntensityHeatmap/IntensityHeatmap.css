@@ -82,14 +82,14 @@
 .total-header,
 .total-label {
   font-weight: 700;
-  background-color: rgba(52, 35, 166, 0.15);
-  color: #171738;
+  background-color: var(--color-active);
+  color: var(--color-text-on-surface);
 }
 
 .total-cell {
   font-weight: 700;
-  background-color: rgba(52, 35, 166, 0.08);
-  color: #171738;
+  background-color: var(--color-hover);
+  color: var(--color-text-on-surface);
 }
 
 .grand-total-cell {

@@ -119,18 +119,18 @@
 .tooltip-name {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #171738;
+  color: var(--color-text-on-surface);
   margin-bottom: 0.25rem;
 }
 
 .tooltip-time {
   font-size: 0.875rem;
-  color: #171738;
+  color: var(--color-text-on-surface);
 }
 
 .tooltip-popularity {
   font-size: 0.75rem;
-  color: #3423A6;
+  color: var(--color-primary);
 }
 
 /* Responsive design */

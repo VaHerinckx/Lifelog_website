@@ -9,7 +9,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-color: #171738;
+  background-color: var(--color-background);
   z-index: 9999;
 }
 
@@ -36,12 +36,12 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: #3423A6;
+  color: var(--color-primary);
   z-index: 10;
-  background-color: rgba(52, 35, 166, 0.1);
+  background-color: var(--color-hover);
   border-radius: 50%;
   padding: 15px;
-  box-shadow: 0 0 20px rgba(52, 35, 166, 0.3);
+  box-shadow: 0 0 20px var(--color-focus);
 }
 
 .orbit {
@@ -71,9 +71,9 @@
   align-items: center;
   width: 40px;
   height: 40px;
-  background-color: rgba(52, 35, 166, 0.1);
+  background-color: var(--color-hover);
   border-radius: 50%;
-  transition: all 0.3s ease;
+  transition: all var(--transition-normal);
 }
 
 .orbit-inner .icon-container:nth-child(1) { top: -20px; left: calc(50% - 20px); }
@@ -87,16 +87,16 @@
 .orbit-outer .icon-container:nth-child(4) { left: -20px; top: calc(50% - 20px); }
 
 .orbit-icon {
-  color: #FB4B4E;
+  color: var(--color-accent);
 }
 
 .orbit-inner .orbit-icon {
-  color: #EAC435;
+  color: var(--color-rating-star);
 }
 
 .icon-container:hover {
   transform: scale(1.2);
-  box-shadow: 0 0 15px rgba(251, 75, 78, 0.3);
+  box-shadow: 0 0 15px var(--color-focus);
 }
 
 .loading-text {

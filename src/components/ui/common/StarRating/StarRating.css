@@ -13,13 +13,13 @@
 }
 
 .star-rating .star-filled {
-  color: #EAC435;
+  color: var(--color-rating-star);
 }
 
 .star-rating .star-half {
-  color: #EAC435;
+  color: var(--color-rating-star);
 }
 
 .star-rating .star-empty {
-  color: #ccc;
+  color: var(--color-border-gray);
 }
