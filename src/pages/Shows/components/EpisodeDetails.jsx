@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Tv, Calendar, MapPin, ExternalLink } from 'lucide-react';
 import './EpisodeDetails.css';
 import { formatDate } from '../../../utils';
+import { StarRating } from '../../../components/ui';
 
 const EpisodeDetails = ({ episode, onClose }) => {
   if (!episode) return null;
@@ -69,6 +70,38 @@ const EpisodeDetails = ({ episode, onClose }) => {
                 </div>
               </div>
             </div>
+
+            {/* Ratings Section */}
+            {(episode.episode_rating > 0 || episode.season_rating > 0 || episode.show_rating > 0) && (
+              <div className="episode-section">
+                <h4>Ratings</h4>
+                <div className="episode-details-meta">
+                  {episode.episode_rating > 0 && (
+                    <div className="meta-item">
+                      <span className="label">Episode Rating:</span>
+                      <StarRating rating={episode.episode_rating / 2} size={18} />
+                      <span className="rating-display">{(episode.episode_rating / 2).toFixed(1)}/5</span>
+                    </div>
+                  )}
+
+                  {episode.season_rating > 0 && (
+                    <div className="meta-item">
+                      <span className="label">Season Rating:</span>
+                      <StarRating rating={episode.season_rating / 2} size={18} />
+                      <span className="rating-display">{(episode.season_rating / 2).toFixed(1)}/5</span>
+                    </div>
+                  )}
+
+                  {episode.show_rating > 0 && (
+                    <div className="meta-item">
+                      <span className="label">Show Rating:</span>
+                      <StarRating rating={episode.show_rating / 2} size={18} />
+                      <span className="rating-display">{(episode.show_rating / 2).toFixed(1)}/5</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Watch Details Section */}
             <div className="episode-section">

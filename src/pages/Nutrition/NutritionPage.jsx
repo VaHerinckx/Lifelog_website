@@ -198,18 +198,18 @@ const NutritionPage = () => {
               onFiltersChange={handleFiltersChange}
             >
               <Filter
+                type="daterange"
+                label="Date Range"
+                field="date"
+                icon={<Calendar />}
+                dataSources={['nutrition']}
+              />
+              <Filter
                 type="multiselect"
                 label="Meal Type"
                 field="meal"
                 icon={<Utensils />}
                 placeholder="Select meal types"
-                dataSources={['nutrition']}
-              />
-              <Filter
-                type="daterange"
-                label="Date Range"
-                field="date"
-                icon={<Calendar />}
                 dataSources={['nutrition']}
               />
               <Filter
@@ -256,8 +256,9 @@ const NutritionPage = () => {
             >
               <KpiCard
                 dataSource="nutrition"
-                computation="count"
-                label="Total Meals"
+                field="meal_id"
+                computation="count_distinct"
+                label="Total Meals/Occurrences"
                 icon={<Utensils />}
               />
               <KpiCard
@@ -358,7 +359,9 @@ const NutritionPage = () => {
                   data={items}
                   dateColumnName="date"
                   metricOptions={[
-                    { value: 'meals', label: 'Number of Meals', aggregation: 'countUnique', field: 'meal_id', decimals: 0 }
+                    { value: 'meals', label: 'Number of Meals', aggregation: 'count_distinct', field: 'meal_id', decimals: 0 },
+                    { value: 'ingredient occurrences', label: 'Number of Food Occurrences', aggregation: 'sum', field: 'food_quantity', decimals: 0 },
+                    { value: 'drink occurrences', label: 'Number of Drink Occurrences', aggregation: 'sum', field: 'drink_quantity', decimals: 0 }
                   ]}
                   defaultMetric="meals"
                   title="Meals Over Time"

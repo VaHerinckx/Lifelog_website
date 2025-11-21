@@ -1,8 +1,25 @@
 import PropTypes from 'prop-types';
-import { Utensils, Clock, MapPin } from 'lucide-react';
+import { Utensils, Clock, MapPin, Croissant, Coffee, Sandwich, Cookie, UtensilsCrossed, Moon } from 'lucide-react';
 import { StarRating } from '../../../components/ui';
 import { formatDate } from '../../../utils';
 import './MealCard.css';
+
+/**
+ * Get the appropriate icon component for a meal type
+ * @param {string} mealType - The meal type (e.g., 'Breakfast', 'Lunch')
+ * @returns {React.Component} Icon component from lucide-react
+ */
+const getMealIcon = (mealType) => {
+  const iconMap = {
+    'Breakfast': Croissant,
+    'Morning snack': Coffee,
+    'Lunch': Sandwich,
+    'Afternoon snack': Cookie,
+    'Dinner': UtensilsCrossed,
+    'Night snack': Moon,
+  };
+  return iconMap[mealType] || Utensils; // fallback to Utensils for unknown types
+};
 
 /**
  * MealCard - Displays meal information in grid or list view
@@ -18,6 +35,7 @@ import './MealCard.css';
  * @param {Function} onClick - Callback when card is clicked
  */
 const MealCard = ({ meal, viewMode = 'grid', onClick }) => {
+  const MealIcon = getMealIcon(meal.meal);
   const cardClass = `meal-card meal-card--${viewMode}`;
 
   // Combine and truncate food and drinks list for preview
@@ -48,7 +66,7 @@ const MealCard = ({ meal, viewMode = 'grid', onClick }) => {
     return (
       <div className={cardClass} onClick={() => onClick(meal)}>
         <div className="meal-icon-container">
-          <Utensils size={32} className="meal-icon" />
+          <MealIcon size={32} className="meal-icon" />
         </div>
 
         <div className="meal-info">
@@ -95,7 +113,7 @@ const MealCard = ({ meal, viewMode = 'grid', onClick }) => {
   return (
     <div className={cardClass} onClick={() => onClick(meal)}>
       <div className="meal-icon-container">
-        <Utensils size={48} className="meal-icon" />
+        <MealIcon size={48} className="meal-icon" />
       </div>
 
       <div className="meal-info">

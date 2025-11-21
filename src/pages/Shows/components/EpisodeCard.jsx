@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import { Tv } from 'lucide-react';
 import { formatDate } from '../../../utils';
+import { StarRating } from '../../../components/ui';
 import './EpisodeCard.css';
 
 /**
@@ -57,6 +58,13 @@ const EpisodeCard = ({ episode, viewMode = 'grid', onClick }) => {
             )}
           </div>
 
+          {episode.episode_rating && episode.episode_rating > 0 && (
+            <div className="rating-container">
+              <StarRating rating={episode.episode_rating / 2} size={16} />
+              <span className="rating-value">{(episode.episode_rating / 2).toFixed(1)}</span>
+            </div>
+          )}
+
           <div className="watch-date">
             <span className="date-value">{formatDate(episode.watched_at)}</span>
           </div>
@@ -98,6 +106,13 @@ const EpisodeCard = ({ episode, viewMode = 'grid', onClick }) => {
           {episode.show_year && <span className="show-year">{episode.show_year}</span>}
         </div>
 
+        {episode.episode_rating && episode.episode_rating > 0 && (
+          <div className="rating-container">
+            <StarRating rating={episode.episode_rating / 2} size={16} />
+            <span className="rating-value">{(episode.episode_rating / 2).toFixed(1)}</span>
+          </div>
+        )}
+
         <div className="watch-date">
           <span className="date-label">Watched on:</span>
           <span className="date-value">{formatDate(episode.watched_at)}</span>
@@ -118,6 +133,7 @@ EpisodeCard.propTypes = {
     episode_title: PropTypes.string.isRequired,
     progress: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     season_poster_url: PropTypes.string,
+    episode_rating: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
   }).isRequired,
   viewMode: PropTypes.oneOf(['grid', 'list']),
   onClick: PropTypes.func.isRequired,

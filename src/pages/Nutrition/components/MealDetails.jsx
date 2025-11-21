@@ -1,11 +1,30 @@
 import React from 'react';
-import { X, Utensils, Calendar, Clock, MapPin, TrendingUp } from 'lucide-react';
+import { X, Utensils, Calendar, Clock, MapPin, TrendingUp, Croissant, Coffee, Sandwich, Cookie, UtensilsCrossed, Moon } from 'lucide-react';
 import './MealDetails.css';
 import { StarRating } from '../../../components/ui';
 import { formatDate } from '../../../utils';
 
+/**
+ * Get the appropriate icon component for a meal type
+ * @param {string} mealType - The meal type (e.g., 'Breakfast', 'Lunch')
+ * @returns {React.Component} Icon component from lucide-react
+ */
+const getMealIcon = (mealType) => {
+  const iconMap = {
+    'Breakfast': Croissant,
+    'Morning snack': Coffee,
+    'Lunch': Sandwich,
+    'Afternoon snack': Cookie,
+    'Dinner': UtensilsCrossed,
+    'Night snack': Moon,
+  };
+  return iconMap[mealType] || Utensils; // fallback to Utensils for unknown types
+};
+
 const MealDetails = ({ meal, onClose }) => {
   if (!meal) return null;
+
+  const MealIcon = getMealIcon(meal.meal);
 
   // Parse food and drinks lists for display
   const parseFoodList = (foodListStr) => {
@@ -30,7 +49,7 @@ const MealDetails = ({ meal, onClose }) => {
 
         <div className="meal-details-content">
           <div className="meal-details-icon">
-            <Utensils size={64} />
+            <MealIcon size={64} />
           </div>
 
           <div className="meal-details-info">

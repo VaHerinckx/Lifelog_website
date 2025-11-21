@@ -44,7 +44,7 @@ const FilteringPanel = ({
       if (!React.isValidElement(child)) return;
 
       // Extract props from Filter child to build config
-      const { type, label, icon, placeholder, searchPlaceholder, searchable, allLabel, defaultValue, delimiter, matchMode, ...rest } = child.props;
+      const { type, label, icon, placeholder, searchPlaceholder, searchable, allLabel, defaultValue, delimiter, matchMode, sortType, ...rest } = child.props;
 
       // Generate a key from the field or label
       const key = rest.field || label?.toLowerCase().replace(/\s+/g, '_') || `filter_${configs.length}`;
@@ -64,7 +64,8 @@ const FilteringPanel = ({
         dataSources: rest.dataSources,
         options: rest.options,
         delimiter: delimiter || null,
-        matchMode: matchMode || 'exact'
+        matchMode: matchMode || 'exact',
+        sortType: sortType || 'alpha'
       });
     });
 
@@ -321,7 +322,16 @@ const FilteringPanel = ({
             );
 
           // Remove duplicates and sort
-          values = _.uniq(values).sort();
+          values = _.uniq(values);
+
+          // Apply sorting based on sortType
+          if (config.sortType === 'numeric') {
+            values.sort((a, b) => Number(a) - Number(b));
+          } else if (config.sortType === 'numericDesc') {
+            values.sort((a, b) => Number(b) - Number(a));
+          } else {
+            values.sort(); // Default alphabetical sort
+          }
         }
 
         options[config.key] = values;

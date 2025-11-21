@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Tv, List, Grid, Clock, Calendar } from 'lucide-react';
+import { Tv, List, Grid, Clock, Calendar, Star } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -132,6 +132,15 @@ const ShowsPage = () => {
                 icon={<Calendar />}
                 dataSources={['shows']}
               />
+              <Filter
+                type="multiselect"
+                label="Show Rating"
+                field="show_rating"
+                icon={<Star />}
+                placeholder="Select rating"
+                dataSources={['shows']}
+                sortType="numeric"
+              />
             </FilteringPanel>
 
             {/* Statistics Cards with KpiCard children */}
@@ -156,7 +165,7 @@ const ShowsPage = () => {
               />
               <KpiCard
                 dataSource="shows"
-                field="season"
+                field="season_show_id"
                 computation="count_distinct"
                 label="Seasons Watched"
                 icon={<Tv />}

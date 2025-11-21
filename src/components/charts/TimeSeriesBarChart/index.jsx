@@ -1,18 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { performComputation, formatComputedValue } from '../../../utils/computationUtils';
+import { parseDate } from '../../../utils/dateUtils';
 import './TimeSeriesBarChart.css';
-
-// Format number with optional decimal places
-const formatNumber = (num, decimals = 0) => {
-  if (decimals > 0) {
-    return new Intl.NumberFormat('en-US', {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    }).format(num);
-  }
-  return new Intl.NumberFormat().format(Math.round(num));
-};
 
 /**
  * A reusable component for displaying time series data as a bar chart
@@ -53,7 +44,7 @@ const TimeSeriesBarChart = ({
       return;
     }
 
-    // Determine aggregation type and field BEFORE the loop
+    // Determine aggregation type and field
     let aggregationType, metricField;
     if (useSimpleAPI) {
       // Simple API: Backward compatibility
@@ -70,151 +61,82 @@ const TimeSeriesBarChart = ({
       metricField = currentMetricConfig?.field;
     }
 
-    // Create a temporary object to hold our data for each period
-    const periodSums = {};
+    // Helper function to generate period key
+    const generatePeriodKey = (date) => {
+      if (selectedPeriod === 'yearly') {
+        return date.getFullYear().toString();
+      } else if (selectedPeriod === 'monthly') {
+        return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+      } else { // Daily
+        return date.toISOString().split('T')[0];
+      }
+    };
 
-    // Track min and max dates from valid entries
+    // Helper function to generate display label
+    const generateDisplayLabel = (date) => {
+      if (selectedPeriod === 'yearly') {
+        return date.getFullYear().toString();
+      } else if (selectedPeriod === 'monthly') {
+        const monthDate = new Date(date.getFullYear(), date.getMonth(), 1);
+        return monthDate.toLocaleString('default', { month: 'short', year: 'numeric' });
+      } else { // Daily
+        return date.toLocaleDateString();
+      }
+    };
+
+    // Step 1: Group data by period
+    const periodGroups = {};
     let minDate = null;
     let maxDate = null;
 
-    // Process each data entry, grouping by date period
-    data.forEach((entry, index) => {
-      // Get timestamp value from the specified column
-      const rawTimestamp = entry[dateColumnName];
-
-      // Skip invalid timestamps
-      if (!rawTimestamp || rawTimestamp === null) {
-        return;
-      }
-
-      // Parse date ensuring proper handling
-      const date = rawTimestamp instanceof Date
-        ? rawTimestamp
-        : new Date(rawTimestamp);
-
-      // Skip invalid dates (null dates become Invalid Date)
-      if (!date || date === null || isNaN(date.getTime())) {
-        return;
-      }
-
-      // Get metric value based on aggregation type
-      let metricValue;
-      if (aggregationType === 'count') {
-        metricValue = 1; // Count each item once
-      } else {
-        metricValue = parseFloat(entry[metricField]);
-        // Skip entries with invalid values for sum/average
-        if (isNaN(metricValue) || metricValue === null || metricValue === undefined) {
-          return;
-        }
-        // Convert seconds to hours if requested
-        if (currentMetricConfig?.convertToHours) {
-          metricValue = metricValue / 3600;
-        }
-      }
+    data.forEach((entry) => {
+      // Parse date
+      const date = parseDate(entry[dateColumnName]);
+      if (!date) return;
 
       // Update min and max dates
       if (!minDate || date < minDate) minDate = new Date(date);
       if (!maxDate || date > maxDate) maxDate = new Date(date);
 
-      // Determine period key based on selected period
-      let periodKey;
+      // Generate period key
+      const periodKey = generatePeriodKey(date);
 
-      if (selectedPeriod === 'yearly') {
-        periodKey = date.getFullYear().toString();
-      }
-      else if (selectedPeriod === 'monthly') {
-        periodKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-      }
-      else { // Daily
-        periodKey = date.toISOString().split('T')[0];
-      }
-
-      // Initialize period if it doesn't exist
-      if (!periodSums[periodKey]) {
-        let displayLabel;
-
-        if (selectedPeriod === 'yearly') {
-          displayLabel = periodKey; // Just use the year
-        }
-        else if (selectedPeriod === 'monthly') {
-          // Format month name and year
-          const monthDate = new Date(date.getFullYear(), date.getMonth(), 1);
-          displayLabel = monthDate.toLocaleString('default', { month: 'short', year: 'numeric' });
-        }
-        else { // Daily
-          displayLabel = date.toLocaleDateString();
-        }
-
-        periodSums[periodKey] = {
-          period: displayLabel,
-          sum: 0,
-          count: 0,
-          value: 0,
+      // Initialize period group if it doesn't exist
+      if (!periodGroups[periodKey]) {
+        periodGroups[periodKey] = {
+          data: [],
+          displayLabel: generateDisplayLabel(date),
           sortKey: periodKey
         };
       }
 
-      // Add this entry's metric value based on aggregation type
-      if (aggregationType === 'count') {
-        periodSums[periodKey].count += 1;
-      } else if (aggregationType === 'sum') {
-        periodSums[periodKey].sum += metricValue;
-      } else if (aggregationType === 'average') {
-        periodSums[periodKey].sum += metricValue;
-        periodSums[periodKey].count += 1;
-      }
+      // Add entry to this period's data array
+      periodGroups[periodKey].data.push(entry);
     });
 
-    // If we have valid min and max dates, generate a complete sequence of periods
+    // Step 2: Fill in missing periods with zero values (for continuous time series)
     if (minDate && maxDate) {
-      // Helper function to generate period key and display label
-      const generatePeriodInfo = (date) => {
-        let periodKey, displayLabel;
-
-        if (selectedPeriod === 'yearly') {
-          periodKey = date.getFullYear().toString();
-          displayLabel = periodKey;
-        }
-        else if (selectedPeriod === 'monthly') {
-          periodKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-          displayLabel = new Date(date.getFullYear(), date.getMonth(), 1)
-            .toLocaleString('default', { month: 'short', year: 'numeric' });
-        }
-        else { // Daily
-          periodKey = date.toISOString().split('T')[0];
-          displayLabel = date.toLocaleDateString();
-        }
-
-        return { periodKey, displayLabel };
-      };
-
-      // Fill in missing periods with zero values
       const currentDate = new Date(minDate);
 
       // Adjust currentDate to the start of its period
       if (selectedPeriod === 'yearly') {
         currentDate.setMonth(0, 1);
         currentDate.setHours(0, 0, 0, 0);
-      }
-      else if (selectedPeriod === 'monthly') {
+      } else if (selectedPeriod === 'monthly') {
         currentDate.setDate(1);
         currentDate.setHours(0, 0, 0, 0);
-      }
-      else { // Daily
+      } else { // Daily
         currentDate.setHours(0, 0, 0, 0);
       }
 
       while (currentDate <= maxDate) {
-        const { periodKey, displayLabel } = generatePeriodInfo(currentDate);
+        const periodKey = generatePeriodKey(currentDate);
 
-        // If this period doesn't exist in our data, add it with zero metric value
-        if (!periodSums[periodKey]) {
-          periodSums[periodKey] = {
-            period: displayLabel,
-            sum: 0,
-            count: 0,
-            value: 0,
+        // If this period doesn't exist in our data, add it with empty data array
+        if (!periodGroups[periodKey]) {
+          periodGroups[periodKey] = {
+            data: [],
+            displayLabel: generateDisplayLabel(currentDate),
             sortKey: periodKey
           };
         }
@@ -222,35 +144,35 @@ const TimeSeriesBarChart = ({
         // Move to next period
         if (selectedPeriod === 'yearly') {
           currentDate.setFullYear(currentDate.getFullYear() + 1);
-        }
-        else if (selectedPeriod === 'monthly') {
+        } else if (selectedPeriod === 'monthly') {
           currentDate.setMonth(currentDate.getMonth() + 1);
-        }
-        else { // Daily
+        } else { // Daily
           currentDate.setDate(currentDate.getDate() + 1);
         }
       }
     }
 
-    // Convert to array and calculate final values based on aggregation type
-    const chartDataArray = Object.values(periodSums).map(item => {
-      let finalValue;
+    // Step 3: Compute aggregated values for each period using performComputation
+    const decimals = useSimpleAPI ? 0 : (currentMetricConfig?.decimals || 0);
+    const computationOptions = {
+      decimals,
+      convertToHours: currentMetricConfig?.convertToHours,
+      defaultValue: 0
+    };
 
-      if (aggregationType === 'count') {
-        finalValue = item.count;
-      } else if (aggregationType === 'average') {
-        finalValue = item.count > 0 ? item.sum / item.count : 0;
-      } else { // sum
-        finalValue = item.sum;
-      }
-
-      // Get decimal places from config
-      const decimals = useSimpleAPI ? 0 : (currentMetricConfig?.decimals || 0);
+    const chartDataArray = Object.values(periodGroups).map(group => {
+      // Use performComputation to calculate the aggregated value for this period
+      const value = performComputation(
+        group.data,
+        metricField,
+        aggregationType,
+        computationOptions
+      );
 
       return {
-        period: item.period,
-        value: decimals > 0 ? parseFloat(finalValue.toFixed(decimals)) : Math.round(finalValue),
-        sortKey: item.sortKey
+        period: group.displayLabel,
+        value,
+        sortKey: group.sortKey
       };
     });
 
@@ -275,7 +197,7 @@ const TimeSeriesBarChart = ({
   // Helper function to format Y-axis values
   const formatYAxisValue = (value) => {
     const decimals = useSimpleAPI ? 0 : (currentMetricConfig?.decimals || 0);
-    return formatNumber(value, decimals);
+    return formatComputedValue(value, { type: 'number', decimals });
   };
 
   // Helper function to calculate X-axis label interval
@@ -381,10 +303,11 @@ TimeSeriesBarChart.propTypes = {
     PropTypes.shape({
       value: PropTypes.string.isRequired,
       label: PropTypes.string.isRequired,
-      aggregation: PropTypes.oneOf(['count', 'sum', 'average']).isRequired,
+      aggregation: PropTypes.oneOf(['count', 'count_distinct', 'sum', 'average']).isRequired,
       field: PropTypes.string,
       suffix: PropTypes.string,
-      decimals: PropTypes.number
+      decimals: PropTypes.number,
+      convertToHours: PropTypes.bool
     })
   ),
   defaultMetric: PropTypes.string,
