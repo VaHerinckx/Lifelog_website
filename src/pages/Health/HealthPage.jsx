@@ -24,14 +24,12 @@ import KpiCard from '../../components/charts/KpiCard';
 // Import chart components for analysis tab
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 
-// Import utilities
-import { sortByDateSafely } from '../../utils/sortingUtils';
-
 const HealthPage = () => {
   usePageTitle('Health');
   const { data, loading, error, fetchData } = useData();
   const [healthDays, setHealthDays] = useState([]);
   const [filteredHealthDays, setFilteredHealthDays] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(true);
 
   const [viewMode, setViewMode] = useState('grid');
   const [selectedDay, setSelectedDay] = useState(null);
@@ -47,6 +45,8 @@ const HealthPage = () => {
   // Process health data when it's loaded
   useEffect(() => {
     if (data?.health) {
+      setIsProcessing(true);
+
       // Convert date strings to Date objects for JavaScript date operations
       // Filter out entries with invalid dates
       const processedDays = data.health
@@ -56,20 +56,17 @@ const HealthPage = () => {
         }))
         .filter(day => day.date !== null && !isNaN(day.date.getTime()));
 
-      // Sort by most recent first
-      const sortedDays = sortByDateSafely(processedDays, 'date');
-
-      setHealthDays(sortedDays);
-      setFilteredHealthDays(sortedDays);
-      // Reset content ready state when new data arrives
+      // ContentTab now handles sorting internally
+      setHealthDays(processedDays);
+      setFilteredHealthDays(processedDays);
+      setIsProcessing(false);
       }
   }, [data?.health]);
 
   // Apply filters when FilteringPanel filters change
   const handleFiltersChange = (filteredDataSources) => {
-    // Re-sort filtered data (most recent first)
-    const sortedDays = sortByDateSafely(filteredDataSources.health || [], 'date');
-    setFilteredHealthDays(sortedDays);
+    // ContentTab now handles sorting internally
+    setFilteredHealthDays(filteredDataSources.health || []);
   };
 
   const handleCardClick = (day) => {
@@ -96,7 +93,7 @@ const HealthPage = () => {
         description="Track your daily activity, sleep patterns, and overall wellness"
       />
 
-        {!loading?.health && (
+        {!loading?.health && !isProcessing && (
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
@@ -204,7 +201,7 @@ const HealthPage = () => {
         {/* Daily Logs Tab Content */}
         {activeTab === 'content' && (
           <ContentTab
-            loading={loading?.health}
+            loading={loading?.health || isProcessing}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             viewModes={[
@@ -218,8 +215,16 @@ const HealthPage = () => {
               title: "No health data found",
               message: "No health data matches your current filters. Try adjusting your criteria."
             }}
-            enablePagination={true}
-            itemsPerPage={50}
+            sortOptions={[
+              { value: 'date', label: 'Date', type: 'date' },
+              { value: 'steps', label: 'Steps', type: 'number' },
+              { value: 'sleep_score', label: 'Sleep Score', type: 'number' },
+              { value: 'sleep_duration', label: 'Sleep Duration', type: 'number' },
+              { value: 'active_minutes', label: 'Active Minutes', type: 'number' },
+              { value: 'fitness_feeling', label: 'Fitness Feeling', type: 'number' }
+            ]}
+            defaultSortField="date"
+            defaultSortDirection="desc"
             renderGrid={(days) => (
               <ContentCardsGroup
                 items={days}

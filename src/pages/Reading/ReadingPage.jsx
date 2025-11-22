@@ -26,10 +26,6 @@ import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
 import TopChart from '../../components/charts/TopChart';
 
-
-// Import utilities
-import { sortByDateSafely } from '../../utils/sortingUtils';
-
 const ReadingPage = () => {
   usePageTitle('Reading');
   const { data, loading, error, fetchData } = useData();
@@ -37,6 +33,7 @@ const ReadingPage = () => {
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [readingEntries, setReadingEntries] = useState([]);
   const [filteredReadingEntries, setFilteredReadingEntries] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(true);
 
   const [viewMode, setViewMode] = useState('grid');
   const [selectedBook, setSelectedBook] = useState(null);
@@ -55,6 +52,8 @@ const ReadingPage = () => {
   // Process books data when it's loaded from new dual-file structure
   useEffect(() => {
     if (data?.readingBooks && data?.readingSessions) {
+      setIsProcessing(true);
+
       // Convert timestamp strings to Date objects for JavaScript date operations
       const processedBooks = data.readingBooks.map(book => ({
         ...book,
@@ -66,26 +65,21 @@ const ReadingPage = () => {
         timestamp: session.timestamp ? new Date(session.timestamp) : null
       }));
 
-      // Sort by most recent first
-      const sortedBooks = sortByDateSafely(processedBooks);
-      const sortedSessions = sortByDateSafely(processedSessions);
-
-      setBooks(sortedBooks);
-      setFilteredBooks(sortedBooks);
-      setReadingEntries(sortedSessions);
-      setFilteredReadingEntries(sortedSessions);
+      // ContentTab now handles sorting internally
+      setBooks(processedBooks);
+      setFilteredBooks(processedBooks);
+      setReadingEntries(processedSessions);
+      setFilteredReadingEntries(processedSessions);
+      setIsProcessing(false);
     }
   }, [data?.readingBooks, data?.readingSessions]);
 
   // Apply filters when FilteringPanel filters change
   // FilteringPanel now returns pre-filtered data per source!
   const handleFiltersChange = (filteredDataSources) => {
-    // Re-sort filtered data (most recent first)
-    const sortedBooks = sortByDateSafely(filteredDataSources.readingBooks || []);
-    const sortedSessions = sortByDateSafely(filteredDataSources.readingSessions || []);
-
-    setFilteredBooks(sortedBooks);
-    setFilteredReadingEntries(sortedSessions);
+    // ContentTab now handles sorting internally
+    setFilteredBooks(filteredDataSources.readingBooks || []);
+    setFilteredReadingEntries(filteredDataSources.readingSessions || []);
   };
 
   const handleBookClick = (book) => {
@@ -113,7 +107,7 @@ const ReadingPage = () => {
         description="Track your reading habits and discover insights about your books"
       />
 
-        {!(loading?.readingBooks || loading?.readingSessions) && (
+        {!(loading?.readingBooks || loading?.readingSessions) && !isProcessing && (
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
@@ -230,7 +224,7 @@ const ReadingPage = () => {
         {/* Books Tab Content */}
         {activeTab === 'content' && (
           <ContentTab
-            loading={loading?.readingBooks || loading?.readingSessions}
+            loading={loading?.readingBooks || loading?.readingSessions || isProcessing}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             viewModes={[
@@ -244,6 +238,16 @@ const ReadingPage = () => {
               title: "No books found",
               message: "No books match your current filters. Try adjusting your criteria."
             }}
+            sortOptions={[
+              { value: 'timestamp', label: 'Finish Date', type: 'date' },
+              { value: 'title', label: 'Title', type: 'string' },
+              { value: 'author', label: 'Author', type: 'string' },
+              { value: 'my_rating', label: 'Rating', type: 'number' },
+              { value: 'number_of_pages', label: 'Pages', type: 'number' },
+              { value: 'pages_per_day', label: 'Pages per Day', type: 'number' }
+            ]}
+            defaultSortField="timestamp"
+            defaultSortDirection="desc"
             renderGrid={(books) => (
               <ContentCardsGroup
                 items={books}

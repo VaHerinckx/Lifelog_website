@@ -24,14 +24,12 @@ import KpiCard from '../../components/charts/KpiCard';
 // Import chart components for analysis tab
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 
-// Import utilities
-import { sortByDateSafely } from '../../utils/sortingUtils';
-
 const PodcastPage = () => {
   usePageTitle('Podcasts');
   const { data, loading, error, fetchData } = useData();
   const [podcasts, setPodcasts] = useState([]);
   const [filteredPodcasts, setFilteredPodcasts] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(true);
 
   const [viewMode, setViewMode] = useState('grid');
   const [selectedEpisode, setSelectedEpisode] = useState(null);
@@ -49,6 +47,8 @@ const PodcastPage = () => {
   // Process podcast data when it's loaded
   useEffect(() => {
     if (data?.podcasts) {
+      setIsProcessing(true);
+
       // Convert timestamp strings to Date objects for JavaScript date operations
       const processedPodcasts = data.podcasts.map(episode => ({
         ...episode,
@@ -59,17 +59,15 @@ const PodcastPage = () => {
       // Data already sorted by Python, but set in state
       setPodcasts(processedPodcasts);
       setFilteredPodcasts(processedPodcasts);
-      // Reset content ready state when new data arrives
+      setIsProcessing(false);
       }
   }, [data?.podcasts]);
 
   // Apply filters when FilteringPanel filters change
   // FilteringPanel now returns pre-filtered data per source!
   const handleFiltersChange = (filteredDataSources) => {
-    // Re-sort filtered data (most recent first by listened_date)
-    const sortedPodcasts = sortByDateSafely(filteredDataSources.podcasts || [], 'listened_date');
-
-    setFilteredPodcasts(sortedPodcasts);
+    // ContentTab now handles sorting internally
+    setFilteredPodcasts(filteredDataSources.podcasts || []);
   };
 
   const handleEpisodeClick = useCallback((episode) => {
@@ -96,7 +94,7 @@ const PodcastPage = () => {
         description="Track your podcast listening habits and discover insights about your episodes"
       />
 
-        {!loading?.podcasts && (
+        {!loading?.podcasts && !isProcessing && (
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
@@ -205,7 +203,7 @@ const PodcastPage = () => {
         {/* Episodes Tab Content */}
         {activeTab === 'content' && (
           <ContentTab
-            loading={loading?.podcasts}
+            loading={loading?.podcasts || isProcessing}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             viewModes={[
@@ -219,6 +217,15 @@ const PodcastPage = () => {
               title: "No episodes found",
               message: "No episodes match your current filters. Try adjusting your criteria."
             }}
+            sortOptions={[
+              { value: 'listened_date', label: 'Listen Date', type: 'date' },
+              { value: 'published_date', label: 'Publish Date', type: 'date' },
+              { value: 'episode_title', label: 'Episode Title', type: 'string' },
+              { value: 'podcast_title', label: 'Podcast Title', type: 'string' },
+              { value: 'duration', label: 'Duration', type: 'number' }
+            ]}
+            defaultSortField="listened_date"
+            defaultSortDirection="desc"
             renderGrid={(episodes) => (
               <ContentCardsGroup
                 items={episodes}

@@ -32,6 +32,7 @@ const MusicPage = () => {
   const { data, loading, error, fetchData } = useData();
   const [musicToggles, setMusicToggles] = useState([]);
   const [filteredToggles, setFilteredToggles] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(true);
 
   const [viewMode, setViewMode] = useState('grid');
   const [selectedToggle, setSelectedToggle] = useState(null);
@@ -47,6 +48,8 @@ const MusicPage = () => {
   // Process music data when it's loaded
   useEffect(() => {
     if (data?.music) {
+      setIsProcessing(true);
+
       // Convert timestamp strings to Date objects for JavaScript date operations
       const processedToggles = data.music.map(toggle => ({
         ...toggle,
@@ -59,7 +62,7 @@ const MusicPage = () => {
 
       setMusicToggles(sortedToggles);
       setFilteredToggles(sortedToggles);
-      // Reset content ready state when new data arrives
+      setIsProcessing(false);
       }
   }, [data?.music]);
 
@@ -94,7 +97,7 @@ const MusicPage = () => {
         description="Explore your listening history and music preferences across 9+ years"
       />
 
-        {!loading?.music && (
+        {!loading?.music && !isProcessing && (
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
@@ -207,7 +210,7 @@ const MusicPage = () => {
         {/* Toggles Tab Content */}
         {activeTab === 'content' && (
           <ContentTab
-            loading={loading?.music}
+            loading={loading?.music || isProcessing}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             viewModes={[

@@ -239,7 +239,7 @@ const MovieDetails = ({ movie, onClose }) => {
                         {formattedBudget && (
                           <>
                             <label>Budget:</label>
-                            <span>{formattedBudget}</span>
+                            <span>{formattedBudget} || </span>
                           </>
                         )}
                         {formattedRevenue && (

@@ -4,13 +4,13 @@ import { Search, ChevronDown, ChevronRight, X, Check, Calendar } from 'lucide-re
 import './Filter.css';
 
 /**
- * A versatile filter component that supports single-select, multi-select, hierarchical, and date range modes
+ * A versatile filter component that supports single-select, multi-select, hierarchical, date range, and number range modes
  * with PowerBI-style radio button (circle) and checkbox (square) styling
  *
  * @param {Object} props
- * @param {string} props.type - 'singleselect', 'multiselect', 'hierarchical', or 'daterange'
- * @param {Array} props.options - Array of option strings (not used for daterange or hierarchical)
- * @param {string|Array|Object} props.value - Selected value(s) or date range object
+ * @param {string} props.type - 'singleselect', 'multiselect', 'hierarchical', 'daterange', or 'numberrange'
+ * @param {Array} props.options - Array of option strings (not used for daterange, numberrange, or hierarchical)
+ * @param {string|Array|Object} props.value - Selected value(s), date range object, or number range object
  * @param {Function} props.onChange - Callback when selection changes
  * @param {string} props.label - Label for the filter
  * @param {React.ReactNode} [props.icon] - Optional icon
@@ -21,6 +21,9 @@ import './Filter.css';
  * @param {string} [props.defaultValue] - Default value for single select (required for singleselect)
  * @param {Date} [props.minDate] - Minimum date for daterange
  * @param {Date} [props.maxDate] - Maximum date for daterange
+ * @param {number} [props.minNumber] - Minimum number for numberrange
+ * @param {number} [props.maxNumber] - Maximum number for numberrange
+ * @param {string} [props.suffix] - Suffix for number display (e.g., " min", " years")
  * @param {Map} [props.hierarchy] - Hierarchy Map for hierarchical type (parent -> [children])
  * @param {Map} [props.hierarchyWithCounts] - Hierarchy with counts for hierarchical type
  * @param {string} [props.selectionMode] - 'single' or 'multi' for hierarchical type
@@ -39,6 +42,9 @@ const Filter = ({
   defaultValue = null,
   minDate = null,
   maxDate = null,
+  minNumber = null,
+  maxNumber = null,
+  suffix = '',
   hierarchy = null,
   hierarchyWithCounts = null,
   selectionMode = 'multi'
@@ -57,9 +63,11 @@ const Filter = ({
   const [dragging, setDragging] = useState(null);
   const [tempRange, setTempRange] = useState(null); // Store temporary range during drag
 
-  // Normalize value to always be an array for easier processing (except daterange and hierarchical single-select)
+  // Normalize value to always be an array for easier processing (except daterange, numberrange, and hierarchical single-select)
   const selectedValues = type === 'daterange'
     ? value || { startDate: null, endDate: null }
+    : type === 'numberrange'
+    ? value || { min: null, max: null }
     : type === 'hierarchical' && selectionMode === 'single'
     ? (value ? [value] : [])
     : type === 'multiselect' || (type === 'hierarchical' && selectionMode === 'multi')
@@ -110,6 +118,27 @@ const Filter = ({
     if (totalMs === 0) return 0;
     const dateMs = date.getTime() - minDate.getTime();
     return (dateMs / totalMs) * 100;
+  };
+
+  // Number range helper functions
+  const formatNumber = (num) => {
+    if (num === null || num === undefined) return '';
+    return num + suffix;
+  };
+
+  const positionToNumber = (position) => {
+    if (minNumber === null || maxNumber === null) return null;
+    const totalRange = maxNumber - minNumber;
+    const offsetValue = totalRange * (position / 100);
+    return Math.round(minNumber + offsetValue);
+  };
+
+  const numberToPosition = (num) => {
+    if (num === null || minNumber === null || maxNumber === null) return 0;
+    const totalRange = maxNumber - minNumber;
+    if (totalRange === 0) return 0;
+    const numOffset = num - minNumber;
+    return (numOffset / totalRange) * 100;
   };
 
   // Filter options based on search term (skip for hierarchical type)
@@ -172,9 +201,9 @@ const Filter = ({
     }
   }, [isOpen, searchable, type]);
 
-  // Handle mouse/touch events for date range slider
+  // Handle mouse/touch events for date range and number range sliders
   useEffect(() => {
-    if (type !== 'daterange') return;
+    if (type !== 'daterange' && type !== 'numberrange') return;
 
     const handleMouseMove = (e) => {
       if (!dragging || !sliderRef.current) return;
@@ -182,27 +211,50 @@ const Filter = ({
       const rect = sliderRef.current.getBoundingClientRect();
       const position = ((e.clientX - rect.left) / rect.width) * 100;
       const clampedPosition = Math.max(0, Math.min(100, position));
-      const date = positionToDate(clampedPosition);
 
-      if (!date) return;
+      if (type === 'daterange') {
+        const date = positionToDate(clampedPosition);
+        if (!date) return;
 
-      setTempRange((current) => {
-        const baseRange = current || selectedValuesRef.current;
-        let newRange = { ...baseRange };
+        setTempRange((current) => {
+          const baseRange = current || selectedValuesRef.current;
+          let newRange = { ...baseRange };
 
-        if (dragging === 'start') {
-          if (date <= new Date(baseRange.endDate || maxDate)) {
-            newRange.startDate = formatDateForInput(date);
+          if (dragging === 'start') {
+            if (date <= new Date(baseRange.endDate || maxDate)) {
+              newRange.startDate = formatDateForInput(date);
+            }
+          } else if (dragging === 'end') {
+            if (date >= new Date(baseRange.startDate || minDate)) {
+              newRange.endDate = formatDateForInput(date);
+            }
           }
-        } else if (dragging === 'end') {
-          if (date >= new Date(baseRange.startDate || minDate)) {
-            newRange.endDate = formatDateForInput(date);
-          }
-        }
 
-        tempRangeRef.current = newRange;
-        return newRange;
-      });
+          tempRangeRef.current = newRange;
+          return newRange;
+        });
+      } else if (type === 'numberrange') {
+        const num = positionToNumber(clampedPosition);
+        if (num === null) return;
+
+        setTempRange((current) => {
+          const baseRange = current || selectedValuesRef.current;
+          let newRange = { ...baseRange };
+
+          if (dragging === 'start') {
+            if (num <= (baseRange.max !== null ? baseRange.max : maxNumber)) {
+              newRange.min = num;
+            }
+          } else if (dragging === 'end') {
+            if (num >= (baseRange.min !== null ? baseRange.min : minNumber)) {
+              newRange.max = num;
+            }
+          }
+
+          tempRangeRef.current = newRange;
+          return newRange;
+        });
+      }
     };
 
     const handleEnd = () => {
@@ -241,7 +293,7 @@ const Filter = ({
       document.removeEventListener('touchmove', handleMouseMove);
       document.removeEventListener('touchend', handleEnd);
     };
-  }, [dragging, minDate, maxDate, type]);
+  }, [dragging, minDate, maxDate, minNumber, maxNumber, type]);
 
   // Toggle dropdown
   const toggleDropdown = () => {
@@ -337,6 +389,16 @@ const Filter = ({
     onChange(newRange);
   };
 
+  // Handle number range input changes
+  const handleNumberInputChange = (e, rangeType) => {
+    const newNum = e.target.value === '' ? null : parseInt(e.target.value, 10);
+    const newRange = {
+      ...selectedValues,
+      [rangeType]: newNum
+    };
+    onChange(newRange);
+  };
+
   // Handle date range slider interactions
   const handleSliderMouseDown = (e, handle) => {
     e.preventDefault();
@@ -354,38 +416,71 @@ const Filter = ({
       return;
     }
 
-    if (!sliderRef.current || !minDate || !maxDate) return;
+    if (!sliderRef.current) return;
 
     const rect = sliderRef.current.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
     const clickPosition = (clickX / rect.width) * 100;
-    const clickDate = positionToDate(clickPosition);
 
-    if (!clickDate) return;
+    if (type === 'daterange') {
+      if (!minDate || !maxDate) return;
 
-    const startPos = dateToPosition(new Date(selectedValues.startDate || minDate));
-    const endPos = dateToPosition(new Date(selectedValues.endDate || maxDate));
-    const distToStart = Math.abs(clickPosition - startPos);
-    const distToEnd = Math.abs(clickPosition - endPos);
+      const clickDate = positionToDate(clickPosition);
+      if (!clickDate) return;
 
-    let newRange = { ...selectedValues };
+      const startPos = dateToPosition(new Date(selectedValues.startDate || minDate));
+      const endPos = dateToPosition(new Date(selectedValues.endDate || maxDate));
+      const distToStart = Math.abs(clickPosition - startPos);
+      const distToEnd = Math.abs(clickPosition - endPos);
 
-    if (distToStart <= distToEnd) {
-      newRange.startDate = formatDateForInput(clickDate);
-    } else {
-      newRange.endDate = formatDateForInput(clickDate);
-    }
+      let newRange = { ...selectedValues };
 
-    // Ensure start date is not after end date
-    if (new Date(newRange.startDate) > new Date(newRange.endDate)) {
       if (distToStart <= distToEnd) {
-        newRange.startDate = newRange.endDate;
+        newRange.startDate = formatDateForInput(clickDate);
       } else {
-        newRange.endDate = newRange.startDate;
+        newRange.endDate = formatDateForInput(clickDate);
       }
-    }
 
-    onChange(newRange);
+      // Ensure start date is not after end date
+      if (new Date(newRange.startDate) > new Date(newRange.endDate)) {
+        if (distToStart <= distToEnd) {
+          newRange.startDate = newRange.endDate;
+        } else {
+          newRange.endDate = newRange.startDate;
+        }
+      }
+
+      onChange(newRange);
+    } else if (type === 'numberrange') {
+      if (minNumber === null || maxNumber === null) return;
+
+      const clickNum = positionToNumber(clickPosition);
+      if (clickNum === null) return;
+
+      const startPos = numberToPosition(selectedValues.min !== null ? selectedValues.min : minNumber);
+      const endPos = numberToPosition(selectedValues.max !== null ? selectedValues.max : maxNumber);
+      const distToStart = Math.abs(clickPosition - startPos);
+      const distToEnd = Math.abs(clickPosition - endPos);
+
+      let newRange = { ...selectedValues };
+
+      if (distToStart <= distToEnd) {
+        newRange.min = clickNum;
+      } else {
+        newRange.max = clickNum;
+      }
+
+      // Ensure min is not greater than max
+      if (newRange.min !== null && newRange.max !== null && newRange.min > newRange.max) {
+        if (distToStart <= distToEnd) {
+          newRange.min = newRange.max;
+        } else {
+          newRange.max = newRange.min;
+        }
+      }
+
+      onChange(newRange);
+    }
   };
 
   // Clear all selections
@@ -395,6 +490,8 @@ const Filter = ({
       onChange([]);
     } else if (type === 'daterange') {
       onChange({ startDate: null, endDate: null });
+    } else if (type === 'numberrange') {
+      onChange({ min: null, max: null });
     }
   };
 
@@ -406,6 +503,13 @@ const Filter = ({
       }
       const start = selectedValues.startDate ? formatDate(new Date(selectedValues.startDate)) : 'Start';
       const end = selectedValues.endDate ? formatDate(new Date(selectedValues.endDate)) : 'End';
+      return `${start} - ${end}`;
+    } else if (type === 'numberrange') {
+      if (selectedValues.min === null && selectedValues.max === null) {
+        return placeholder;
+      }
+      const start = selectedValues.min !== null ? formatNumber(selectedValues.min) : formatNumber(minNumber);
+      const end = selectedValues.max !== null ? formatNumber(selectedValues.max) : formatNumber(maxNumber);
       return `${start} - ${end}`;
     } else if (type === 'hierarchical') {
       if (selectionMode === 'single') {
@@ -464,6 +568,8 @@ const Filter = ({
       return selectedValues.length > 0;
     } else if (type === 'daterange') {
       return selectedValues.startDate || selectedValues.endDate;
+    } else if (type === 'numberrange') {
+      return selectedValues.min !== null || selectedValues.max !== null;
     }
     return false;
   };
@@ -566,8 +672,73 @@ const Filter = ({
             </>
           )}
 
-          {/* Search for non-daterange types */}
-          {type !== 'daterange' && searchable && (
+          {/* Number Range Content */}
+          {type === 'numberrange' && (
+            <>
+              {minNumber !== null && maxNumber !== null ? (
+                <div className="filter-daterange-content">
+                  <div className="daterange-inputs">
+                    <div className="daterange-input-group">
+                      <label htmlFor="min-number">Min:</label>
+                      <input
+                        type="number"
+                        id="min-number"
+                        value={selectedValues.min !== null ? selectedValues.min : minNumber}
+                        onChange={(e) => handleNumberInputChange(e, 'min')}
+                        min={minNumber}
+                        max={maxNumber}
+                      />
+                    </div>
+                    <div className="daterange-input-group">
+                      <label htmlFor="max-number">Max:</label>
+                      <input
+                        type="number"
+                        id="max-number"
+                        value={selectedValues.max !== null ? selectedValues.max : maxNumber}
+                        onChange={(e) => handleNumberInputChange(e, 'max')}
+                        min={minNumber}
+                        max={maxNumber}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="daterange-slider" ref={sliderRef} onClick={handleTrackClick}>
+                    <div className="slider-track">
+                      {/* Slider fill */}
+                      <div
+                        className="slider-fill"
+                        style={{
+                          left: `${numberToPosition(displayValues.min !== null ? displayValues.min : minNumber)}%`,
+                          width: `${numberToPosition(displayValues.max !== null ? displayValues.max : maxNumber) - numberToPosition(displayValues.min !== null ? displayValues.min : minNumber)}%`
+                        }}
+                      />
+                    </div>
+
+                    {/* Start handle */}
+                    <div
+                      className="slider-handle slider-handle-start"
+                      style={{ left: `${numberToPosition(displayValues.min !== null ? displayValues.min : minNumber)}%` }}
+                      onMouseDown={(e) => handleSliderMouseDown(e, 'start')}
+                      title={formatNumber(displayValues.min !== null ? displayValues.min : minNumber)}
+                    />
+
+                    {/* End handle */}
+                    <div
+                      className="slider-handle slider-handle-end"
+                      style={{ left: `${numberToPosition(displayValues.max !== null ? displayValues.max : maxNumber)}%` }}
+                      onMouseDown={(e) => handleSliderMouseDown(e, 'end')}
+                      title={formatNumber(displayValues.max !== null ? displayValues.max : maxNumber)}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="filter-no-results">No number range available with current filters</div>
+              )}
+            </>
+          )}
+
+          {/* Search for non-daterange and non-numberrange types */}
+          {type !== 'daterange' && type !== 'numberrange' && searchable && (
             <div className="filter-search-container">
               <Search size={16} className="filter-search-icon" />
               <input
@@ -709,8 +880,8 @@ const Filter = ({
             </div>
           )}
 
-          {/* Options list for non-daterange and non-hierarchical types */}
-          {type !== 'daterange' && type !== 'hierarchical' && (
+          {/* Options list for non-daterange, non-numberrange, and non-hierarchical types */}
+          {type !== 'daterange' && type !== 'numberrange' && type !== 'hierarchical' && (
             <div className="filter-options-list">
               {filteredOptions.length > 0 ? (
                 filteredOptions.map((option, index) => (

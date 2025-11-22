@@ -91,6 +91,9 @@ const FilteringPanel = ({
       } else if (config.type === 'daterange') {
         // For daterange, start with no selection
         initialState[config.key] = { startDate: null, endDate: null };
+      } else if (config.type === 'numberrange') {
+        // For numberrange, start with no selection
+        initialState[config.key] = { min: null, max: null };
       }
     });
 
@@ -119,6 +122,7 @@ const FilteringPanel = ({
 
     const options = {};
     const dateBoundaries = {};
+    const numberBoundaries = {};
 
     filterConfigs.forEach(config => {
       if (config.optionsSource === 'static' && config.options) {
@@ -239,6 +243,92 @@ const FilteringPanel = ({
           }
         }
 
+      } else if (config.type === 'numberrange') {
+        // Handle number range boundaries
+        const fieldName = config.dataField || config.optionsSource;
+
+        let filteredData = [...primarySource];
+
+        // Apply all other filters to determine number boundaries
+        filterConfigs.forEach(otherConfig => {
+          if (otherConfig.key === config.key || otherConfig.type === 'numberrange') return;
+
+          const filterValue = debouncedFilters[otherConfig.key];
+          const dataField = otherConfig.dataField || otherConfig.optionsSource;
+
+          if (!filterValue || !dataField) return;
+
+          if (otherConfig.type === 'multiselect') {
+            if (Array.isArray(filterValue) && filterValue.length > 0) {
+              filteredData = filteredData.filter(item => {
+                const itemValue = dataField.includes('.')
+                  ? _.get(item, dataField)
+                  : item[dataField];
+
+                // Handle delimited values
+                if (otherConfig.delimiter) {
+                  return matchDelimitedValue(itemValue, filterValue, otherConfig.delimiter, otherConfig.matchMode);
+                }
+
+                // Standard exact match
+                return filterValue.includes(itemValue);
+              });
+            }
+          } else if (otherConfig.type === 'singleselect') {
+            if (filterValue && filterValue !== 'all' && filterValue !== otherConfig.defaultValue) {
+              filteredData = filteredData.filter(item => {
+                const itemValue = dataField.includes('.')
+                  ? _.get(item, dataField)
+                  : item[dataField];
+                return itemValue === filterValue;
+              });
+            }
+          } else if (otherConfig.type === 'daterange') {
+            if (filterValue && (filterValue.startDate || filterValue.endDate)) {
+              filteredData = filteredData.filter(item => {
+                const itemValue = dataField.includes('.')
+                  ? _.get(item, dataField)
+                  : item[dataField];
+
+                if (!itemValue) return false;
+
+                const itemDate = new Date(itemValue);
+                if (isNaN(itemDate.getTime())) return false;
+
+                const startDate = filterValue.startDate ? new Date(filterValue.startDate) : null;
+                const endDate = filterValue.endDate ? new Date(filterValue.endDate) : null;
+
+                if (startDate && itemDate < startDate) return false;
+                if (endDate && itemDate > endDate) return false;
+
+                return true;
+              });
+            }
+          }
+        });
+
+        // Extract number boundaries from filtered data
+        const allNumberValues = filteredData
+          .map(item => {
+            const value = fieldName.includes('.')
+              ? _.get(item, fieldName)
+              : item[fieldName];
+            return value;
+          })
+          .filter(value => value !== null && value !== undefined && value !== '');
+
+        const validNumbers = allNumberValues
+          .map(value => parseFloat(value))
+          .filter(num => !isNaN(num))
+          .sort((a, b) => a - b);
+
+        if (validNumbers.length > 0) {
+          numberBoundaries[config.key] = {
+            minNumber: validNumbers[0],
+            maxNumber: validNumbers[validNumbers.length - 1]
+          };
+        }
+
       } else if (config.dataField || config.optionsSource) {
         // For regular filters, apply all OTHER active filters to determine available options
         let filteredData = [...primarySource];
@@ -297,6 +387,25 @@ const FilteringPanel = ({
 
                 if (startDate && itemDate < startDate) return false;
                 if (endDate && itemDate > endDate) return false;
+
+                return true;
+              });
+            }
+          } else if (otherConfig.type === 'numberrange') {
+            // Number range filter: item must be within the selected number range
+            if (filterValue && (filterValue.min !== null || filterValue.max !== null)) {
+              filteredData = filteredData.filter(item => {
+                const itemValue = dataField.includes('.')
+                  ? _.get(item, dataField)
+                  : item[dataField];
+
+                if (itemValue === null || itemValue === undefined) return false;
+
+                const numValue = parseFloat(itemValue);
+                if (isNaN(numValue)) return false;
+
+                if (filterValue.min !== null && numValue < filterValue.min) return false;
+                if (filterValue.max !== null && numValue > filterValue.max) return false;
 
                 return true;
               });
@@ -363,7 +472,7 @@ const FilteringPanel = ({
       }
     });
 
-    return { options, dateBoundaries };
+    return { options, dateBoundaries, numberBoundaries };
   }, [dataSources, filterConfigs, debouncedFilters, fullDataset]); // Use debounced filters for cascading options
 
   // Use refs to store callback and configs to prevent infinite loops
@@ -490,11 +599,12 @@ const FilteringPanel = ({
               : (customOptions || calculatedOptions);
 
             const boundaries = filterOptions.dateBoundaries?.[config.key];
+            const numBoundaries = filterOptions.numberBoundaries?.[config.key];
             const currentValue = filters[config.key];
 
-            // Skip rendering if no options available for data-driven filters (except daterange and hierarchical)
+            // Skip rendering if no options available for data-driven filters (except daterange, numberrange, and hierarchical)
             // Don't skip if custom options are provided
-            if (config.type !== 'daterange' && config.type !== 'hierarchical' && !customOptions && availableOptions.length === 0 && config.optionsSource !== 'static') {
+            if (config.type !== 'daterange' && config.type !== 'numberrange' && config.type !== 'hierarchical' && !customOptions && availableOptions.length === 0 && config.optionsSource !== 'static') {
               return null;
             }
 
@@ -503,7 +613,7 @@ const FilteringPanel = ({
               return null;
             }
 
-            // Note: We no longer hide daterange filters when no boundaries exist
+            // Note: We no longer hide daterange/numberrange filters when no boundaries exist
             // Instead, we render them with empty/disabled state for UI stability
 
             // Clone the child and inject the computed props
@@ -512,7 +622,10 @@ const FilteringPanel = ({
               value: currentValue,
               onChange: (value) => handleFilterChange(config.key, value),
               minDate: boundaries?.minDate,
-              maxDate: boundaries?.maxDate
+              maxDate: boundaries?.maxDate,
+              minNumber: numBoundaries?.minNumber,
+              maxNumber: numBoundaries?.maxNumber,
+              suffix: child.props.suffix || ''
             };
 
             // Add hierarchical-specific props if this is a hierarchical filter

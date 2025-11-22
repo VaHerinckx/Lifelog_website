@@ -71,6 +71,7 @@ const NutritionPage = () => {
   const [nutritionItems, setNutritionItems] = useState([]); // Item-level data
   const [filteredMeals, setFilteredMeals] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]); // For ingredient-level KPIs
+  const [isProcessing, setIsProcessing] = useState(true);
 
   const [viewMode, setViewMode] = useState('grid');
   const [selectedMeal, setSelectedMeal] = useState(null);
@@ -131,10 +132,14 @@ const NutritionPage = () => {
 
   // Update state when meals/items change
   useEffect(() => {
-    setNutritionItems(processedItems);
-    setFilteredMeals(meals);
-    setFilteredItems(processedItems);
-  }, [processedItems, meals]);
+    if (data?.nutrition) {
+      setIsProcessing(true);
+      setNutritionItems(processedItems);
+      setFilteredMeals(meals);
+      setFilteredItems(processedItems);
+      setIsProcessing(false);
+    }
+  }, [processedItems, meals, data?.nutrition]);
 
   // Apply filters when FilteringPanel filters change
   // Wrapped in useCallback to prevent unnecessary re-renders
@@ -183,7 +188,7 @@ const NutritionPage = () => {
         description="Track meals, food choices, and nutritional patterns across breakfast, lunch, dinner, and snacks"
       />
 
-        {!loading?.nutrition && (
+        {!loading?.nutrition && !isProcessing && (
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
@@ -293,7 +298,7 @@ const NutritionPage = () => {
         {/* Meals Tab Content */}
         {activeTab === 'content' && (
           <ContentTab
-            loading={loading?.nutrition}
+            loading={loading?.nutrition || isProcessing}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             viewModes={[
@@ -307,6 +312,15 @@ const NutritionPage = () => {
               title: "No meals found",
               message: "No meals match your current filters. Try adjusting your criteria."
             }}
+            sortOptions={[
+              { value: 'date', label: 'Date', type: 'date' },
+              { value: 'time', label: 'Time', type: 'string' },
+              { value: 'meal', label: 'Meal Type', type: 'string' },
+              { value: 'usda_meal_score', label: 'USDA Score', type: 'number' },
+              { value: 'meal_assessment', label: 'Assessment', type: 'number' }
+            ]}
+            defaultSortField="date"
+            defaultSortDirection="desc"
             renderGrid={(meals) => (
               <ContentCardsGroup
                 items={meals}

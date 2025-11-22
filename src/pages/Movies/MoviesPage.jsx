@@ -23,16 +23,15 @@ import KpiCard from '../../components/charts/KpiCard';
 
 // Import chart components for analysis tab
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
+import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
 import TopChart from '../../components/charts/TopChart';
-
-// Import utilities
-import { sortByDateSafely } from '../../utils/sortingUtils';
 
 const MoviesPage = () => {
   usePageTitle('Movies');
   const { data, loading, error, fetchData } = useData();
   const [movies, setMovies] = useState([]);
   const [filteredMovies, setFilteredMovies] = useState([]);
+  const [isProcessing, setIsProcessing] = useState(true);
 
   const [viewMode, setViewMode] = useState('grid');
   const [selectedMovie, setSelectedMovie] = useState(null);
@@ -48,6 +47,8 @@ const MoviesPage = () => {
   // Process movies data when it's loaded
   useEffect(() => {
     if (data?.movies) {
+      setIsProcessing(true);
+
       // Log data info
       if (data.movies.length > 0) {
         const columns = Object.keys(data.movies[0]);
@@ -70,6 +71,8 @@ const MoviesPage = () => {
             id: movieId,
             date: parsedDate,
             rating: row.rating ? parseFloat(row.rating) : 0,
+            year: row.year ? parseInt(row.year, 10) : null,
+            runtime: row.runtime ? parseInt(row.runtime, 10) : null,
             genres: [row.genre] // Start collecting genres
           });
         } else {
@@ -112,16 +115,15 @@ const MoviesPage = () => {
 
       setMovies(sortedMovies);
       setFilteredMovies(sortedMovies);
-      // Reset content ready state when new data arrives
+      setIsProcessing(false);
       }
   }, [data?.movies]);
 
   // Apply filters when FilteringPanel filters change
   // FilteringPanel returns pre-filtered data per source
   const handleFiltersChange = (filteredDataSources) => {
-    // Re-sort filtered data (most recent first)
-    const sortedMovies = sortByDateSafely(filteredDataSources.movies || [], 'date');
-    setFilteredMovies(sortedMovies);
+    // ContentTab now handles sorting internally
+    setFilteredMovies(filteredDataSources.movies || []);
   };
 
   const handleMovieClick = (movie) => {
@@ -148,7 +150,7 @@ const MoviesPage = () => {
         description="Track your viewing habits and discover insights about your movie preferences"
       />
 
-      {!loading?.movies && (
+      {!loading?.movies && !isProcessing && (
         <>
           {/* FilteringPanel with Filter children */}
           <FilteringPanel
@@ -163,6 +165,14 @@ const MoviesPage = () => {
               dataSources={['movies']}
             />
             <Filter
+              type="numberrange"
+              label="Release Year"
+              field="year"
+              icon={<Film />}
+              placeholder="Select year range"
+              dataSources={['movies']}
+            />
+            <Filter
               type="multiselect"
               label="Genres"
               field="genre"
@@ -170,22 +180,8 @@ const MoviesPage = () => {
               placeholder="Select genres"
               dataSources={['movies']}
             />
-            <Filter
-              type="multiselect"
-              label="Years"
-              field="year"
-              icon={<Film />}
-              placeholder="Select years"
-              dataSources={['movies']}
-            />
-            <Filter
-              type="multiselect"
-              label="My Rating"
-              field="rating"
-              icon={<Star />}
-              placeholder="Select ratings"
-              dataSources={['movies']}
-            />
+
+
             <Filter
               type="multiselect"
               label="Director"
@@ -207,18 +203,18 @@ const MoviesPage = () => {
             />
             <Filter
               type="multiselect"
-              label="Certification"
-              field="certification"
+              label="Language"
+              field="original_language"
               icon={<Award />}
-              placeholder="Select certifications"
+              placeholder="Select Languages"
               dataSources={['movies']}
             />
             <Filter
-              type="range"
-              label="Runtime"
-              field="runtime"
-              icon={<Clock />}
-              placeholder="Select runtime range"
+              type="multiselect"
+              label="Rating"
+              field="rating"
+              icon={<Star />}
+              placeholder="Select ratings"
               dataSources={['movies']}
             />
           </FilteringPanel>
@@ -257,32 +253,27 @@ const MoviesPage = () => {
             />
             <KpiCard
               dataSource="movies"
-              computation="custom"
-              customValue={() => filteredMovies.filter(m => m.isRewatch).length}
-              label="Rewatches"
-              icon={<Film />}
-            />
-            <KpiCard
-              dataSource="movies"
               field="runtime"
               computation="average"
               computationOptions={{ decimals: 0, filterZeros: true, suffix: ' min' }}
-              label="Avg Runtime"
+              label="Avg Runtime (min)"
               icon={<Clock />}
             />
             <KpiCard
               dataSource="movies"
-              computation="custom"
-              customValue={() => {
-                const uniqueDirectors = new Set(
-                  filteredMovies
-                    .map(m => m.director)
-                    .filter(d => d && d !== 'Unknown')
-                );
-                return uniqueDirectors.size;
-              }}
-              label="Unique Directors"
-              icon={<User />}
+              field="runtime"
+              computation="sum"
+              computationOptions={{ decimals: 1}}
+              label="Total Runtime (h)"
+              icon={<Clock />}
+            />
+            <KpiCard
+              dataSource="movies"
+              field="director"
+              computation="count_distinct"
+              computationOptions={{ decimals: 0}}
+              label="Directors"
+              icon={<Star />}
             />
           </KPICardsPanel>
 
@@ -299,7 +290,7 @@ const MoviesPage = () => {
       {/* Movies Tab Content */}
       {activeTab === 'content' && (
         <ContentTab
-          loading={loading?.movies}
+          loading={loading?.movies || isProcessing}
           viewMode={viewMode}
           onViewModeChange={setViewMode}
           viewModes={[
@@ -313,7 +304,15 @@ const MoviesPage = () => {
             title: "No movies found",
             message: "No movies match your current filters. Try adjusting your criteria."
           }}
-          onContentReady={handleContentReady}
+          sortOptions={[
+            { value: 'date', label: 'Watch Date', type: 'date' },
+            { value: 'name', label: 'Title', type: 'string' },
+            { value: 'year', label: 'Release Year', type: 'number' },
+            { value: 'rating', label: 'Rating', type: 'number' },
+            { value: 'runtime', label: 'Runtime', type: 'number' }
+          ]}
+          defaultSortField="date"
+          defaultSortDirection="desc"
           renderGrid={(movies) => (
             <ContentCardsGroup
               items={movies}
@@ -358,26 +357,35 @@ const MoviesPage = () => {
                 data={data}
                 dateColumnName="date"
                 metricOptions={[
-                  { value: 'count', label: 'Watch Count', aggregation: 'count', decimals: 0 },
+                  { value: 'movies', label: 'Movies', aggregation: 'count_distinct', field: 'movie_id', decimals: 0 },
+                  { value: 'runtime_hours', label: 'Runtime', aggregation: 'sum', field: 'runtime_hour', decimals: 1 },
                   { value: 'avgRating', label: 'Avg Rating', aggregation: 'average', field: 'rating', suffix: '★', decimals: 1 }
                 ]}
                 defaultMetric="count"
                 title="Movies Over Time"
               />
+              <IntensityHeatmap
+                  data={data}
+                  dateColumnName="date"
+                  valueColumnName="runtime"
+                  title="Reading Activity by Day and Time"
+                  treatMidnightAsUnknown={true}
+                />
               <TopChart
                 data={data}
                 dimensionOptions={[
                   { value: 'genre', label: 'Genre', field: 'genre', labelFields: ['genre'] },
-                  { value: 'year', label: 'Year', field: 'year', labelFields: ['year'] },
+                  { value: 'release_year', label: 'Release Year', field: 'year', labelFields: ['year'] },
+                  { value: 'original_language', label: 'Language', field: 'original_language', labelFields: ['original_language'] },
                   { value: 'name', label: 'Movie', field: 'name', labelFields: ['name'] },
-                  { value: 'type', label: 'Type', field: 'type', labelFields: ['type'] },
                   { value: 'director', label: 'Director', field: 'director', labelFields: ['director'] },
                   { value: 'cast', label: 'Cast', field: 'cast', labelFields: ['cast'], delimiter: ',' },
-                  { value: 'certification', label: 'Certification', field: 'certification', labelFields: ['certification'] }
                 ]}
                 metricOptions={[
+                  { value: 'movies', label: 'Movies', aggregation: 'count_distinct', field: 'movie_id', countLabel: 'movies', decimals: 0 },
+                  { value: 'runtime', label: 'Runtime', aggregation: 'sum', field: 'runtime_hour', countLabel: 'hour(s)', decimals: 0},
                   { value: 'avgRating', label: 'Avg Rating', aggregation: 'average', field: 'rating', suffix: '★', decimals: 1 },
-                  { value: 'movies', label: 'Movies', aggregation: 'count_distinct', field: 'movie_id', countLabel: 'movies', decimals: 0 }
+
                 ]}
                 defaultDimension="genre"
                 defaultMetric="movies"

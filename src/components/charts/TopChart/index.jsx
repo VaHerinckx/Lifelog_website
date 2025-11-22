@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 import _ from 'lodash';
 import './TopChart.css';
 
@@ -297,11 +298,12 @@ const TopChart = ({
           {/* Sort Direction Toggle */}
           {enableSortToggle && (
             <button
-              className="sort-toggle-button"
+              className="sort-direction-btn"
               onClick={() => setSortDirection(prev => prev === 'desc' ? 'asc' : 'desc')}
-              title={sortDirection === 'desc' ? 'Click to show lowest first' : 'Click to show highest first'}
+              aria-label={`Sort ${sortDirection === 'asc' ? 'descending' : 'ascending'}`}
+              title={sortDirection === 'asc' ? 'Ascending (click for descending)' : 'Descending (click for ascending)'}
             >
-              {sortDirection === 'desc' ? 'Highest First ↓' : 'Lowest First ↑'}
+              {sortDirection === 'asc' ? <ArrowUp size={18} /> : <ArrowDown size={18} />}
             </button>
           )}
         </div>

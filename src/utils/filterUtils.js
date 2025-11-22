@@ -280,7 +280,7 @@ export const applyFilters = (data, filters, filterConfigs = {}) => {
       filtered = applyHierarchicalFilter(filtered, config.dataField, config.childField, filterValue);
     } else if (config?.type === 'textsearch') {
       filtered = applyTextSearchFilter(filtered, config.searchFields, filterValue);
-    } else if (config?.type === 'numericrange') {
+    } else if (config?.type === 'numberrange' || config?.type === 'numericrange') {
       filtered = applyNumericRangeFilter(filtered, config.dataField, filterValue.min, filterValue.max);
     }
   });
