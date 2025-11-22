@@ -42,9 +42,13 @@ const Filter = ({
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
   const sliderRef = useRef(null);
+  const onChangeRef = useRef(onChange);
+  const tempRangeRef = useRef(null);
+  const justFinishedDraggingRef = useRef(false);
 
   // Date range specific state
   const [dragging, setDragging] = useState(null);
+  const [tempRange, setTempRange] = useState(null); // Store temporary range during drag
 
   // Normalize value to always be an array for easier processing (except daterange)
   const selectedValues = type === 'daterange'
@@ -52,6 +56,17 @@ const Filter = ({
     : type === 'multiselect'
     ? (Array.isArray(value) ? value : [])
     : (value ? [value] : []);
+
+  const selectedValuesRef = useRef(selectedValues);
+
+  // Keep refs up to date
+  useEffect(() => {
+    onChangeRef.current = onChange;
+    selectedValuesRef.current = selectedValues;
+  }, [onChange, selectedValues]);
+
+  // Use temp range during drag for immediate visual feedback
+  const displayValues = type === 'daterange' && tempRange ? tempRange : selectedValues;
 
   // Validation for single select
   if (type === 'singleselect' && !defaultValue) {
@@ -119,6 +134,7 @@ const Filter = ({
   // Handle mouse/touch events for date range slider
   useEffect(() => {
     if (type !== 'daterange') return;
+    console.log('⚙️ useEffect running - dragging:', dragging, 'selectedValues:', JSON.stringify(selectedValues), 'tempRange:', JSON.stringify(tempRange));
 
     const handleMouseMove = (e) => {
       if (!dragging || !sliderRef.current) return;
@@ -130,23 +146,55 @@ const Filter = ({
 
       if (!date) return;
 
-      let newRange = { ...selectedValues };
+      setTempRange((current) => {
+        console.log('🔄 MouseMove START - current:', JSON.stringify(current), 'selectedValuesRef.current:', JSON.stringify(selectedValuesRef.current));
+        const baseRange = current || selectedValuesRef.current;
+        let newRange = { ...baseRange };
 
-      if (dragging === 'start') {
-        if (date <= new Date(selectedValues.endDate || maxDate)) {
-          newRange.startDate = formatDateForInput(date);
+        if (dragging === 'start') {
+          if (date <= new Date(baseRange.endDate || maxDate)) {
+            newRange.startDate = formatDateForInput(date);
+            console.log('🔄 Updated START date to:', newRange.startDate);
+          }
+        } else if (dragging === 'end') {
+          if (date >= new Date(baseRange.startDate || minDate)) {
+            newRange.endDate = formatDateForInput(date);
+            console.log('🔄 Updated END date to:', newRange.endDate);
+          }
         }
-      } else if (dragging === 'end') {
-        if (date >= new Date(selectedValues.startDate || minDate)) {
-          newRange.endDate = formatDateForInput(date);
-        }
-      }
 
-      onChange(newRange);
+        console.log('🔄 MouseMove END - newRange:', JSON.stringify(newRange));
+        tempRangeRef.current = newRange;
+        return newRange;
+      });
     };
 
     const handleEnd = () => {
+      // IMMEDIATELY remove event listeners to prevent stale events
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchmove', handleMouseMove);
+      document.removeEventListener('touchend', handleEnd);
+
+      // Mark that we just finished dragging to prevent click event
+      justFinishedDraggingRef.current = true;
+      setTimeout(() => {
+        justFinishedDraggingRef.current = false;
+      }, 10);
+
+      // Commit the temp range to parent on mouse up
+      console.log('🏁 MouseUp - tempRangeRef.current:', JSON.stringify(tempRangeRef.current));
+      console.log('🏁 MouseUp - tempRange state:', JSON.stringify(tempRange));
+      if (tempRangeRef.current) {
+        console.log('✅ Calling onChange with:', JSON.stringify(tempRangeRef.current));
+        onChangeRef.current(tempRangeRef.current);
+      } else {
+        console.log('❌ tempRangeRef.current is null, not calling onChange');
+      }
+      console.log('🧹 Cleaning up - setting dragging to null, tempRange to null');
       setDragging(null);
+      setTempRange(null);
+      tempRangeRef.current = null;
       document.body.style.userSelect = '';
     };
 
@@ -163,7 +211,7 @@ const Filter = ({
       document.removeEventListener('touchmove', handleMouseMove);
       document.removeEventListener('touchend', handleEnd);
     };
-  }, [dragging, selectedValues, minDate, maxDate, onChange, type]);
+  }, [dragging, minDate, maxDate, type]);
 
   // Toggle dropdown
   const toggleDropdown = () => {
@@ -212,11 +260,20 @@ const Filter = ({
   // Handle date range slider interactions
   const handleSliderMouseDown = (e, handle) => {
     e.preventDefault();
+    console.log('🎯 MouseDown - handle:', handle, 'selectedValues:', JSON.stringify(selectedValues));
+    console.log('🎯 MouseDown - tempRange:', JSON.stringify(tempRange));
+    console.log('🎯 MouseDown - selectedValuesRef.current:', JSON.stringify(selectedValuesRef.current));
     setDragging(handle);
     document.body.style.userSelect = 'none';
   };
 
   const handleTrackClick = (e) => {
+    // Ignore clicks that happen right after dragging
+    if (justFinishedDraggingRef.current) {
+      console.log('🚫 Ignoring track click - just finished dragging');
+      return;
+    }
+
     if (!sliderRef.current || !minDate || !maxDate) return;
 
     const rect = sliderRef.current.getBoundingClientRect();
@@ -346,7 +403,7 @@ const Filter = ({
                       <input
                         type="date"
                         id="start-date"
-                        value={selectedValues.startDate || ''}
+                        value={selectedValues.startDate || formatDateForInput(minDate)}
                         onChange={(e) => handleDateInputChange(e, 'startDate')}
                         min={formatDateForInput(minDate)}
                         max={formatDateForInput(maxDate)}
@@ -357,7 +414,7 @@ const Filter = ({
                       <input
                         type="date"
                         id="end-date"
-                        value={selectedValues.endDate || ''}
+                        value={selectedValues.endDate || formatDateForInput(maxDate)}
                         onChange={(e) => handleDateInputChange(e, 'endDate')}
                         min={formatDateForInput(minDate)}
                         max={formatDateForInput(maxDate)}
@@ -371,8 +428,8 @@ const Filter = ({
                       <div
                         className="slider-fill"
                         style={{
-                          left: `${dateToPosition(new Date(selectedValues.startDate || minDate))}%`,
-                          width: `${dateToPosition(new Date(selectedValues.endDate || maxDate)) - dateToPosition(new Date(selectedValues.startDate || minDate))}%`
+                          left: `${dateToPosition(new Date(displayValues.startDate || minDate))}%`,
+                          width: `${dateToPosition(new Date(displayValues.endDate || maxDate)) - dateToPosition(new Date(displayValues.startDate || minDate))}%`
                         }}
                       />
                     </div>
@@ -380,23 +437,18 @@ const Filter = ({
                     {/* Start handle */}
                     <div
                       className="slider-handle slider-handle-start"
-                      style={{ left: `${dateToPosition(new Date(selectedValues.startDate || minDate))}%` }}
+                      style={{ left: `${dateToPosition(new Date(displayValues.startDate || minDate))}%` }}
                       onMouseDown={(e) => handleSliderMouseDown(e, 'start')}
-                      title={formatDate(new Date(selectedValues.startDate || minDate))}
+                      title={formatDate(new Date(displayValues.startDate || minDate))}
                     />
 
                     {/* End handle */}
                     <div
                       className="slider-handle slider-handle-end"
-                      style={{ left: `${dateToPosition(new Date(selectedValues.endDate || maxDate))}%` }}
+                      style={{ left: `${dateToPosition(new Date(displayValues.endDate || maxDate))}%` }}
                       onMouseDown={(e) => handleSliderMouseDown(e, 'end')}
-                      title={formatDate(new Date(selectedValues.endDate || maxDate))}
+                      title={formatDate(new Date(displayValues.endDate || maxDate))}
                     />
-                  </div>
-
-                  <div className="slider-labels">
-                    <div className="slider-label">{formatDate(minDate)}</div>
-                    <div className="slider-label">{formatDate(maxDate)}</div>
                   </div>
                 </div>
               ) : (

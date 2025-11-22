@@ -360,12 +360,15 @@ const FilteringPanel = ({
 
   // Handle individual filter changes
   const handleFilterChange = (filterKey, newValue) => {
+    console.log('🔧 FilteringPanel handleFilterChange - key:', filterKey, 'newValue:', JSON.stringify(newValue));
+    console.trace('🔧 Stack trace:');
     setFilters(prevFilters => {
+      console.log('🔧 FilteringPanel setFilters - prevFilters:', JSON.stringify(prevFilters));
       const updatedFilters = {
         ...prevFilters,
         [filterKey]: newValue
       };
-
+      console.log('🔧 FilteringPanel setFilters - updatedFilters:', JSON.stringify(updatedFilters));
       return updatedFilters;
     });
   };
