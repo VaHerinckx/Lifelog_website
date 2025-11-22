@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import _ from 'lodash';
 import Papa from 'papaparse';
 import Filter from '../Filter/Filter';
-import { applyFilters, extractDelimitedUniqueValues, matchDelimitedValue } from '../../../../utils/filterUtils';
+import { applyFilters, extractDelimitedUniqueValues, matchDelimitedValue, buildHierarchyWithCounts } from '../../../../utils/filterUtils';
 import './FilteringPanel.css';
 
 /**
@@ -44,7 +44,7 @@ const FilteringPanel = ({
       if (!React.isValidElement(child)) return;
 
       // Extract props from Filter child to build config
-      const { type, label, icon, placeholder, searchPlaceholder, searchable, allLabel, defaultValue, delimiter, matchMode, sortType, ...rest } = child.props;
+      const { type, label, icon, placeholder, searchPlaceholder, searchable, allLabel, defaultValue, delimiter, matchMode, sortType, selectionMode, childField, ...rest } = child.props;
 
       // Generate a key from the field or label
       const key = rest.field || label?.toLowerCase().replace(/\s+/g, '_') || `filter_${configs.length}`;
@@ -60,6 +60,8 @@ const FilteringPanel = ({
         allLabel,
         defaultValue,
         dataField: rest.field,
+        childField: childField || null,
+        selectionMode: selectionMode || 'multi',
         optionsSource: rest.field,
         dataSources: rest.dataSources,
         options: rest.options,
@@ -80,6 +82,9 @@ const FilteringPanel = ({
       if (config.type === 'multiselect') {
         // For multiselect, always start with empty array
         initialState[config.key] = [];
+      } else if (config.type === 'hierarchical') {
+        // For hierarchical, single-select starts with null, multi-select with empty array
+        initialState[config.key] = config.selectionMode === 'single' ? null : [];
       } else if (config.type === 'singleselect') {
         // For singleselect, use provided initial value or first option
         initialState[config.key] = config.defaultValue || 'all';
@@ -296,45 +301,65 @@ const FilteringPanel = ({
                 return true;
               });
             }
+          } else if (otherConfig.type === 'hierarchical') {
+            // Hierarchical filter: match parent OR child values
+            const values = otherConfig.selectionMode === 'single' ? [filterValue] : filterValue;
+            if (values && values.length > 0 && values[0] !== null) {
+              filteredData = filteredData.filter(item => {
+                const parentValue = item[otherConfig.dataField];
+                const childValue = item[otherConfig.childField];
+
+                return values.some(selected => {
+                  return selected === parentValue || selected === childValue;
+                });
+              });
+            }
           }
         });
 
         // Extract unique values from the filtered data for the current filter
         const fieldName = config.dataField || config.optionsSource;
 
-        let values;
-        if (config.delimiter) {
-          // Use delimiter-aware extraction for delimited values
-          values = extractDelimitedUniqueValues(filteredData, fieldName, config.delimiter, true);
+        // Special handling for hierarchical filters
+        if (config.type === 'hierarchical' && config.childField) {
+          // Build hierarchy with counts from filtered data
+          const hierarchyWithCounts = buildHierarchyWithCounts(filteredData, fieldName, config.childField);
+          options[config.key] = hierarchyWithCounts;
         } else {
-          // Standard unique value extraction
-          values = filteredData
-            .map(item => {
-              const value = fieldName.includes('.')
-                ? _.get(item, fieldName)
-                : item[fieldName];
-              return value;
-            })
-            .filter(value =>
-              value &&
-              value !== 'Unknown' &&
-              value.toString().trim() !== ''
-            );
-
-          // Remove duplicates and sort
-          values = _.uniq(values);
-
-          // Apply sorting based on sortType
-          if (config.sortType === 'numeric') {
-            values.sort((a, b) => Number(a) - Number(b));
-          } else if (config.sortType === 'numericDesc') {
-            values.sort((a, b) => Number(b) - Number(a));
+          let values;
+          if (config.delimiter) {
+            // Use delimiter-aware extraction for delimited values
+            values = extractDelimitedUniqueValues(filteredData, fieldName, config.delimiter, true);
           } else {
-            values.sort(); // Default alphabetical sort
-          }
-        }
+            // Standard unique value extraction
+            values = filteredData
+              .map(item => {
+                const value = fieldName.includes('.')
+                  ? _.get(item, fieldName)
+                  : item[fieldName];
+                return value;
+              })
+              .filter(value =>
+                value &&
+                value !== 'Unknown' &&
+                value.toString().trim() !== ''
+              );
 
-        options[config.key] = values;
+            // Remove duplicates and sort
+            values = _.uniq(values);
+
+            // Apply sorting based on sortType
+            if (config.sortType === 'numeric') {
+              values.sort((a, b) => Number(a) - Number(b));
+            } else if (config.sortType === 'numericDesc') {
+              values.sort((a, b) => Number(b) - Number(a));
+            } else {
+              values.sort(); // Default alphabetical sort
+            }
+          }
+
+          options[config.key] = values;
+        }
       }
     });
 
@@ -360,15 +385,11 @@ const FilteringPanel = ({
 
   // Handle individual filter changes
   const handleFilterChange = (filterKey, newValue) => {
-    console.log('🔧 FilteringPanel handleFilterChange - key:', filterKey, 'newValue:', JSON.stringify(newValue));
-    console.trace('🔧 Stack trace:');
     setFilters(prevFilters => {
-      console.log('🔧 FilteringPanel setFilters - prevFilters:', JSON.stringify(prevFilters));
       const updatedFilters = {
         ...prevFilters,
         [filterKey]: newValue
       };
-      console.log('🔧 FilteringPanel setFilters - updatedFilters:', JSON.stringify(updatedFilters));
       return updatedFilters;
     });
   };
@@ -462,14 +483,23 @@ const FilteringPanel = ({
             // Use custom options if provided, otherwise use auto-calculated options
             const customOptions = config.options || child.props.options;
             const calculatedOptions = filterOptions.options?.[config.key] || [];
-            const availableOptions = customOptions || calculatedOptions;
+
+            // For hierarchical filters, calculatedOptions is a Map, not an array
+            const availableOptions = config.type === 'hierarchical'
+              ? null  // Don't use options for hierarchical
+              : (customOptions || calculatedOptions);
 
             const boundaries = filterOptions.dateBoundaries?.[config.key];
             const currentValue = filters[config.key];
 
-            // Skip rendering if no options available for data-driven filters (except daterange)
+            // Skip rendering if no options available for data-driven filters (except daterange and hierarchical)
             // Don't skip if custom options are provided
-            if (config.type !== 'daterange' && !customOptions && availableOptions.length === 0 && config.optionsSource !== 'static') {
+            if (config.type !== 'daterange' && config.type !== 'hierarchical' && !customOptions && availableOptions.length === 0 && config.optionsSource !== 'static') {
+              return null;
+            }
+
+            // For hierarchical filters, check if hierarchy is available
+            if (config.type === 'hierarchical' && !calculatedOptions) {
               return null;
             }
 
@@ -477,15 +507,23 @@ const FilteringPanel = ({
             // Instead, we render them with empty/disabled state for UI stability
 
             // Clone the child and inject the computed props
+            const clonedProps = {
+              options: availableOptions,
+              value: currentValue,
+              onChange: (value) => handleFilterChange(config.key, value),
+              minDate: boundaries?.minDate,
+              maxDate: boundaries?.maxDate
+            };
+
+            // Add hierarchical-specific props if this is a hierarchical filter
+            if (config.type === 'hierarchical') {
+              clonedProps.hierarchyWithCounts = calculatedOptions;
+              clonedProps.selectionMode = config.selectionMode;
+            }
+
             return (
               <div key={config.key} className="filter-item">
-                {React.cloneElement(child, {
-                  options: availableOptions,
-                  value: currentValue,
-                  onChange: (value) => handleFilterChange(config.key, value),
-                  minDate: boundaries?.minDate,
-                  maxDate: boundaries?.maxDate
-                })}
+                {React.cloneElement(child, clonedProps)}
               </div>
             );
           })}

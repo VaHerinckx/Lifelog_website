@@ -1,15 +1,15 @@
 // src/components/ui/Filters/Filter/Filter.jsx
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, ChevronDown, X, Check, Calendar } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, X, Check, Calendar } from 'lucide-react';
 import './Filter.css';
 
 /**
- * A versatile filter component that supports single-select, multi-select, and date range modes
+ * A versatile filter component that supports single-select, multi-select, hierarchical, and date range modes
  * with PowerBI-style radio button (circle) and checkbox (square) styling
  *
  * @param {Object} props
- * @param {string} props.type - 'singleselect', 'multiselect', or 'daterange'
- * @param {Array} props.options - Array of option strings (not used for daterange)
+ * @param {string} props.type - 'singleselect', 'multiselect', 'hierarchical', or 'daterange'
+ * @param {Array} props.options - Array of option strings (not used for daterange or hierarchical)
  * @param {string|Array|Object} props.value - Selected value(s) or date range object
  * @param {Function} props.onChange - Callback when selection changes
  * @param {string} props.label - Label for the filter
@@ -21,6 +21,9 @@ import './Filter.css';
  * @param {string} [props.defaultValue] - Default value for single select (required for singleselect)
  * @param {Date} [props.minDate] - Minimum date for daterange
  * @param {Date} [props.maxDate] - Maximum date for daterange
+ * @param {Map} [props.hierarchy] - Hierarchy Map for hierarchical type (parent -> [children])
+ * @param {Map} [props.hierarchyWithCounts] - Hierarchy with counts for hierarchical type
+ * @param {string} [props.selectionMode] - 'single' or 'multi' for hierarchical type
  */
 const Filter = ({
   type = 'singleselect',
@@ -35,10 +38,14 @@ const Filter = ({
   allLabel = "All",
   defaultValue = null,
   minDate = null,
-  maxDate = null
+  maxDate = null,
+  hierarchy = null,
+  hierarchyWithCounts = null,
+  selectionMode = 'multi'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedCategories, setExpandedCategories] = useState(new Set());
   const dropdownRef = useRef(null);
   const searchInputRef = useRef(null);
   const sliderRef = useRef(null);
@@ -50,10 +57,12 @@ const Filter = ({
   const [dragging, setDragging] = useState(null);
   const [tempRange, setTempRange] = useState(null); // Store temporary range during drag
 
-  // Normalize value to always be an array for easier processing (except daterange)
+  // Normalize value to always be an array for easier processing (except daterange and hierarchical single-select)
   const selectedValues = type === 'daterange'
     ? value || { startDate: null, endDate: null }
-    : type === 'multiselect'
+    : type === 'hierarchical' && selectionMode === 'single'
+    ? (value ? [value] : [])
+    : type === 'multiselect' || (type === 'hierarchical' && selectionMode === 'multi')
     ? (Array.isArray(value) ? value : [])
     : (value ? [value] : []);
 
@@ -103,12 +112,44 @@ const Filter = ({
     return (dateMs / totalMs) * 100;
   };
 
-  // Filter options based on search term
-  const filteredOptions = options.filter(option => {
+  // Filter options based on search term (skip for hierarchical type)
+  const filteredOptions = (options || []).filter(option => {
     // Ensure option is a string before calling toLowerCase
     const optionStr = typeof option === 'string' ? option : String(option);
     return optionStr.toLowerCase().includes(searchTerm.toLowerCase());
   });
+
+  // Filter hierarchy based on search term (for hierarchical type)
+  const getFilteredHierarchy = () => {
+    if (type !== 'hierarchical' || !hierarchyWithCounts) return null;
+    if (!searchTerm) return hierarchyWithCounts;
+
+    const filtered = new Map();
+    const lowerSearch = searchTerm.toLowerCase();
+
+    hierarchyWithCounts.forEach((parentData, parent) => {
+      const parentMatches = parent.toLowerCase().includes(lowerSearch);
+      const matchingChildren = new Map();
+
+      parentData.children.forEach((count, child) => {
+        if (child.toLowerCase().includes(lowerSearch)) {
+          matchingChildren.set(child, count);
+        }
+      });
+
+      // Include parent if it matches OR has matching children
+      if (parentMatches || matchingChildren.size > 0) {
+        filtered.set(parent, {
+          count: parentData.count,
+          children: parentMatches ? parentData.children : matchingChildren
+        });
+      }
+    });
+
+    return filtered;
+  };
+
+  const filteredHierarchy = type === 'hierarchical' ? getFilteredHierarchy() : null;
 
   // Handle clicking outside to close dropdown
   useEffect(() => {
@@ -134,7 +175,6 @@ const Filter = ({
   // Handle mouse/touch events for date range slider
   useEffect(() => {
     if (type !== 'daterange') return;
-    console.log('⚙️ useEffect running - dragging:', dragging, 'selectedValues:', JSON.stringify(selectedValues), 'tempRange:', JSON.stringify(tempRange));
 
     const handleMouseMove = (e) => {
       if (!dragging || !sliderRef.current) return;
@@ -147,23 +187,19 @@ const Filter = ({
       if (!date) return;
 
       setTempRange((current) => {
-        console.log('🔄 MouseMove START - current:', JSON.stringify(current), 'selectedValuesRef.current:', JSON.stringify(selectedValuesRef.current));
         const baseRange = current || selectedValuesRef.current;
         let newRange = { ...baseRange };
 
         if (dragging === 'start') {
           if (date <= new Date(baseRange.endDate || maxDate)) {
             newRange.startDate = formatDateForInput(date);
-            console.log('🔄 Updated START date to:', newRange.startDate);
           }
         } else if (dragging === 'end') {
           if (date >= new Date(baseRange.startDate || minDate)) {
             newRange.endDate = formatDateForInput(date);
-            console.log('🔄 Updated END date to:', newRange.endDate);
           }
         }
 
-        console.log('🔄 MouseMove END - newRange:', JSON.stringify(newRange));
         tempRangeRef.current = newRange;
         return newRange;
       });
@@ -183,15 +219,9 @@ const Filter = ({
       }, 10);
 
       // Commit the temp range to parent on mouse up
-      console.log('🏁 MouseUp - tempRangeRef.current:', JSON.stringify(tempRangeRef.current));
-      console.log('🏁 MouseUp - tempRange state:', JSON.stringify(tempRange));
       if (tempRangeRef.current) {
-        console.log('✅ Calling onChange with:', JSON.stringify(tempRangeRef.current));
         onChangeRef.current(tempRangeRef.current);
-      } else {
-        console.log('❌ tempRangeRef.current is null, not calling onChange');
       }
-      console.log('🧹 Cleaning up - setting dragging to null, tempRange to null');
       setDragging(null);
       setTempRange(null);
       tempRangeRef.current = null;
@@ -236,6 +266,37 @@ const Filter = ({
     onChange(newSelected);
   };
 
+  // Handle hierarchical selection (single or multi mode)
+  const handleHierarchicalSelect = (option) => {
+    if (selectionMode === 'single') {
+      onChange(option);
+      setIsOpen(false);
+    } else {
+      // Multi-select mode
+      let newSelected;
+      if (selectedValues.includes(option)) {
+        newSelected = selectedValues.filter(item => item !== option);
+      } else {
+        newSelected = [...selectedValues, option];
+      }
+      onChange(newSelected);
+    }
+  };
+
+  // Toggle category expansion in hierarchical view
+  const toggleCategoryExpansion = (category, e) => {
+    e.stopPropagation();
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(category)) {
+        newSet.delete(category);
+      } else {
+        newSet.add(category);
+      }
+      return newSet;
+    });
+  };
+
   // Handle "All" option for multiselect only
   const handleSelectAll = () => {
     if (type === 'multiselect') {
@@ -243,6 +304,25 @@ const Filter = ({
         onChange([]);
       } else {
         onChange([...filteredOptions]);
+      }
+    }
+  };
+
+  // Handle "Select All" for hierarchical filters (multi-select mode only)
+  const handleHierarchicalSelectAll = () => {
+    if (type === 'hierarchical' && selectionMode === 'multi' && hierarchyWithCounts) {
+      const allValues = [];
+      hierarchyWithCounts.forEach((parentData, parent) => {
+        allValues.push(parent);
+        parentData.children.forEach((count, child) => {
+          allValues.push(child);
+        });
+      });
+
+      if (selectedValues.length === allValues.length) {
+        onChange([]);
+      } else {
+        onChange(allValues);
       }
     }
   };
@@ -327,6 +407,18 @@ const Filter = ({
       const start = selectedValues.startDate ? formatDate(new Date(selectedValues.startDate)) : 'Start';
       const end = selectedValues.endDate ? formatDate(new Date(selectedValues.endDate)) : 'End';
       return `${start} - ${end}`;
+    } else if (type === 'hierarchical') {
+      if (selectionMode === 'single') {
+        return value || placeholder;
+      } else {
+        if (selectedValues.length === 0) {
+          return allLabel;
+        } else if (selectedValues.length === 1) {
+          return selectedValues[0];
+        } else {
+          return `${selectedValues.length} items selected`;
+        }
+      }
     } else if (type === 'singleselect') {
       if (!value) {
         return defaultValue || placeholder;
@@ -349,9 +441,26 @@ const Filter = ({
            filteredOptions.every(option => selectedValues.includes(option));
   };
 
+  // Check if all hierarchical items are selected
+  const areAllHierarchicalSelected = () => {
+    if (type !== 'hierarchical' || !hierarchyWithCounts) return false;
+
+    const allValues = [];
+    hierarchyWithCounts.forEach((parentData, parent) => {
+      allValues.push(parent);
+      parentData.children.forEach((count, child) => {
+        allValues.push(child);
+      });
+    });
+
+    return allValues.length > 0 && allValues.every(val => selectedValues.includes(val));
+  };
+
   // Check if we should show clear button
   const shouldShowClear = () => {
     if (type === 'multiselect') {
+      return selectedValues.length > 0;
+    } else if (type === 'hierarchical' && selectionMode === 'multi') {
       return selectedValues.length > 0;
     } else if (type === 'daterange') {
       return selectedValues.startDate || selectedValues.endDate;
@@ -492,8 +601,116 @@ const Filter = ({
             </div>
           )}
 
-          {/* Options list for non-daterange types */}
-          {type !== 'daterange' && (
+          {/* Select All for hierarchical multiselect */}
+          {type === 'hierarchical' && selectionMode === 'multi' && (
+            <div className="filter-select-all-container">
+              <div
+                className="filter-option checkbox-option"
+                onClick={handleHierarchicalSelectAll}
+              >
+                <span className="filter-control checkbox-control">
+                  <span className={`checkbox ${areAllHierarchicalSelected() ? 'selected' : ''}`}>
+                    {areAllHierarchicalSelected() && <Check size={14} />}
+                  </span>
+                </span>
+                <span className="filter-option-text">
+                  {areAllHierarchicalSelected() ? "Deselect All" : "Select All"}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* Hierarchical options list */}
+          {type === 'hierarchical' && filteredHierarchy && (
+            <div className="filter-options-list hierarchical-options-list">
+              {filteredHierarchy.size > 0 ? (
+                Array.from(filteredHierarchy.entries()).map(([parent, parentData]) => {
+                  const hasChildren = parentData.children.size > 0;
+                  const isExpanded = expandedCategories.has(parent);
+                  const controlType = selectionMode === 'single' ? 'radio' : 'checkbox';
+
+                  return (
+                    <div key={parent} className="hierarchical-parent-group">
+                      {/* Parent option */}
+                      <div
+                        className={`filter-option hierarchical-parent ${controlType}-option ${
+                          selectedValues.includes(parent) ? 'selected' : ''
+                        }`}
+                      >
+                        {/* Expand/collapse icon (only if has children) */}
+                        {hasChildren && (
+                          <span
+                            className={`hierarchical-expand-icon ${isExpanded ? 'expanded' : ''}`}
+                            onClick={(e) => toggleCategoryExpansion(parent, e)}
+                          >
+                            <ChevronRight size={16} />
+                          </span>
+                        )}
+
+                        {/* Parent checkbox/radio and label */}
+                        <div
+                          className="hierarchical-parent-content"
+                          onClick={() => handleHierarchicalSelect(parent)}
+                        >
+                          <span className={`filter-control ${controlType}-control`}>
+                            {selectionMode === 'single' ? (
+                              <span className={`radio-button ${selectedValues.includes(parent) ? 'selected' : ''}`}>
+                                {selectedValues.includes(parent) && <span className="radio-dot" />}
+                              </span>
+                            ) : (
+                              <span className={`checkbox ${selectedValues.includes(parent) ? 'selected' : ''}`}>
+                                {selectedValues.includes(parent) && <Check size={14} />}
+                              </span>
+                            )}
+                          </span>
+                          <span className="filter-option-text">
+                            {parent}
+                            <span className="hierarchical-count"> ({parentData.count})</span>
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Children options (shown when expanded or when searching) */}
+                      {hasChildren && (isExpanded || searchTerm) && (
+                        <div className="hierarchical-children">
+                          {Array.from(parentData.children.entries()).map(([child, count]) => (
+                            <div
+                              key={child}
+                              className={`filter-option hierarchical-child ${controlType}-option ${
+                                selectedValues.includes(child) ? 'selected' : ''
+                              }`}
+                              onClick={() => handleHierarchicalSelect(child)}
+                            >
+                              <span className={`filter-control ${controlType}-control`}>
+                                {selectionMode === 'single' ? (
+                                  <span className={`radio-button ${selectedValues.includes(child) ? 'selected' : ''}`}>
+                                    {selectedValues.includes(child) && <span className="radio-dot" />}
+                                  </span>
+                                ) : (
+                                  <span className={`checkbox ${selectedValues.includes(child) ? 'selected' : ''}`}>
+                                    {selectedValues.includes(child) && <Check size={14} />}
+                                  </span>
+                                )}
+                              </span>
+                              <span className="filter-option-text">
+                                {child}
+                                <span className="hierarchical-count"> ({count})</span>
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="filter-no-results">No options match your search</div>
+              )}
+            </div>
+          )}
+
+          {/* Options list for non-daterange and non-hierarchical types */}
+          {type !== 'daterange' && type !== 'hierarchical' && (
             <div className="filter-options-list">
               {filteredOptions.length > 0 ? (
                 filteredOptions.map((option, index) => (
