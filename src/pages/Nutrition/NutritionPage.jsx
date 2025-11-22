@@ -23,6 +23,8 @@ import KpiCard from '../../components/charts/KpiCard/index';
 
 // Import chart components for analysis tab
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
+import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
+import TopChart from '../../components/charts/TopChart';
 
 // Helper function to parse time string to minutes for efficient sorting
 const parseTimeToMinutes = (timeString) => {
@@ -197,7 +199,7 @@ const NutritionPage = () => {
             >
               <Filter
                 type="daterange"
-                label="Date Range"
+                label="Meal Date"
                 field="date"
                 icon={<Calendar />}
                 dataSources={['nutrition']}
@@ -259,14 +261,7 @@ const NutritionPage = () => {
                 label="Total Meals/Occurrences"
                 icon={<Utensils />}
               />
-              <KpiCard
-                dataSource="nutrition"
-                field="usda_meal_score"
-                computation="average"
-                computationOptions={{ decimals: 2, filterZeros: false }}
-                label="Avg USDA Score"
-                icon={<Tag />}
-              />
+
               <KpiCard
                 dataSource="nutritionItems"
                 field="food_quantity"
@@ -282,6 +277,22 @@ const NutritionPage = () => {
                 computationOptions={{ decimals: 0 }}
                 label="Total Drink Items"
                 icon={<Utensils />}
+              />
+              <KpiCard
+                dataSource="nutrition"
+                field="usda_meal_score"
+                computation="average"
+                computationOptions={{ decimals: 2, filterZeros: false }}
+                label="Avg Meal Score"
+                icon={<Tag />}
+              />
+              <KpiCard
+                dataSource="nutrition"
+                field="meal_assessment"
+                computation="average"
+                computationOptions={{ decimals: 1, filterZeros: false }}
+                label="Avg Meal Taste"
+                icon={<Tag />}
               />
             </KPICardsPanel>
 
@@ -367,11 +378,40 @@ const NutritionPage = () => {
                   metricOptions={[
                     { value: 'meals', label: 'Number of Meals', aggregation: 'count_distinct', field: 'meal_id', decimals: 0 },
                     { value: 'ingredient occurrences', label: 'Number of Food Occurrences', aggregation: 'sum', field: 'food_quantity', decimals: 0 },
-                    { value: 'drink occurrences', label: 'Number of Drink Occurrences', aggregation: 'sum', field: 'drink_quantity', decimals: 0 }
+                    { value: 'drink occurrences', label: 'Number of Drink Occurrences', aggregation: 'sum', field: 'drink_quantity', decimals: 0 },
+                    { value: 'meal score', label: 'Avg Meal Score', aggregation: 'average', field: 'usda_meal_score', decimals: 1 },
+                    { value: 'meal taste', label: 'Avg Meal Taste', aggregation: 'average', field: 'meal_assessment', decimals: 1 }
                   ]}
                   defaultMetric="meals"
                   title="Meals Over Time"
                 />
+                <TopChart
+                    data={items}
+                    dimensionOptions={[
+                      { value: 'food_list', label: 'Meal', field: 'food_list', labelFields: ['food_list'] },
+                      { value: 'food', label: 'Food', field: 'food', labelFields: ['food'] },
+                      { value: 'drink', label: 'Drink', field: 'drink', labelFields: ['drink'] },
+                      { value: 'places', label: 'Location', field: 'places', labelFields: ['places'] },
+                      { value: 'origin', label: 'Origin', field: 'origin', labelFields: ['origin'] },
+                    ]}
+                    metricOptions={[
+                      { value: 'occurences', label: 'Occurences', aggregation: 'count_distinct', field: 'meal_id', countLabel: 'times', decimals: 0 },
+                      { value: 'f_quantity', label: 'Food Quantity', aggregation: 'sum', field: 'food_quantity', countLabel: 'times', decimals: 0 },
+                      { value: 'd_quantity', label: 'Drink Quantity', aggregation: 'sum', field: 'drink_quantity', countLabel: 'times', decimals: 0 },
+                      { value: 'meal_score', label: 'Meal Score', aggregation: 'average', field: 'usda_meal_score', countLabel: '', decimals: 1 },
+                      { value: 'meal_taste', label: 'Meal Taste', aggregation: 'average', field: 'meal_assessment', countLabel: '', decimals: 1 }
+                    ]}
+                    defaultDimension="food"
+                    defaultMetric="occurences"
+                    title="Top Food Analysis"
+                    topN={10}
+                    imageField="cover_url"
+                    enableTopNControl={true}
+                    topNOptions={[5, 10, 15, 20, 25, 30]}
+                    enableSortToggle={true}
+                    scrollable={true}
+                    barHeight={50}
+                                />
               </>
             )}
           />

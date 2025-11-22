@@ -79,7 +79,8 @@ export const DataProvider = ({ children }) => {
     podcasts: null,
     music: null,
     finance: null,
-    health: null
+    health: null,
+    tracking: null
   });
   const [loading, setLoading] = useState({});
   const [error, setError] = useState({});
@@ -137,6 +138,10 @@ export const DataProvider = ({ children }) => {
         case 'health':
           fileId = DRIVE_FILES.HEALTH.FILE_ID;
           console.log('💪 Health fileId:', fileId);
+          break;
+        case 'tracking':
+          fileId = DRIVE_FILES.TRACKING.FILE_ID;
+          console.log('📊 Tracking fileId:', fileId);
           break;
         default:
           throw new Error(`Unknown data type: ${dataType}`);

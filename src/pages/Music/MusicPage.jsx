@@ -23,6 +23,8 @@ import KpiCard from '../../components/charts/KpiCard';
 
 // Import chart components for analysis tab
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
+import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
+import TopChart from '../../components/charts/TopChart';
 
 // Import utilities
 import { sortByDateSafely } from '../../utils/sortingUtils';
@@ -62,7 +64,9 @@ const MusicPage = () => {
 
       setMusicToggles(sortedToggles);
       setFilteredToggles(sortedToggles);
-      setIsProcessing(false);
+
+      // Defer setting isProcessing to false to ensure all state updates complete
+      setTimeout(() => setIsProcessing(false), 0);
       }
   }, [data?.music]);
 
@@ -105,6 +109,13 @@ const MusicPage = () => {
               onFiltersChange={handleFiltersChange}
             >
               <Filter
+                type="daterange"
+                label="Listening Date"
+                field="timestamp"
+                icon={<Calendar />}
+                dataSources={['music']}
+              />
+              <Filter
                 type="multiselect"
                 label="Genres"
                 field="simplified_genre"
@@ -136,13 +147,7 @@ const MusicPage = () => {
                 placeholder="Select albums"
                 dataSources={['music']}
               />
-              <Filter
-                type="daterange"
-                label="Date Range"
-                field="timestamp"
-                icon={<Calendar />}
-                dataSources={['music']}
-              />
+
             </FilteringPanel>
 
             {/* Statistics Cards with KpiCard children */}
@@ -228,6 +233,7 @@ const MusicPage = () => {
               <ContentCardsGroup
                 items={toggles}
                 viewMode="grid"
+                itemsPerPage={50}
                 renderItem={(toggle) => (
                   <MusicCard
                     key={toggle.toggle_id}
@@ -242,6 +248,7 @@ const MusicPage = () => {
               <ContentCardsGroup
                 items={toggles}
                 viewMode="list"
+                itemsPerPage={50}
                 renderItem={(toggle) => (
                   <MusicCard
                     key={`list-${toggle.toggle_id}`}
@@ -264,15 +271,52 @@ const MusicPage = () => {
               message: "No music data available with current filters. Try adjusting your criteria."
             }}
             renderCharts={(toggles) => (
+            <>
               <TimeSeriesBarChart
                 data={toggles}
                 dateColumnName="timestamp"
                 metricOptions={[
-                  { value: 'count', label: 'Toggles', aggregation: 'count', decimals: 0 }
+                  { value: 'toggle', label: 'Toggles', aggregation: 'count_distinct', field: 'toggle_id', decimals: 0 },
+                  { value: 'artists', label: 'Artists', aggregation: 'count_distinct', field: 'artist_name', decimals: 0 },
+                  { value: 'listening time', label: 'Listening time', aggregation: 'sum', field: 'listening_seconds', decimals: 0 },
                 ]}
                 defaultMetric="count"
                 title="Listening Activity Over Time"
               />
+              <IntensityHeatmap
+                  data={toggles}
+                  dateColumnName="timestamp"
+                  valueColumnName="listening_seconds"
+                  title="Listening Activity by Day and Time"
+                  treatMidnightAsUnknown={true}
+              />
+              <TopChart
+               data={toggles}
+               dimensionOptions={[
+
+                 { value: 'track', label: 'Track', field: 'track_name', labelFields: ['track_name'] },
+                 { value: 'artist', label: 'Artist', field: 'artist_name', labelFields: ['artist_name'] },
+                 { value: 'album', label: 'Album', field: 'album_name', labelFields: ['album_name'] },
+                 { value: 'genre', label: 'Genre', field: 'simplified_genre', labelFields: ['genre'] },
+
+               ]}
+               metricOptions={[
+                 { value: 'listening time', label: 'Listening Time', aggregation: 'sum', field: 'listening_seconds', countLabel: 'seconds', decimals: 0 },
+                 { value: 'toggles', label: 'Toggles', aggregation: 'count_distinct', field: 'toggle_id', countLabel: 'toggles', decimals: 0 },
+
+               ]}
+               defaultDimension="genre"
+               defaultMetric="listening time"
+               title="Top Music Analysis"
+               topN={10}
+               imageField="poster_url"
+               enableTopNControl={true}
+               topNOptions={[5, 10, 15, 20, 25, 30]}
+               enableSortToggle={true}
+               scrollable={true}
+               barHeight={50}
+               />
+              </>
             )}
           />
         )}

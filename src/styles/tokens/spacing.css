@@ -12,6 +12,7 @@
   --spacing-2xl: 3rem;     /* 48px - Very large, page sections */
   --spacing-3xl: 4rem;     /* 64px - Huge spacing, major divisions */
   --spacing-4xl: 5rem;     /* 80px - Maximum spacing, page layouts */
+  --spacing-6xl: 6rem;     /* 96px - Extra maximum spacing, hero sections */
 
   /* ===== ICON SIZES ===== */
   /* Consistent icon sizing scale for all icon elements */
@@ -20,4 +21,6 @@
   --icon-size-md: 1.5rem;  /* 24px - Medium icons (default) */
   --icon-size-lg: 2rem;    /* 32px - Large icons */
   --icon-size-xl: 3rem;    /* 48px - Extra large icons */
+  --icon-size-2xl: 5rem;   /* 80px - Double extra large icons */
+  --icon-size-3xl: 6.25rem; /* 100px - Triple extra large icons */
 }

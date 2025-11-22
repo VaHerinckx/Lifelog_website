@@ -41,23 +41,25 @@ const BookCard = ({ book, viewMode = 'grid', onClick }) => {
           <p className="book-author">by {book.author}</p>
 
           <div className="book-meta">
-            <div className="rating-container">
-              <StarRating rating={book.my_rating} size={16} />
-              <span className="rating-value">{book.my_rating.toFixed(1)}</span>
-            </div>
-
-            {book.number_of_pages > 0 && (
-              <div className="pages-info">
-                <BookOpen size={16} />
-                <span>{book.number_of_pages} pages</span>
+            <div className="rating-pages-duration">
+              <div className="rating-container">
+                <StarRating rating={book.my_rating} size={16} />
+                <span className="rating-value">{book.my_rating.toFixed(1)}</span>
               </div>
-            )}
 
-            {book.reading_duration_final && (
-              <span className="reading-duration">
-                Read in {book.reading_duration_final} days
-              </span>
-            )}
+              {book.number_of_pages > 0 && (
+                <div className="pages-info">
+                  <BookOpen size={16} />
+                  <span>{book.number_of_pages} pages</span>
+                </div>
+              )}
+
+              {book.reading_duration_final && (
+                <span className="reading-duration">
+                  Read in {book.reading_duration_final} days
+                </span>
+              )}
+            </div>
           </div>
         </div>
 

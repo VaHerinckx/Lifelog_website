@@ -32,6 +32,9 @@ export const DRIVE_FILES = {
   },
   SHOWS: {
     FILE_ID: import.meta.env.VITE_SHOWS_FILE_ID
+  },
+  TRACKING: {
+    FILE_ID: import.meta.env.VITE_TRACKING_FILE_ID
   }
 };
 

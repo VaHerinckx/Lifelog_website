@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import PropTypes from 'prop-types';
 import { Music } from 'lucide-react';
 import { formatDate } from '../../utils';
@@ -36,6 +37,7 @@ const MusicCard = ({ toggle, viewMode = 'grid', onClick }) => {
               src={toggle.album_artwork_url}
               alt={`${toggle.album_name} artwork`}
               className="music-artwork"
+              loading="lazy"
               onError={(e) => {
                 e.target.onerror = null;
                 e.target.style.display = 'none';
@@ -87,6 +89,7 @@ const MusicCard = ({ toggle, viewMode = 'grid', onClick }) => {
             src={toggle.album_artwork_url}
             alt={`${toggle.album_name} artwork`}
             className="music-artwork"
+            loading="lazy"
             onError={(e) => {
               e.target.onerror = null;
               e.target.style.display = 'none';
@@ -140,4 +143,4 @@ MusicCard.propTypes = {
   onClick: PropTypes.func.isRequired
 };
 
-export default MusicCard;
+export default memo(MusicCard);

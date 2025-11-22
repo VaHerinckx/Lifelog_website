@@ -81,16 +81,18 @@ const MovieCard = ({ movie, viewMode = 'grid', onClick }) => {
           )}
 
           <div className="movie-meta">
-            {movie.rating > 0 && (
-              <div className="rating-container">
-                <StarRating rating={movie.rating} size={16} />
-                <span className="rating-value">{movie.rating.toFixed(1)}</span>
-              </div>
-            )}
+            <div className="rating-and-date">
+              {movie.rating > 0 && (
+                <div className="rating-container">
+                  <StarRating rating={movie.rating} size={16} />
+                  <span className="rating-value">{movie.rating.toFixed(1)}</span>
+                </div>
+              )}
 
-            <div className="watch-date">
-              <Calendar size={16} />
-              <span>{formatDate(movie.date)}</span>
+              <div className="watch-date">
+                <Calendar size={16} />
+                <span>{formatDate(movie.date)}</span>
+              </div>
             </div>
           </div>
         </div>

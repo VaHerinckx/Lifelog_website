@@ -186,6 +186,13 @@
   background-color: var(--color-primary);
 }
 
+/* Rating, Pages, Duration Wrapper (List View) */
+.rating-pages-duration {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
 /* Rating Stars */
 .rating-container {
   display: flex;
