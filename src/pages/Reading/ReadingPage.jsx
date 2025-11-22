@@ -41,7 +41,6 @@ const ReadingPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedBook, setSelectedBook] = useState(null);
   const [activeTab, setActiveTab] = useState('content');
-  const [isContentReady, setIsContentReady] = useState(false);
 
   // Fetch reading data when component mounts
   useEffect(() => {
@@ -75,8 +74,6 @@ const ReadingPage = () => {
       setFilteredBooks(sortedBooks);
       setReadingEntries(sortedSessions);
       setFilteredReadingEntries(sortedSessions);
-      // Reset content ready state when new data arrives
-      setIsContentReady(false);
     }
   }, [data?.readingBooks, data?.readingSessions]);
 
@@ -99,10 +96,6 @@ const ReadingPage = () => {
     setSelectedBook(null);
   };
 
-  const handleContentReady = () => {
-    setIsContentReady(true);
-  };
-
   // Memoize data object to prevent FilteringPanel re-renders
   const filterPanelData = useMemo(() => ({
     readingBooks: books,
@@ -120,21 +113,13 @@ const ReadingPage = () => {
         description="Track your reading habits and discover insights about your books"
       />
 
-        {!(loading?.readingBooks || loading?.readingSessions) && isContentReady && (
+        {!(loading?.readingBooks || loading?.readingSessions) && (
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
               data={filterPanelData}
               onFiltersChange={handleFiltersChange}
             >
-              <Filter
-                type="multiselect"
-                label="Reading Years"
-                field="reading_year"
-                icon={<Clock />}
-                placeholder="Select years"
-                dataSources={['readingBooks', 'readingSessions']}
-              />
               <Filter
                 type="daterange"
                 label="Reading Date"
@@ -144,7 +129,31 @@ const ReadingPage = () => {
               />
               <Filter
                 type="multiselect"
-                label="Genres"
+                label="Reading Year"
+                field="reading_year"
+                icon={<Clock />}
+                placeholder="Select years"
+                dataSources={['readingBooks', 'readingSessions']}
+              />
+              <Filter
+                type="multiselect"
+                label="Type"
+                field="fiction_yn"
+                icon={<Book />}
+                dataSources={['readingBooks']}
+                options={['Fiction', 'Non-Fiction']}
+              />
+              <Filter
+                type="multiselect"
+                label="Format"
+                field="reading_format"
+                icon={<Tag />}
+                placeholder="Select how book was read"
+                dataSources={['readingBooks', 'readingSessions']}
+              />
+              <Filter
+                type="multiselect"
+                label="Genre"
                 field="genre"
                 icon={<Tag />}
                 placeholder="Select genres"
@@ -152,24 +161,16 @@ const ReadingPage = () => {
               />
               <Filter
                 type="multiselect"
-                label="Authors"
+                label="Author"
                 field="author"
                 icon={<User />}
                 placeholder="Select authors"
                 dataSources={['readingBooks']}
               />
+
               <Filter
                 type="multiselect"
-                label="Fiction/Non-Fiction"
-                field="fiction_yn"
-                icon={<Book />}
-                defaultValue="all"
-                dataSources={['readingBooks']}
-                options={['all', 'Fiction', 'Non-Fiction']}
-              />
-              <Filter
-                type="multiselect"
-                label="My Rating"
+                label="Rating"
                 field="my_rating"
                 icon={<Star />}
                 placeholder="Select ratings"
@@ -208,10 +209,10 @@ const ReadingPage = () => {
               />
               <KpiCard
                 dataSource="readingBooks"
-                field="reading_duration_final"
+                field="pages_per_day"
                 computation="average"
                 computationOptions={{ decimals: 0, filterZeros: true }}
-                label="Avg. Reading Duration (days)"
+                label="Avg. Pages per day"
                 icon={<Clock />}
               />
             </KPICardsPanel>
@@ -243,14 +244,13 @@ const ReadingPage = () => {
               title: "No books found",
               message: "No books match your current filters. Try adjusting your criteria."
             }}
-            onContentReady={handleContentReady}
             renderGrid={(books) => (
               <ContentCardsGroup
                 items={books}
                 viewMode="grid"
                 renderItem={(book) => (
                   <BookCard
-                    key={`${book.book_id}-${book.title}`}
+                    key={book.book_id}
                     book={book}
                     viewMode="grid"
                     onClick={handleBookClick}
@@ -264,7 +264,7 @@ const ReadingPage = () => {
                 viewMode="list"
                 renderItem={(book) => (
                   <BookCard
-                    key={`list-${book.book_id}-${book.title}`}
+                    key={`list-${book.book_id}`}
                     book={book}
                     viewMode="list"
                     onClick={handleBookClick}
@@ -288,7 +288,9 @@ const ReadingPage = () => {
                   data={readingSessions}
                   dateColumnName="timestamp"
                   metricOptions={[
-                    { value: 'pages', label: 'Pages Read', aggregation: 'sum', field: 'page_split', decimals: 0 },
+                    { value: 'books', label: 'Books', aggregation: 'count_distinct', field: 'book_id', decimals: 0 },
+                    { value: 'pages', label: 'Pages', aggregation: 'sum', field: 'page_split', decimals: 0 },
+                    { value: 'pages per session', label: 'Avg Pages per Session', aggregation: 'average', field: 'page_split', decimals: 0 },
                     { value: 'rating', label: 'Avg Rating', aggregation: 'average', field: 'my_rating', suffix: '★', decimals: 1 }
                   ]}
                   defaultMetric="pages"
@@ -306,12 +308,14 @@ const ReadingPage = () => {
                   dimensionOptions={[
                     { value: 'author', label: 'Author', field: 'author', labelFields: ['author'] },
                     { value: 'genre', label: 'Genre', field: 'genre', labelFields: ['genre'] },
-                    { value: 'title', label: 'Book Title', field: 'title', labelFields: ['title', 'author'] }
+                    { value: 'title', label: 'Book', field: 'title', labelFields: ['title'] },
+                    { value: 'format', label: 'Format', field: 'reading_format', labelFields: ['reading_format'] }
                   ]}
                   metricOptions={[
                     { value: 'pages', label: 'Total Pages', aggregation: 'sum', field: 'number_of_pages', countLabel: 'pages', decimals: 0 },
                     { value: 'books', label: 'Total Books', aggregation: 'count_distinct', field: 'book_id', countLabel: 'books', decimals: 0 },
                     { value: 'pages per day', label: 'Avg pages per day', aggregation: 'average', field: 'pages_per_day', countLabel: 'pages per day', decimals: 0 },
+                    { value: 'reading_duration_final', label: 'Completion Time', aggregation: 'sum', field: 'reading_duration_final', countLabel: 'days', decimals: 0 },
                     { value: 'my_rating', label: 'Avg Rating', aggregation: 'average', field: 'my_rating', suffix: '★', decimals: 1 }
                   ]}
                   defaultDimension="author"

@@ -11,7 +11,7 @@
 }
 
 .book-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(calc(-1 * var(--spacing-xs)));
   box-shadow: var(--shadow-lg);
 }
 
@@ -64,8 +64,8 @@
 }
 
 .book-card--list:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(calc(-1 * var(--spacing-xs) / 2));
+  box-shadow: var(--shadow-md);
 }
 
 .book-card--list .book-cover-container {
@@ -94,7 +94,7 @@
   color: var(--background-color);
   font-size: 1rem;
   font-weight: 600;
-  margin-bottom: 6px;
+  margin-bottom: var(--spacing-xs);
 }
 
 .book-card--grid .book-title {
@@ -105,13 +105,13 @@
 
 .book-card--list .book-title {
   font-size: 1.2rem;
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-xs);
 }
 
 .book-author {
   color: var(--color-primary);
   font-weight: 500;
-  margin-bottom: 6px;
+  margin-bottom: var(--spacing-xs);
   font-size: 0.9rem;
 }
 
@@ -123,13 +123,13 @@
 
 .book-card--list .book-author {
   font-size: 0.95rem;
-  margin-bottom: 10px;
+  margin-bottom: var(--spacing-xs);
 }
 
 .book-meta {
   color: var(--color-text-gray);
   font-size: 0.8rem;
-  margin-bottom: 6px;
+  margin-bottom: var(--spacing-xs);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -142,12 +142,18 @@
   font-size: 0.9rem;
 }
 
+.pages-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
 /* Genre Tags */
 .book-genre-tags {
   margin-top: auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: var(--spacing-xs);
 }
 
 .book-card--list .book-genre-tags {
@@ -159,13 +165,13 @@
   display: inline-block;
   background-color: var(--color-primary);
   color: var(--color-white);
-  padding: 3px 6px;
-  border-radius: 4px;
+  padding: calc(var(--spacing-xs) / 2) var(--spacing-xs);
+  border-radius: var(--radius-sm);
   font-size: 0.7rem;
 }
 
 .book-card--list .book-genre {
-  padding: 4px 10px;
+  padding: calc(var(--spacing-xs) / 2) var(--spacing-xs);
   border-radius: var(--radius-sm);
   font-size: 0.8rem;
   font-weight: 500;
@@ -184,8 +190,8 @@
 .rating-container {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 6px 0;
+  gap: var(--spacing-xs);
+  margin: var(--spacing-xs) 0;
 }
 
 .rating-label {
@@ -195,7 +201,7 @@
 
 .stars {
   display: flex;
-  gap: 2px;
+  gap: calc(var(--spacing-xs) / 4);
 }
 
 .star {
@@ -207,13 +213,13 @@
 }
 
 .rating-value {
-  margin-left: 5px;
+  margin-left: var(--spacing-xs);
   font-weight: 600;
 }
 
 /* Reading Dates and Duration */
 .reading-dates {
-  margin-top: 8px;
+  margin-top: var(--spacing-sm);
   font-size: 0.8rem;
   color: var(--text-element);
 }
@@ -223,17 +229,17 @@
 }
 
 .date-value {
-  margin-left: 4px;
+  margin-left: calc(var(--spacing-xs) / 2);
 }
 
 .reading-duration {
   font-size: 0.8rem;
   color: var(--text-element);
-  margin-top: 4px;
+  margin-top: calc(var(--spacing-xs) / 2);
 }
 
 .book-card--list .reading-duration {
-  margin-left: 5px;
+  margin-left: var(--spacing-xs);
 }
 
 .duration-value {
@@ -271,11 +277,11 @@
 
   .book-card--list .book-genre-tags {
     margin-left: 0;
-    margin-top: 10px;
+    margin-top: var(--spacing-xs);
   }
 
   .book-genre {
     font-size: 0.65rem;
-    padding: 2px 4px;
+    padding: calc(var(--spacing-xs) / 4) calc(var(--spacing-xs) / 2);
   }
 }

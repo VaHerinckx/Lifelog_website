@@ -61,12 +61,23 @@ const TimeSeriesBarChart = ({
       metricField = currentMetricConfig?.field;
     }
 
+    // Helper function to get the start of the week (Monday) for a given date
+    const getWeekStart = (date) => {
+      const d = new Date(date);
+      const day = d.getDay();
+      const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+      return new Date(d.setDate(diff));
+    };
+
     // Helper function to generate period key
     const generatePeriodKey = (date) => {
       if (selectedPeriod === 'yearly') {
         return date.getFullYear().toString();
       } else if (selectedPeriod === 'monthly') {
         return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
+      } else if (selectedPeriod === 'weekly') {
+        const weekStart = getWeekStart(date);
+        return weekStart.toISOString().split('T')[0];
       } else { // Daily
         return date.toISOString().split('T')[0];
       }
@@ -79,6 +90,9 @@ const TimeSeriesBarChart = ({
       } else if (selectedPeriod === 'monthly') {
         const monthDate = new Date(date.getFullYear(), date.getMonth(), 1);
         return monthDate.toLocaleString('default', { month: 'short', year: 'numeric' });
+      } else if (selectedPeriod === 'weekly') {
+        const weekStart = getWeekStart(date);
+        return weekStart.toLocaleDateString();
       } else { // Daily
         return date.toLocaleDateString();
       }
@@ -125,6 +139,10 @@ const TimeSeriesBarChart = ({
       } else if (selectedPeriod === 'monthly') {
         currentDate.setDate(1);
         currentDate.setHours(0, 0, 0, 0);
+      } else if (selectedPeriod === 'weekly') {
+        const weekStart = getWeekStart(currentDate);
+        currentDate.setTime(weekStart.getTime());
+        currentDate.setHours(0, 0, 0, 0);
       } else { // Daily
         currentDate.setHours(0, 0, 0, 0);
       }
@@ -146,6 +164,8 @@ const TimeSeriesBarChart = ({
           currentDate.setFullYear(currentDate.getFullYear() + 1);
         } else if (selectedPeriod === 'monthly') {
           currentDate.setMonth(currentDate.getMonth() + 1);
+        } else if (selectedPeriod === 'weekly') {
+          currentDate.setDate(currentDate.getDate() + 7);
         } else { // Daily
           currentDate.setDate(currentDate.getDate() + 1);
         }
@@ -235,6 +255,7 @@ const TimeSeriesBarChart = ({
             >
               <option value="yearly">Yearly</option>
               <option value="monthly">Monthly</option>
+              <option value="weekly">Weekly</option>
               <option value="daily">Daily</option>
             </select>
           </div>
@@ -270,7 +291,7 @@ const TimeSeriesBarChart = ({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis
               dataKey="period"
-              angle={selectedPeriod === 'monthly' || selectedPeriod === 'daily' ? -45 : 0}
+              angle={selectedPeriod === 'monthly' || selectedPeriod === 'weekly' || selectedPeriod === 'daily' ? -45 : 0}
               textAnchor="end"
               height={80}
               interval={getXAxisInterval()}
@@ -303,7 +324,7 @@ TimeSeriesBarChart.propTypes = {
     PropTypes.shape({
       value: PropTypes.string.isRequired,
       label: PropTypes.string.isRequired,
-      aggregation: PropTypes.oneOf(['count', 'count_distinct', 'sum', 'average']).isRequired,
+      aggregation: PropTypes.oneOf(['count', 'count_distinct', 'sum', 'average', 'median', 'min', 'max', 'mode']).isRequired,
       field: PropTypes.string,
       suffix: PropTypes.string,
       decimals: PropTypes.number,

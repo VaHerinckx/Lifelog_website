@@ -36,7 +36,6 @@ const FinancePage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [activeTab, setActiveTab] = useState('content');
-  const [isContentReady, setIsContentReady] = useState(false);
 
   // Fetch finance data when component mounts
   useEffect(() => {
@@ -60,8 +59,7 @@ const FinancePage = () => {
       setTransactions(sortedTransactions);
       setFilteredTransactions(sortedTransactions);
       // Reset content ready state when new data arrives
-      setIsContentReady(false);
-    }
+      }
   }, [data?.finance]);
 
   // Apply filters when FilteringPanel filters change
@@ -79,10 +77,6 @@ const FinancePage = () => {
 
   const handleCloseDetails = () => {
     setSelectedTransaction(null);
-  };
-
-  const handleContentReady = () => {
-    setIsContentReady(true);
   };
 
   // Helper function to sort accounts with [OLD] at the bottom
@@ -121,7 +115,7 @@ const FinancePage = () => {
         description="Track your income, expenses, and financial patterns over time"
       />
 
-        {!loading?.finance && isContentReady && (
+        {!loading?.finance && (
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
@@ -280,7 +274,6 @@ const FinancePage = () => {
               title: "No transactions found",
               message: "No transactions match your current filters. Try adjusting your criteria."
             }}
-            onContentReady={handleContentReady}
             renderGrid={(transactionsData) => (
               <ContentCardsGroup
                 items={transactionsData}

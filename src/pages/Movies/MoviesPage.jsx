@@ -37,7 +37,6 @@ const MoviesPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [activeTab, setActiveTab] = useState('content');
-  const [isContentReady, setIsContentReady] = useState(false);
 
   // Fetch movies data when component mounts
   useEffect(() => {
@@ -89,11 +88,18 @@ const MoviesPage = () => {
         const isRewatch = seenMovies.has(movieKey);
         seenMovies.add(movieKey);
 
+        // Parse cast field into array of individual actors
+        const castArray = movie.cast
+          ? movie.cast.split(',').map(actor => actor.trim()).filter(Boolean)
+          : [];
+
         return {
           ...movie,
           isRewatch,
           // Keep original genre field for display, add genres array for filtering
-          genreArray: movie.genres
+          genreArray: movie.genres,
+          // Add cast array for individual actor filtering
+          castArray: castArray
         };
       });
 
@@ -107,8 +113,7 @@ const MoviesPage = () => {
       setMovies(sortedMovies);
       setFilteredMovies(sortedMovies);
       // Reset content ready state when new data arrives
-      setIsContentReady(false);
-    }
+      }
   }, [data?.movies]);
 
   // Apply filters when FilteringPanel filters change
@@ -127,10 +132,6 @@ const MoviesPage = () => {
     setSelectedMovie(null);
   };
 
-  const handleContentReady = () => {
-    setIsContentReady(true);
-  };
-
   // Memoize data object to prevent FilteringPanel re-renders
   const filterPanelData = useMemo(() => ({
     movies: movies
@@ -147,7 +148,7 @@ const MoviesPage = () => {
         description="Track your viewing habits and discover insights about your movie preferences"
       />
 
-      {!loading?.movies && isContentReady && (
+      {!loading?.movies && (
         <>
           {/* FilteringPanel with Filter children */}
           <FilteringPanel
@@ -200,6 +201,8 @@ const MoviesPage = () => {
               icon={<User />}
               placeholder="Search cast members"
               searchPlaceholder="Search actors..."
+              delimiter=","
+              matchMode="contains"
               dataSources={['movies']}
             />
             <Filter
@@ -369,6 +372,7 @@ const MoviesPage = () => {
                   { value: 'name', label: 'Movie', field: 'name', labelFields: ['name'] },
                   { value: 'type', label: 'Type', field: 'type', labelFields: ['type'] },
                   { value: 'director', label: 'Director', field: 'director', labelFields: ['director'] },
+                  { value: 'cast', label: 'Cast', field: 'cast', labelFields: ['cast'], delimiter: ',' },
                   { value: 'certification', label: 'Certification', field: 'certification', labelFields: ['certification'] }
                 ]}
                 metricOptions={[

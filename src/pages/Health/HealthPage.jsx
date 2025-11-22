@@ -36,7 +36,6 @@ const HealthPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedDay, setSelectedDay] = useState(null);
   const [activeTab, setActiveTab] = useState('content');
-  const [isContentReady, setIsContentReady] = useState(false);
 
   // Fetch health data when component mounts
   useEffect(() => {
@@ -63,8 +62,7 @@ const HealthPage = () => {
       setHealthDays(sortedDays);
       setFilteredHealthDays(sortedDays);
       // Reset content ready state when new data arrives
-      setIsContentReady(false);
-    }
+      }
   }, [data?.health]);
 
   // Apply filters when FilteringPanel filters change
@@ -80,10 +78,6 @@ const HealthPage = () => {
 
   const handleCloseDetails = () => {
     setSelectedDay(null);
-  };
-
-  const handleContentReady = () => {
-    setIsContentReady(true);
   };
 
   // Memoize data object to prevent FilteringPanel re-renders
@@ -102,7 +96,7 @@ const HealthPage = () => {
         description="Track your daily activity, sleep patterns, and overall wellness"
       />
 
-        {!loading?.health && isContentReady && (
+        {!loading?.health && (
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
@@ -224,7 +218,6 @@ const HealthPage = () => {
               title: "No health data found",
               message: "No health data matches your current filters. Try adjusting your criteria."
             }}
-            onContentReady={handleContentReady}
             enablePagination={true}
             itemsPerPage={50}
             renderGrid={(days) => (
@@ -275,6 +268,7 @@ const HealthPage = () => {
                     { value: 'sleep', label: 'Sleep Duration (min)', aggregation: 'average', field: 'sleep_minutes', decimals: 0 },
                     { value: 'sleep quality', label: 'Sleep Quality (1-5)', aggregation: 'average', field: 'sleep_quality', decimals: 1 },
                     { value: 'sleep rest feeling', label: 'Rest Feeling (1-5)', aggregation: 'average', field: 'sleep_rest_feeling', decimals: 1 },
+                    { value: 'screentime', label: 'Avg Screen Time (h)', aggregation: 'average', field: 'total_screen_hours', decimals: 1 },
                     { value: 'energy', label: 'Active Energy (kcal)', aggregation: 'average', field: 'daily_active_energy', decimals: 0 },
                     { value: 'heart', label: 'Heart Rate (bpm)', aggregation: 'average', field: 'avg_heart_rate', decimals: 0 },
                     { value: 'weight', label: 'Body Weight (kg)', aggregation: 'average', field: 'avg_body_weight', decimals: 1 },

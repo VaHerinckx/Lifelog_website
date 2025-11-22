@@ -38,7 +38,6 @@ const ShowsPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedEpisode, setSelectedEpisode] = useState(null);
   const [activeTab, setActiveTab] = useState('content');
-  const [isContentReady, setIsContentReady] = useState(false);
 
   // Fetch shows data when component mounts
   useEffect(() => {
@@ -62,8 +61,7 @@ const ShowsPage = () => {
       setEpisodes(sortedEpisodes);
       setFilteredEpisodes(sortedEpisodes);
       // Reset content ready state when new data arrives
-      setIsContentReady(false);
-    }
+      }
   }, [data?.shows]);
 
   // Apply filters when FilteringPanel filters change
@@ -82,10 +80,6 @@ const ShowsPage = () => {
     setSelectedEpisode(null);
   };
 
-  const handleContentReady = () => {
-    setIsContentReady(true);
-  };
-
   // Memoize data object to prevent FilteringPanel re-renders
   const filterPanelData = useMemo(() => ({
     shows: episodes
@@ -102,7 +96,7 @@ const ShowsPage = () => {
         description="Track your TV show watching history with detailed episode information and viewing patterns"
       />
 
-        {!(loading?.shows) && isContentReady && (
+        {!(loading?.shows) && (
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
@@ -206,7 +200,6 @@ const ShowsPage = () => {
               title: "No episodes found",
               message: "No episodes match your current filters. Try adjusting your criteria."
             }}
-            onContentReady={handleContentReady}
             renderGrid={(episodes) => (
               <ContentCardsGroup
                 items={episodes}

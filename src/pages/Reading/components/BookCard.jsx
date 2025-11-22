@@ -47,7 +47,7 @@ const BookCard = ({ book, viewMode = 'grid', onClick }) => {
             </div>
 
             {book.number_of_pages > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div className="pages-info">
                 <BookOpen size={16} />
                 <span>{book.number_of_pages} pages</span>
               </div>

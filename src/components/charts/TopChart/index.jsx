@@ -49,12 +49,31 @@ const TopChart = ({
     const metricField = currentMetricConfig.field;
     const metricAggregation = currentMetricConfig.aggregation;
     const labelFields = currentDimensionConfig.labelFields || [dimensionField];
+    const delimiter = currentDimensionConfig.delimiter;
 
     // Filter out invalid/unknown values
-    const filteredData = data.filter(item => {
+    let filteredData = data.filter(item => {
       const value = item[dimensionField];
       return value && value !== 'Unknown' && value.toString().trim() !== '';
     });
+
+    // If delimiter is specified, expand rows for each delimited value
+    if (delimiter) {
+      const expandedData = [];
+      filteredData.forEach(item => {
+        const value = item[dimensionField];
+        if (value && typeof value === 'string') {
+          const values = value.split(delimiter).map(v => v.trim()).filter(v => v !== '' && v !== 'Unknown');
+          values.forEach(val => {
+            expandedData.push({
+              ...item,
+              [dimensionField]: val
+            });
+          });
+        }
+      });
+      filteredData = expandedData;
+    }
 
     // Group by dimension field
     const grouped = _(filteredData).groupBy(dimensionField);
@@ -67,6 +86,16 @@ const TopChart = ({
         case 'count':
           metricValue = items.length;
           break;
+        case 'count_distinct': {
+          // Count distinct values of the specified field
+          const distinctValues = new Set(
+            items
+              .map(item => item[metricField])
+              .filter(val => val !== null && val !== undefined && val !== '')
+          );
+          metricValue = distinctValues.size;
+          break;
+        }
         case 'sum':
           metricValue = _.sumBy(items, item => {
             const val = parseFloat(item[metricField]);
@@ -118,18 +147,13 @@ const TopChart = ({
   }, [data, selectedDimension, selectedMetric, currentDimensionConfig, currentMetricConfig, topNValue, sortDirection]);
 
   const getMetricLabel = () => {
-    if (!currentMetricConfig) return 'plays';
+    if (!currentMetricConfig) return '';
 
-    const suffix = currentMetricConfig.suffix || '';
-    const label = currentMetricConfig.label || 'Value';
-    const countLabel = currentMetricConfig.countLabel || 'plays';
+    // Use countLabel if provided (this is the unit displayed next to bar values)
+    // Otherwise fall back to suffix
+    const countLabel = currentMetricConfig.countLabel || currentMetricConfig.suffix || '';
 
-    if (currentMetricConfig.aggregation === 'count') {
-      return countLabel;
-    } else if (currentMetricConfig.aggregation === 'average') {
-      return `avg ${suffix}`;
-    }
-    return suffix || label.toLowerCase();
+    return countLabel;
   };
 
   const CustomBar = (props) => {
@@ -304,6 +328,7 @@ const TopChart = ({
                 type="number"
                 tickFormatter={(value) => formatNumber(value, currentMetricConfig?.decimals || 0)}
                 domain={[0, 'dataMax']}
+                hide
               />
               <YAxis
                 type="category"
@@ -328,6 +353,7 @@ const TopChart = ({
               type="number"
               tickFormatter={(value) => formatNumber(value, currentMetricConfig?.decimals || 0)}
               domain={[0, 'dataMax']}
+              hide
             />
             <YAxis
               type="category"
@@ -355,11 +381,19 @@ TopChart.propTypes = {
       labelFields: PropTypes.arrayOf(PropTypes.string)
     })
   ).isRequired,
+  // metricOptions: Define how to aggregate data for each metric option
+  // - value: Unique identifier for this metric (e.g., 'pages', 'books')
+  // - label: Display name shown in dropdown (e.g., 'Total Pages', 'Total Books')
+  // - aggregation: How to calculate the metric ('count', 'count_distinct', 'sum', 'average')
+  // - field: Which data field to aggregate (required for sum/average/count_distinct)
+  // - countLabel: Unit displayed next to bar values (e.g., 'pages', 'books', 'days') - THIS IS THE LABEL ON THE RIGHT
+  // - suffix: Alternative to countLabel (e.g., '★' for ratings)
+  // - decimals: Number of decimal places to show (default: 0)
   metricOptions: PropTypes.arrayOf(
     PropTypes.shape({
       value: PropTypes.string.isRequired,
       label: PropTypes.string.isRequired,
-      aggregation: PropTypes.oneOf(['count', 'sum', 'average']).isRequired,
+      aggregation: PropTypes.oneOf(['count', 'count_distinct', 'sum', 'average']).isRequired,
       field: PropTypes.string,
       suffix: PropTypes.string,
       decimals: PropTypes.number,

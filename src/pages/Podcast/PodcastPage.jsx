@@ -36,7 +36,6 @@ const PodcastPage = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [selectedEpisode, setSelectedEpisode] = useState(null);
   const [activeTab, setActiveTab] = useState('content');
-  const [isContentReady, setIsContentReady] = useState(false);
 
   // Fetch podcast data when component mounts
   useEffect(() => {
@@ -61,8 +60,7 @@ const PodcastPage = () => {
       setPodcasts(processedPodcasts);
       setFilteredPodcasts(processedPodcasts);
       // Reset content ready state when new data arrives
-      setIsContentReady(false);
-    }
+      }
   }, [data?.podcasts]);
 
   // Apply filters when FilteringPanel filters change
@@ -82,10 +80,6 @@ const PodcastPage = () => {
     setSelectedEpisode(null);
   }, []);
 
-  const handleContentReady = () => {
-    setIsContentReady(true);
-  };
-
   // Memoize data object to prevent FilteringPanel re-renders
   const filterPanelData = useMemo(() => ({
     podcasts: podcasts
@@ -102,7 +96,7 @@ const PodcastPage = () => {
         description="Track your podcast listening habits and discover insights about your episodes"
       />
 
-        {!loading?.podcasts && isContentReady && (
+        {!loading?.podcasts && (
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
@@ -225,7 +219,6 @@ const PodcastPage = () => {
               title: "No episodes found",
               message: "No episodes match your current filters. Try adjusting your criteria."
             }}
-            onContentReady={handleContentReady}
             renderGrid={(episodes) => (
               <ContentCardsGroup
                 items={episodes}
