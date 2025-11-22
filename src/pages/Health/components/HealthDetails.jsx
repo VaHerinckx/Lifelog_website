@@ -4,8 +4,29 @@ import './HealthDetails.css';
 import { StarRating } from '../../../components/ui';
 import { formatDate } from '../../../utils';
 
+/**
+ * Get the appropriate emoji for an evaluation score (1-5)
+ * @param {number} rating - The evaluation score
+ * @returns {string} Emoji string
+ */
+const getEvaluationEmoji = (rating) => {
+  if (!rating || rating === 0) return '💪'; // Default health emoji
+  const score = Math.round(rating);
+
+  const emojiMap = {
+    5: '😄',  // Very happy
+    4: '🙂',  // Happy
+    3: '😐',  // Neutral
+    2: '😕',  // Unhappy
+    1: '😞',  // Very unhappy
+  };
+  return emojiMap[score] || '💪';
+};
+
 const HealthDetails = ({ day, onClose }) => {
   if (!day) return null;
+
+  const healthEmoji = getEvaluationEmoji(day.overall_evaluation);
 
   // Format helper functions
   const formatSteps = (steps) => {
@@ -59,8 +80,8 @@ const HealthDetails = ({ day, onClose }) => {
   };
 
   return (
-    <div className="health-details-overlay">
-      <div className="health-details-modal">
+    <div className="health-details-overlay" onClick={onClose}>
+      <div className="health-details-modal" onClick={(e) => e.stopPropagation()}>
         <button className="close-button" onClick={onClose}>
           <X size={24} />
         </button>
@@ -68,7 +89,7 @@ const HealthDetails = ({ day, onClose }) => {
         <div className="health-details-content">
           <div className="health-details-header">
             <div className="health-icon-large">
-              <Activity size={48} />
+              <span className="health-emoji-large">{healthEmoji}</span>
             </div>
             <div className="health-header-info">
               <h2>{formatDate(day.date)}</h2>

@@ -237,6 +237,22 @@ export const DataProvider = ({ children }) => {
               }));
             }
 
+            // Type conversion for movies
+            if (dataType === 'movies') {
+              cleanedData = cleanedData.map(movie => ({
+                ...movie,
+                rating: movie.rating ? parseFloat(movie.rating) : 0,
+                runtime: movie.runtime ? parseInt(movie.runtime) : null,
+                vote_average: movie.vote_average ? parseFloat(movie.vote_average) : null,
+                vote_count: movie.vote_count ? parseInt(movie.vote_count) : null,
+                popularity: movie.popularity ? parseFloat(movie.popularity) : null,
+                budget: movie.budget ? parseInt(movie.budget) : null,
+                revenue: movie.revenue ? parseInt(movie.revenue) : null,
+                tmdb_id: movie.tmdb_id ? parseInt(movie.tmdb_id) : null,
+                year: movie.year ? parseInt(movie.year) : null
+              }));
+            }
+
             // Type conversion for music
             if (dataType === 'music') {
               cleanedData = cleanedData.map(toggle => ({
@@ -281,9 +297,9 @@ export const DataProvider = ({ children }) => {
                 timezone_changes: day.timezone_changes ? parseInt(day.timezone_changes) : 0,
                 percent_time_home: day.percent_time_home ? parseFloat(day.percent_time_home) : 0,
                 percent_time_other: day.percent_time_other ? parseFloat(day.percent_time_other) : 0,
-                total_screen_minutes: day.total_screen_minutes ? parseFloat(day.total_screen_minutes) : 0,
-                total_pickups: day.total_pickups ? parseFloat(day.total_pickups) : 0,
-                screen_before_sleep_minutes: day.screen_before_sleep_minutes ? parseFloat(day.screen_before_sleep_minutes) : 0,
+                total_screen_minutes: day.total_screen_minutes ? parseInt(day.total_screen_minutes) : 0,
+                total_pickups: day.total_pickups ? parseInt(day.total_pickups) : 0,
+                screen_before_sleep_minutes: day.screen_before_sleep_minutes ? parseInt(day.screen_before_sleep_minutes) : 0,
                 sleep_quality: day.sleep_quality ? parseFloat(day.sleep_quality) : 0,
                 overall_evaluation: day.overall_evaluation ? parseFloat(day.overall_evaluation) : 0,
                 fitness_feeling: day.fitness_feeling ? parseFloat(day.fitness_feeling) : 0,

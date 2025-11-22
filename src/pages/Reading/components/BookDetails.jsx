@@ -7,8 +7,8 @@ const BookDetails = ({ book, onClose }) => {
   if (!book) return null;
 
   return (
-    <div className="book-details-overlay">
-      <div className="book-details-modal">
+    <div className="book-details-overlay" onClick={onClose}>
+      <div className="book-details-modal" onClick={(e) => e.stopPropagation()}>
         <button className="close-button" onClick={onClose}>
           <X size={24} />
         </button>

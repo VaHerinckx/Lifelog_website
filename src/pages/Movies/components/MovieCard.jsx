@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { Calendar, RotateCcw } from 'lucide-react';
+import { Calendar, RotateCcw, Clock } from 'lucide-react';
 import { StarRating } from '../../../components/ui';
 import { formatDate } from '../../../utils';
 import './MovieCard.css';
@@ -23,6 +23,17 @@ const MovieCard = ({ movie, viewMode = 'grid', onClick }) => {
   // Use genreArray if available (from deduplicated data), otherwise parse genre field
   const genres = movie.genreArray || (movie.genre ? movie.genre.split(',').map(g => g.trim()).filter(Boolean) : []);
   const displayGenres = genres.slice(0, 2); // Show max 2 genres on card
+
+  // Format runtime
+  const formatRuntime = (minutes) => {
+    if (!minutes || minutes === 0) return null;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours === 0) return `${mins}m`;
+    return `${hours}h ${mins}m`;
+  };
+
+  const formattedRuntime = formatRuntime(movie.runtime);
 
   // List view - horizontal layout
   if (viewMode === 'list') {
@@ -49,7 +60,25 @@ const MovieCard = ({ movie, viewMode = 'grid', onClick }) => {
               </span>
             )}
           </div>
-          <p className="movie-year">{movie.year}</p>
+
+          {/* Metadata badges row */}
+          <div className="movie-metadata-badges">
+            <span className="movie-year-badge">{movie.year}</span>
+            {formattedRuntime && (
+              <span className="runtime-badge">
+                <Clock size={12} />
+                {formattedRuntime}
+              </span>
+            )}
+            {movie.certification && movie.certification !== 'Unknown' && (
+              <span className="certification-badge">{movie.certification}</span>
+            )}
+          </div>
+
+          {/* Director */}
+          {movie.director && movie.director !== 'Unknown' && (
+            <p className="movie-director">Dir: {movie.director}</p>
+          )}
 
           <div className="movie-meta">
             {movie.rating > 0 && (
@@ -101,7 +130,25 @@ const MovieCard = ({ movie, viewMode = 'grid', onClick }) => {
 
       <div className="movie-info">
         <h3 className="movie-title" title={movie.name}>{movie.name}</h3>
-        <p className="movie-year">{movie.year}</p>
+
+        {/* Metadata badges row */}
+        <div className="movie-metadata-badges">
+          <span className="movie-year-badge">{movie.year}</span>
+          {formattedRuntime && (
+            <span className="runtime-badge">
+              <Clock size={12} />
+              {formattedRuntime}
+            </span>
+          )}
+          {movie.certification && movie.certification !== 'Unknown' && (
+            <span className="certification-badge">{movie.certification}</span>
+          )}
+        </div>
+
+        {/* Director */}
+        {movie.director && movie.director !== 'Unknown' && (
+          <p className="movie-director" title={movie.director}>Dir: {movie.director}</p>
+        )}
 
         {movie.rating > 0 && (
           <div className="rating-container">
@@ -139,6 +186,9 @@ MovieCard.propTypes = {
     genre: PropTypes.string,
     date: PropTypes.instanceOf(Date), // Can be null for unwatched movies
     isRewatch: PropTypes.bool,
+    director: PropTypes.string,
+    runtime: PropTypes.number,
+    certification: PropTypes.string,
   }).isRequired,
   viewMode: PropTypes.oneOf(['grid', 'list']),
   onClick: PropTypes.func.isRequired,

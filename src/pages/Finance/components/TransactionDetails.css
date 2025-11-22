@@ -81,6 +81,11 @@
   color: var(--color-white);
 }
 
+.transaction-emoji-large {
+  font-size: 48px;
+  line-height: 1;
+}
+
 .header-info {
   flex: 1;
 }

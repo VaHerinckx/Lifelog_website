@@ -1,9 +1,26 @@
 import React from 'react';
-import { X, DollarSign, Calendar, Building, Tag, FileText, TrendingUp, Clock } from 'lucide-react';
+import { X, Calendar, Building, FileText, TrendingUp, Clock } from 'lucide-react';
 import './TransactionDetails.css';
+
+/**
+ * Get the appropriate emoji for a transaction type
+ * @param {string} type - The transaction type
+ * @returns {string} Emoji string
+ */
+const getTransactionEmoji = (type) => {
+  const emojiMap = {
+    'expense': '💸',
+    'income': '💰',
+    'incoming_transfer': '🔄',
+    'outgoing_transfer': '🔄',
+  };
+  return emojiMap[type] || '💵';
+};
 
 const TransactionDetails = ({ transaction, onClose }) => {
   if (!transaction) return null;
+
+  const transactionEmoji = getTransactionEmoji(transaction.transaction_type);
 
   // Helper function to format date with time
   const formatDateTime = (dateStr) => {
@@ -80,8 +97,8 @@ const TransactionDetails = ({ transaction, onClose }) => {
   const originalAmount = transaction.amount ? parseFloat(transaction.amount) : null;
 
   return (
-    <div className="transaction-details-overlay">
-      <div className="transaction-details-modal">
+    <div className="transaction-details-overlay" onClick={onClose}>
+      <div className="transaction-details-modal" onClick={(e) => e.stopPropagation()}>
         <button className="close-button" onClick={onClose}>
           <X size={24} />
         </button>
@@ -89,7 +106,7 @@ const TransactionDetails = ({ transaction, onClose }) => {
         <div className="transaction-details-content">
           <div className="transaction-details-header">
             <div className="header-icon-container">
-              <DollarSign size={48} />
+              <span className="transaction-emoji-large">{transactionEmoji}</span>
             </div>
             <div className="header-info">
               <h2>{transaction.category}</h2>

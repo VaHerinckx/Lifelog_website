@@ -9,6 +9,7 @@
   padding: var(--spacing-md);
   cursor: pointer;
   transition: all var(--transition-normal);
+  position: relative;
 }
 
 .meal-card:hover {
@@ -17,35 +18,22 @@
   border-color: var(--color-primary);
 }
 
+/* Emoji badge in top right corner */
+.meal-emoji-badge {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  font-size: var(--font-size-2xl);
+  line-height: 1;
+  z-index: 1;
+}
+
 /* Grid view (vertical layout) */
 .meal-card--grid {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
-  min-height: 280px;
-}
-
-.meal-card--grid .meal-icon-container {
-  width: 100%;
-  height: var(--spacing-4xl);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
-  border-radius: var(--radius-sm);
-  margin-bottom: var(--spacing-sm);
-  position: relative;
-  overflow: hidden;
-  transition: transform var(--transition-normal);
-}
-
-.meal-card--grid:hover .meal-icon-container {
-  transform: scale(1.02);
-}
-
-.meal-card--grid .meal-icon {
-  color: var(--color-white);
-  filter: drop-shadow(0 var(--spacing-xs) var(--spacing-xs) rgba(0, 0, 0, 0.1));
+  min-height: 200px;
 }
 
 .meal-card--grid .meal-info {
@@ -53,6 +41,7 @@
   flex-direction: column;
   gap: var(--spacing-xs);
   flex: 1;
+  padding-right: var(--spacing-xl);
 }
 
 .meal-card--grid .meal-title {
@@ -93,29 +82,13 @@
   min-height: 100px;
 }
 
-.meal-card--list .meal-icon-container {
-  width: var(--icon-size-xl);
-  height: var(--icon-size-xl);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
-  border-radius: var(--radius-sm);
-  padding: var(--spacing-md);
-}
-
-.meal-card--list .meal-icon {
-  color: var(--color-white);
-  filter: drop-shadow(0 var(--spacing-xs) var(--spacing-xs) rgba(0, 0, 0, 0.1));
-}
-
 .meal-card--list .meal-info {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
   flex: 1;
   min-width: 0;
+  padding-right: var(--spacing-xl);
 }
 
 .meal-card--list .meal-title {

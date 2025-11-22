@@ -276,6 +276,8 @@ export const applyFilters = (data, filters, filterConfigs = {}) => {
       );
     } else if (config?.type === 'multigenre') {
       filtered = applyMultiGenreFilter(filtered, config.genreFields, filterValue);
+    } else if (config?.type === 'hierarchical') {
+      filtered = applyHierarchicalFilter(filtered, config.dataField, config.childField, filterValue);
     } else if (config?.type === 'textsearch') {
       filtered = applyTextSearchFilter(filtered, config.searchFields, filterValue);
     } else if (config?.type === 'numericrange') {
@@ -368,6 +370,8 @@ export const getCascadingFilterOptions = (data, currentFilters, currentFilterKey
       filteredData = applyDateRangeFilter(filteredData, config.dataField, filterValue);
     } else if (config.type === 'multigenre') {
       filteredData = applyMultiGenreFilter(filteredData, config.genreFields, filterValue);
+    } else if (config.type === 'hierarchical') {
+      filteredData = applyHierarchicalFilter(filteredData, config.dataField, config.childField, filterValue);
     }
   });
 
@@ -380,4 +384,137 @@ export const getCascadingFilterOptions = (data, currentFilters, currentFilterKey
   } else {
     return getUniqueValues(filteredData, currentConfig.dataField || currentConfig.optionsSource);
   }
+};
+
+/**
+ * Builds a hierarchical structure from parent-child relationships in data
+ * @param {Array} data - Array of items with parent and child fields
+ * @param {string} parentField - Field name for parent category
+ * @param {string} childField - Field name for child category
+ * @returns {Map} Map of parent values to arrays of child values
+ *
+ * Example output:
+ * Map {
+ *   'Food & drinks' => ['Lunch', 'Dinner', 'Groceries', ...],
+ *   'Transportation' => ['Subway', 'Train', 'Taxi', ...],
+ *   'Initial capital' => []  // No children
+ * }
+ */
+export const buildHierarchy = (data, parentField, childField) => {
+  const hierarchy = new Map();
+
+  data.forEach(item => {
+    const parent = item[parentField];
+    const child = item[childField];
+
+    if (!parent) return;
+
+    // Initialize parent entry if it doesn't exist
+    if (!hierarchy.has(parent)) {
+      hierarchy.set(parent, new Set());
+    }
+
+    // Add child if it exists and isn't empty
+    if (child && child.trim() !== '') {
+      hierarchy.get(parent).add(child);
+    }
+  });
+
+  // Convert Sets to sorted arrays
+  const result = new Map();
+  hierarchy.forEach((children, parent) => {
+    result.set(parent, Array.from(children).sort());
+  });
+
+  return result;
+};
+
+/**
+ * Applies a hierarchical filter (parent-child relationship)
+ * @param {Array} data - Array of items to filter
+ * @param {string} parentField - Field name for parent category
+ * @param {string} childField - Field name for child category
+ * @param {Array|string} selectedValues - Selected parent and/or child values (array for multi, string for single)
+ * @returns {Array} Filtered array
+ *
+ * Logic: An item matches if its parent OR child matches any selected value
+ * Example: If 'Food & drinks' is selected, all food items match
+ *          If 'Lunch' is selected, only lunch items match
+ */
+export const applyHierarchicalFilter = (data, parentField, childField, selectedValues) => {
+  // Handle both single-select (string) and multi-select (array)
+  const valuesArray = Array.isArray(selectedValues) ? selectedValues : [selectedValues];
+
+  if (!valuesArray || valuesArray.length === 0) {
+    return data;
+  }
+
+  return data.filter(item => {
+    const parentValue = item[parentField];
+    const childValue = item[childField];
+
+    // Match if parent OR child is in selected values
+    return valuesArray.some(selected => {
+      return selected === parentValue || selected === childValue;
+    });
+  });
+};
+
+/**
+ * Gets hierarchy with transaction counts for each parent and child
+ * @param {Array} data - Array of items
+ * @param {string} parentField - Field name for parent category
+ * @param {string} childField - Field name for child category
+ * @returns {Map} Map of parent values to objects containing children and counts
+ *
+ * Example output:
+ * Map {
+ *   'Food & drinks' => {
+ *     count: 1923,
+ *     children: Map {
+ *       'Lunch' => 543,
+ *       'Dinner' => 421,
+ *       ...
+ *     }
+ *   }
+ * }
+ */
+export const buildHierarchyWithCounts = (data, parentField, childField) => {
+  const hierarchy = new Map();
+
+  // Count occurrences
+  data.forEach(item => {
+    const parent = item[parentField];
+    const child = item[childField];
+
+    if (!parent) return;
+
+    // Initialize parent entry if it doesn't exist
+    if (!hierarchy.has(parent)) {
+      hierarchy.set(parent, {
+        count: 0,
+        children: new Map()
+      });
+    }
+
+    const parentData = hierarchy.get(parent);
+    parentData.count++;
+
+    // Count child if it exists
+    if (child && child.trim() !== '') {
+      const currentChildCount = parentData.children.get(child) || 0;
+      parentData.children.set(child, currentChildCount + 1);
+    }
+  });
+
+  // Sort children by count (descending) within each parent
+  hierarchy.forEach((parentData) => {
+    const sortedChildren = new Map(
+      Array.from(parentData.children.entries())
+        .sort((a, b) => b[1] - a[1]) // Sort by count descending
+    );
+    parentData.children = sortedChildren;
+  });
+
+  return hierarchy;
 };

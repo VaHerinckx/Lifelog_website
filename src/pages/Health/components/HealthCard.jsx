@@ -2,8 +2,26 @@ import PropTypes from 'prop-types';
 import { Activity, Moon, Heart, StickyNote, Brain } from 'lucide-react';
 import { StarRating } from '../../../components/ui';
 import { formatDate } from '../../../utils';
-import EvaluationFace from './EvaluationFace';
 import './HealthCard.css';
+
+/**
+ * Get the appropriate emoji for an evaluation score (1-5)
+ * @param {number} rating - The evaluation score
+ * @returns {string} Emoji string
+ */
+const getEvaluationEmoji = (rating) => {
+  if (!rating || rating === 0) return '💪'; // Default health emoji
+  const score = Math.round(rating);
+
+  const emojiMap = {
+    5: '😄',  // Very happy
+    4: '🙂',  // Happy
+    3: '😐',  // Neutral
+    2: '😕',  // Unhappy
+    1: '😞',  // Very unhappy
+  };
+  return emojiMap[score] || '💪';
+};
 
 /**
  * HealthCard - Displays daily health information in grid or list view
@@ -11,8 +29,8 @@ import './HealthCard.css';
  * Self-contained component that adapts its layout based on viewMode prop.
  * All styling is contained in HealthCard.css.
  *
- * Grid view: Vertical layout with icon on top, info below
- * List view: Horizontal layout with icon on left, info on right
+ * Grid view: Vertical layout with evaluation emoji in top right
+ * List view: Horizontal layout with evaluation emoji in top right
  *
  * @param {Object} day - Health day data object
  * @param {string} viewMode - Display mode ('grid' | 'list')
@@ -20,6 +38,7 @@ import './HealthCard.css';
  */
 const HealthCard = ({ day, viewMode = 'grid', onClick }) => {
   const cardClass = `health-card health-card--${viewMode}`;
+  const healthEmoji = getEvaluationEmoji(day.overall_evaluation);
 
   // Format helper functions
   const formatSteps = (steps) => {
@@ -48,13 +67,7 @@ const HealthCard = ({ day, viewMode = 'grid', onClick }) => {
   if (viewMode === 'list') {
     return (
       <div className={cardClass} onClick={() => onClick(day)}>
-        <div className="health-icon-container">
-          {day.overall_evaluation && day.overall_evaluation > 0 ? (
-            <EvaluationFace rating={day.overall_evaluation} size="lg" />
-          ) : (
-            <Activity className="health-icon" />
-          )}
-        </div>
+        <div className="health-emoji-badge">{healthEmoji}</div>
 
         <div className="health-info">
           <h3 className="health-date">{formatDate(day.date)}</h3>
@@ -114,13 +127,7 @@ const HealthCard = ({ day, viewMode = 'grid', onClick }) => {
   // Grid view - vertical layout (default)
   return (
     <div className={cardClass} onClick={() => onClick(day)}>
-      <div className="health-icon-container">
-        {day.overall_evaluation && day.overall_evaluation > 0 ? (
-          <EvaluationFace rating={day.overall_evaluation} size="lg" />
-        ) : (
-          <Activity className="health-icon" />
-        )}
-      </div>
+      <div className="health-emoji-badge">{healthEmoji}</div>
 
       <div className="health-info">
         <h3 className="health-date" title={formatDate(day.date)}>

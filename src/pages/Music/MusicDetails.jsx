@@ -30,8 +30,8 @@ const MusicDetails = ({ toggle, onClose }) => {
   const genresArray = toggle.genres ? toggle.genres.split(', ').filter(g => g.trim()) : [];
 
   return (
-    <div className="music-details-overlay">
-      <div className="music-details-modal">
+    <div className="music-details-overlay" onClick={onClose}>
+      <div className="music-details-modal" onClick={(e) => e.stopPropagation()}>
         <button className="close-button" onClick={onClose}>
           <X size={24} />
         </button>

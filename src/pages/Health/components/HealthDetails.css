@@ -81,6 +81,11 @@
   color: var(--color-white);
 }
 
+.health-emoji-large {
+  font-size: 48px;
+  line-height: 1;
+}
+
 .health-header-info h2 {
   font-size: var(--font-size-2xl);
   color: var(--color-text-on-surface);

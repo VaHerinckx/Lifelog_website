@@ -1,30 +1,30 @@
 import React from 'react';
-import { X, Utensils, Calendar, Clock, MapPin, TrendingUp, Croissant, Coffee, Sandwich, Cookie, UtensilsCrossed, Moon } from 'lucide-react';
+import { X, Clock, MapPin, TrendingUp } from 'lucide-react';
 import './MealDetails.css';
 import { StarRating } from '../../../components/ui';
 import { formatDate } from '../../../utils';
 
 /**
- * Get the appropriate icon component for a meal type
+ * Get the appropriate emoji for a meal type
  * @param {string} mealType - The meal type (e.g., 'Breakfast', 'Lunch')
- * @returns {React.Component} Icon component from lucide-react
+ * @returns {string} Emoji string
  */
-const getMealIcon = (mealType) => {
-  const iconMap = {
-    'Breakfast': Croissant,
-    'Morning snack': Coffee,
-    'Lunch': Sandwich,
-    'Afternoon snack': Cookie,
-    'Dinner': UtensilsCrossed,
-    'Night snack': Moon,
+const getMealEmoji = (mealType) => {
+  const emojiMap = {
+    'Breakfast': '🥐',
+    'Morning snack': '☕',
+    'Lunch': '🥪',
+    'Afternoon snack': '🍪',
+    'Dinner': '🍽️',
+    'Night snack': '🌙',
   };
-  return iconMap[mealType] || Utensils; // fallback to Utensils for unknown types
+  return emojiMap[mealType] || '🍴'; // fallback to utensils for unknown types
 };
 
 const MealDetails = ({ meal, onClose }) => {
   if (!meal) return null;
 
-  const MealIcon = getMealIcon(meal.meal);
+  const mealEmoji = getMealEmoji(meal.meal);
 
   // Parse food and drinks lists for display
   const parseFoodList = (foodListStr) => {
@@ -41,15 +41,15 @@ const MealDetails = ({ meal, onClose }) => {
   const drinkItems = parseFoodList(meal.drinks_list);
 
   return (
-    <div className="meal-details-overlay">
-      <div className="meal-details-modal">
+    <div className="meal-details-overlay" onClick={onClose}>
+      <div className="meal-details-modal" onClick={(e) => e.stopPropagation()}>
         <button className="close-button" onClick={onClose}>
           <X size={24} />
         </button>
 
         <div className="meal-details-content">
           <div className="meal-details-icon">
-            <MealIcon size={64} />
+            <span className="meal-emoji-large">{mealEmoji}</span>
           </div>
 
           <div className="meal-details-info">

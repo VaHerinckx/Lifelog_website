@@ -19,8 +19,8 @@ const EpisodeDetails = ({ episode, onClose }) => {
   };
 
   return (
-    <div className="episode-details-overlay">
-      <div className="episode-details-modal">
+    <div className="episode-details-overlay" onClick={onClose}>
+      <div className="episode-details-modal" onClick={(e) => e.stopPropagation()}>
         <button className="close-button" onClick={onClose}>
           <X size={24} />
         </button>

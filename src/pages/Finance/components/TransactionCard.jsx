@@ -1,7 +1,22 @@
 import PropTypes from 'prop-types';
-import { DollarSign, Building, Tag, Calendar } from 'lucide-react';
+import { Building, Calendar } from 'lucide-react';
 import { formatDate } from '../../../utils';
 import './TransactionCard.css';
+
+/**
+ * Get the appropriate emoji for a transaction type
+ * @param {string} type - The transaction type
+ * @returns {string} Emoji string
+ */
+const getTransactionEmoji = (type) => {
+  const emojiMap = {
+    'expense': '💸',
+    'income': '💰',
+    'incoming_transfer': '🔄',
+    'outgoing_transfer': '🔄',
+  };
+  return emojiMap[type] || '💵';
+};
 
 /**
  * TransactionCard - Displays transaction information in grid or list view
@@ -9,8 +24,8 @@ import './TransactionCard.css';
  * Self-contained component that adapts its layout based on viewMode prop.
  * All styling is contained in TransactionCard.css.
  *
- * Grid view: Vertical layout with icon on top, info below
- * List view: Horizontal layout with icon on left, info on right
+ * Grid view: Vertical layout with emoji badge in top right
+ * List view: Horizontal layout with emoji badge in top right
  *
  * @param {Object} transaction - Transaction data object
  * @param {string} viewMode - Display mode ('grid' | 'list')
@@ -18,6 +33,7 @@ import './TransactionCard.css';
  */
 const TransactionCard = ({ transaction, viewMode = 'grid', onClick }) => {
   const cardClass = `transaction-card transaction-card--${viewMode}`;
+  const transactionEmoji = getTransactionEmoji(transaction.transaction_type);
 
   // Helper function to get transaction type badge class
   const getTypeClass = (type) => {
@@ -89,9 +105,7 @@ const TransactionCard = ({ transaction, viewMode = 'grid', onClick }) => {
   if (viewMode === 'list') {
     return (
       <div className={cardClass} onClick={() => onClick(transaction)}>
-        <div className="transaction-icon-container">
-          <DollarSign size={24} />
-        </div>
+        <div className="transaction-emoji-badge">{transactionEmoji}</div>
 
         <div className="transaction-info">
           <div className="transaction-header">
@@ -136,9 +150,7 @@ const TransactionCard = ({ transaction, viewMode = 'grid', onClick }) => {
   // Grid view - vertical layout (default)
   return (
     <div className={cardClass} onClick={() => onClick(transaction)}>
-      <div className="transaction-icon-container">
-        <DollarSign size={32} />
-      </div>
+      <div className="transaction-emoji-badge">{transactionEmoji}</div>
 
       <div className="transaction-info">
         <h3 className="transaction-category" title={transaction.category}>

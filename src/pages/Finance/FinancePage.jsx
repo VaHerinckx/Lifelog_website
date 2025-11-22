@@ -144,19 +144,13 @@ const FinancePage = () => {
                 dataSources={['finance']}
               />
               <Filter
-                type="multiselect"
-                label="Categories"
+                type="hierarchical"
+                selectionMode="multi"
+                label="Category & Subcategory"
                 field="category"
+                childField="subcategory"
                 icon={<Tag />}
-                placeholder="Select categories"
-                dataSources={['finance']}
-              />
-              <Filter
-                type="multiselect"
-                label="Subcategories"
-                field="subcategory"
-                icon={<Tag />}
-                placeholder="Select subcategories"
+                placeholder="Select categories and subcategories"
                 dataSources={['finance']}
               />
               <Filter

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Film, Grid, List, Calendar, Tag, Star } from 'lucide-react';
+import { Film, Grid, List, Calendar, Tag, Star, User, Clock, Award } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -185,6 +185,39 @@ const MoviesPage = () => {
               placeholder="Select ratings"
               dataSources={['movies']}
             />
+            <Filter
+              type="multiselect"
+              label="Director"
+              field="director"
+              icon={<User />}
+              placeholder="Select directors"
+              dataSources={['movies']}
+            />
+            <Filter
+              type="multiselect"
+              label="Cast"
+              field="cast"
+              icon={<User />}
+              placeholder="Search cast members"
+              searchPlaceholder="Search actors..."
+              dataSources={['movies']}
+            />
+            <Filter
+              type="multiselect"
+              label="Certification"
+              field="certification"
+              icon={<Award />}
+              placeholder="Select certifications"
+              dataSources={['movies']}
+            />
+            <Filter
+              type="range"
+              label="Runtime"
+              field="runtime"
+              icon={<Clock />}
+              placeholder="Select runtime range"
+              dataSources={['movies']}
+            />
           </FilteringPanel>
 
           {/* Statistics Cards with KpiCard children */}
@@ -225,6 +258,28 @@ const MoviesPage = () => {
               customValue={() => filteredMovies.filter(m => m.isRewatch).length}
               label="Rewatches"
               icon={<Film />}
+            />
+            <KpiCard
+              dataSource="movies"
+              field="runtime"
+              computation="average"
+              computationOptions={{ decimals: 0, filterZeros: true, suffix: ' min' }}
+              label="Avg Runtime"
+              icon={<Clock />}
+            />
+            <KpiCard
+              dataSource="movies"
+              computation="custom"
+              customValue={() => {
+                const uniqueDirectors = new Set(
+                  filteredMovies
+                    .map(m => m.director)
+                    .filter(d => d && d !== 'Unknown')
+                );
+                return uniqueDirectors.size;
+              }}
+              label="Unique Directors"
+              icon={<User />}
             />
           </KPICardsPanel>
 
@@ -312,14 +367,16 @@ const MoviesPage = () => {
                   { value: 'genre', label: 'Genre', field: 'genre', labelFields: ['genre'] },
                   { value: 'year', label: 'Year', field: 'year', labelFields: ['year'] },
                   { value: 'name', label: 'Movie', field: 'name', labelFields: ['name'] },
-                  { value: 'type', label: 'Type', field: 'type', labelFields: ['type'] }
+                  { value: 'type', label: 'Type', field: 'type', labelFields: ['type'] },
+                  { value: 'director', label: 'Director', field: 'director', labelFields: ['director'] },
+                  { value: 'certification', label: 'Certification', field: 'certification', labelFields: ['certification'] }
                 ]}
                 metricOptions={[
                   { value: 'avgRating', label: 'Avg Rating', aggregation: 'average', field: 'rating', suffix: '★', decimals: 1 },
                   { value: 'movies', label: 'Movies', aggregation: 'count_distinct', field: 'movie_id', countLabel: 'movies', decimals: 0 }
                 ]}
                 defaultDimension="genre"
-                defaultMetric="pages"
+                defaultMetric="movies"
                 title="Top Movies Analysis"
                 topN={10}
                 imageField="poster_url"

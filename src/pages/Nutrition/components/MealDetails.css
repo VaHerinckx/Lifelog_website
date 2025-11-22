@@ -67,7 +67,9 @@
   box-shadow: var(--shadow-md);
 }
 
-.meal-details-icon svg {
+.meal-emoji-large {
+  font-size: 64px;
+  line-height: 1;
   filter: drop-shadow(0 var(--spacing-xs) var(--spacing-xs) rgba(0, 0, 0, 0.1));
 }
 
