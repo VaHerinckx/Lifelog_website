@@ -18,13 +18,15 @@
   border-color: var(--color-primary);
 }
 
-/* Emoji badge in top right corner */
-.meal-emoji-badge {
+/* Icon badge in top right corner */
+.meal-icon-badge {
   position: absolute;
   top: var(--spacing-sm);
   right: var(--spacing-sm);
-  font-size: var(--font-size-2xl);
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
   z-index: 1;
 }
 

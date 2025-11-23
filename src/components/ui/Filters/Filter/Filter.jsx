@@ -875,7 +875,9 @@ const Filter = ({
                   );
                 })
               ) : (
-                <div className="filter-no-results">No options match your search</div>
+                <div className="filter-no-results">
+                  {searchTerm ? 'No options match your search' : 'No options available with current filters'}
+                </div>
               )}
             </div>
           )}
@@ -911,7 +913,9 @@ const Filter = ({
                   </div>
                 ))
               ) : (
-                <div className="filter-no-results">No options match your search</div>
+                <div className="filter-no-results">
+                  {searchTerm ? 'No options match your search' : 'No options available with current filters'}
+                </div>
               )}
             </div>
           )}

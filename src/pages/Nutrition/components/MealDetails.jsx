@@ -1,30 +1,30 @@
 import React from 'react';
-import { X, Clock, MapPin, TrendingUp } from 'lucide-react';
+import { X, Clock, MapPin, TrendingUp, Croissant, Coffee, Sandwich, Cookie, UtensilsCrossed, Moon } from 'lucide-react';
 import './MealDetails.css';
 import { StarRating } from '../../../components/ui';
 import { formatDate } from '../../../utils';
 
 /**
- * Get the appropriate emoji for a meal type
+ * Get the appropriate icon for a meal type
  * @param {string} mealType - The meal type (e.g., 'Breakfast', 'Lunch')
- * @returns {string} Emoji string
+ * @returns {React.Component} Lucide icon component
  */
-const getMealEmoji = (mealType) => {
-  const emojiMap = {
-    'Breakfast': '🥐',
-    'Morning snack': '☕',
-    'Lunch': '🥪',
-    'Afternoon snack': '🍪',
-    'Dinner': '🍽️',
-    'Night snack': '🌙',
+const getMealIcon = (mealType) => {
+  const iconMap = {
+    'Breakfast': Croissant,
+    'Morning snack': Coffee,
+    'Lunch': Sandwich,
+    'Afternoon snack': Cookie,
+    'Dinner': UtensilsCrossed,
+    'Night snack': Moon,
   };
-  return emojiMap[mealType] || '🍴'; // fallback to utensils for unknown types
+  return iconMap[mealType] || UtensilsCrossed; // fallback to utensils for unknown types
 };
 
 const MealDetails = ({ meal, onClose }) => {
   if (!meal) return null;
 
-  const mealEmoji = getMealEmoji(meal.meal);
+  const MealIcon = getMealIcon(meal.meal);
 
   // Parse food and drinks lists for display
   const parseFoodList = (foodListStr) => {
@@ -49,7 +49,7 @@ const MealDetails = ({ meal, onClose }) => {
 
         <div className="meal-details-content">
           <div className="meal-details-icon">
-            <span className="meal-emoji-large">{mealEmoji}</span>
+            <MealIcon className="meal-icon-large" size={64} strokeWidth={1.5} />
           </div>
 
           <div className="meal-details-info">

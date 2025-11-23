@@ -602,12 +602,6 @@ const FilteringPanel = ({
             const numBoundaries = filterOptions.numberBoundaries?.[config.key];
             const currentValue = filters[config.key];
 
-            // Skip rendering if no options available for data-driven filters (except daterange, numberrange, and hierarchical)
-            // Don't skip if custom options are provided
-            if (config.type !== 'daterange' && config.type !== 'numberrange' && config.type !== 'hierarchical' && !customOptions && availableOptions.length === 0 && config.optionsSource !== 'static') {
-              return null;
-            }
-
             // For hierarchical filters, check if hierarchy is available
             if (config.type === 'hierarchical' && !calculatedOptions) {
               return null;

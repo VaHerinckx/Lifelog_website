@@ -21,11 +21,11 @@
 .top-tracks-container .chart-header,
 .top-albums-container .chart-header,
 .top-categorys-container .chart-header {
-  flex-shrink: 0;
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
-  margin-bottom: var(--chart-title-margin);
+  margin-bottom: var(--spacing-md);
 }
 
 .top-artists-title,
@@ -108,6 +108,31 @@
 
 .chart-scrollable-container::-webkit-scrollbar-thumb:hover {
   background: var(--color-accent);
+}
+
+/* Sort direction toggle button */
+.sort-direction-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: var(--spacing-xs);
+  border: var(--border-width-thin) solid var(--border-color-medium);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sort-direction-btn:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-surface);
+}
+
+.sort-direction-btn:active {
+  background-color: var(--color-active);
 }
 
 /* Artwork image styling */
@@ -201,17 +226,41 @@
 
   .chart-filter {
     width: 100%;
+    gap: var(--spacing-xs);
+  }
+
+  .chart-filter label {
+    font-size: var(--font-size-xs);
   }
 
   .chart-filter .filter-select {
     width: 100%;
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  /* Stack sort button with filters */
+  .sort-direction-btn {
+    width: 100%;
+    min-height: 36px;
+    font-size: var(--font-size-sm);
+  }
+
+  /* Allow chart content to use remaining space - match TimeSeriesBarChart behavior */
+  .top-artists-container .recharts-responsive-container,
+  .top-tracks-container .recharts-responsive-container,
+  .top-albums-container .recharts-responsive-container,
+  .top-categorys-container .recharts-responsive-container {
+    height: auto !important;
+    min-height: 180px !important;
+    flex: 1 1 auto;
   }
 
   .top-artists-title,
   .top-tracks-title,
   .top-albums-title,
   .chart-title {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-base);
   }
 
   .artist-name,

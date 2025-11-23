@@ -1,6 +1,7 @@
 /* src/components/ui/Filters/FilteringPanel/FilteringPanel.css */
 .filtering-panel {
   width: 100%;
+  box-sizing: border-box;
   background-color: var(--element-background-color, #D8DCFF);
   border-radius: 8px;
   padding: 1.5rem;
@@ -124,12 +125,6 @@
 }
 
 @media (max-width: 1200px) {
-  .filtering-panel {
-    width: 90%;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
   .filter-item {
     flex: 1 1 calc(33.33% - 1rem); /* 3 items per row */
   }
@@ -152,7 +147,6 @@
 
 @media (max-width: 768px) {
   .filtering-panel {
-    width: 95%;
     margin-bottom: 1.5rem;
     padding: 1rem;
   }

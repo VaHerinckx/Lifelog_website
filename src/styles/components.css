@@ -964,6 +964,7 @@
   }
 
   .analysis-chart-section {
+    min-height: var(--chart-height-tablet);
     height: var(--chart-height-tablet);
   }
 }
@@ -975,6 +976,7 @@
   }
 
   .analysis-chart-section {
+    min-height: var(--chart-height-desktop);
     height: var(--chart-height-desktop);
   }
 }

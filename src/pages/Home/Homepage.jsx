@@ -9,6 +9,7 @@ const Homepage = () => {
   usePageTitle('Dashboard');
   const { data, fetchData } = useData();
   const [categoryStatuses, setCategoryStatuses] = useState({});
+  const [isLoadingTracking, setIsLoadingTracking] = useState(true);
   const hasCalculated = useRef(false);
 
   // Fetch all data sources and tracking data on mount
@@ -101,6 +102,7 @@ const Homepage = () => {
     };
 
     setCategoryStatuses(statuses);
+    setIsLoadingTracking(false);
     hasCalculated.current = true;
   }, [data?.tracking]);
 
@@ -213,7 +215,11 @@ const Homepage = () => {
                     </div>
 
                     <div className="category-status">
-                      {status?.latestData ? (
+                      {isLoadingTracking ? (
+                        <div className="status-placeholder">
+                          Loading...
+                        </div>
+                      ) : status?.latestData ? (
                         <>
                           <div className="status-primary">
                             <Clock size={16} className="status-icon" />

@@ -1,24 +1,24 @@
 import PropTypes from 'prop-types';
-import { Clock, MapPin } from 'lucide-react';
+import { Clock, MapPin, Croissant, Coffee, Sandwich, Cookie, UtensilsCrossed, Moon } from 'lucide-react';
 import { StarRating } from '../../../components/ui';
 import { formatDate } from '../../../utils';
 import './MealCard.css';
 
 /**
- * Get the appropriate emoji for a meal type
+ * Get the appropriate icon for a meal type
  * @param {string} mealType - The meal type (e.g., 'Breakfast', 'Lunch')
- * @returns {string} Emoji string
+ * @returns {React.Component} Lucide icon component
  */
-const getMealEmoji = (mealType) => {
-  const emojiMap = {
-    'Breakfast': '🥐',
-    'Morning snack': '☕',
-    'Lunch': '🥪',
-    'Afternoon snack': '🍪',
-    'Dinner': '🍽️',
-    'Night snack': '🌙',
+const getMealIcon = (mealType) => {
+  const iconMap = {
+    'Breakfast': Croissant,
+    'Morning snack': Coffee,
+    'Lunch': Sandwich,
+    'Afternoon snack': Cookie,
+    'Dinner': UtensilsCrossed,
+    'Night snack': Moon,
   };
-  return emojiMap[mealType] || '🍴'; // fallback to utensils for unknown types
+  return iconMap[mealType] || UtensilsCrossed; // fallback to utensils for unknown types
 };
 
 /**
@@ -35,7 +35,7 @@ const getMealEmoji = (mealType) => {
  * @param {Function} onClick - Callback when card is clicked
  */
 const MealCard = ({ meal, viewMode = 'grid', onClick }) => {
-  const mealEmoji = getMealEmoji(meal.meal);
+  const MealIcon = getMealIcon(meal.meal);
   const cardClass = `meal-card meal-card--${viewMode}`;
 
   // Combine and truncate food and drinks list for preview
@@ -65,7 +65,7 @@ const MealCard = ({ meal, viewMode = 'grid', onClick }) => {
   if (viewMode === 'list') {
     return (
       <div className={cardClass} onClick={() => onClick(meal)}>
-        <div className="meal-emoji-badge">{mealEmoji}</div>
+        <div className="meal-icon-badge"><MealIcon size={24} strokeWidth={2} /></div>
 
         <div className="meal-info">
           <h3 className="meal-title">{meal.meal}</h3>
@@ -110,7 +110,7 @@ const MealCard = ({ meal, viewMode = 'grid', onClick }) => {
   // Grid view - vertical layout (default)
   return (
     <div className={cardClass} onClick={() => onClick(meal)}>
-      <div className="meal-emoji-badge">{mealEmoji}</div>
+      <div className="meal-icon-badge"><MealIcon size={24} strokeWidth={2} /></div>
 
       <div className="meal-info">
         <h3 className="meal-title" title={meal.meal}>{meal.meal}</h3>

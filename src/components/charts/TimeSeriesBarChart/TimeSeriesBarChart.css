@@ -20,9 +20,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: var(--chart-header-height-ratio);  /* 20% from variables */
-  flex-shrink: 0;  /* Never shrink */
-  margin-bottom: 0;  /* Remove margin, use flex spacing */
+  flex: 0 0 auto;  /* Don't shrink, size to content */
+  margin-bottom: var(--spacing-sm);
 }
 
 /* Responsive chart height - ensures ResponsiveContainer has proper sizing */
@@ -118,7 +117,7 @@
   }
 
   .time-series-chart__title {
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-base);
   }
 
   /* Stack controls vertically on mobile */
@@ -127,13 +126,28 @@
     width: 100%;
     gap: var(--spacing-sm);
     align-items: stretch;
+    margin-top: 0;
   }
 
   .chart-filter {
     width: 100%;
+    gap: var(--spacing-xs);
+  }
+
+  .chart-filter label {
+    font-size: var(--font-size-xs);
   }
 
   .chart-filter .filter-select {
     width: 100%;
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  /* Allow chart content to use remaining space */
+  .time-series-chart-container .recharts-responsive-container {
+    height: auto !important;
+    min-height: 180px !important;
+    flex: 1 1 auto;
   }
 }

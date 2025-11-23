@@ -1,3 +1,6 @@
+/* Import design system variables */
+@import '../../../styles/variables.css';
+
 /* src/components/charts/IntensityHeatmap/IntensityHeatmap.css */
 .heatmap-container {
   background-color: var(--chart-background);
@@ -110,3 +113,42 @@
 
 /* Responsive table sizing - removed fixed sizes to allow clamp() scaling */
 /* The clamp() values in .heatmap-table-container handle all responsive sizing */
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .heatmap-container {
+    padding: var(--spacing-md);
+  }
+
+  .heatmap-title {
+    font-size: var(--font-size-base);
+  }
+
+  /* Reduce table font size further on mobile */
+  .heatmap-table-container {
+    font-size: clamp(0.1rem, 1.2vmin, 0.875rem);
+  }
+
+  .heatmap-table th,
+  .heatmap-table td {
+    padding: clamp(0.1rem, 0.6vmin, 0.4rem);
+  }
+
+  /* Enable horizontal scroll for narrow screens */
+  .heatmap-table-container {
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  /* Ensure table doesn't collapse too much */
+  .heatmap-table {
+    min-width: 600px;
+  }
+
+  /* Allow table container to use remaining space - match TimeSeriesBarChart behavior */
+  .heatmap-table-container {
+    height: auto !important;
+    min-height: 180px !important;
+    flex: 1 1 auto;
+  }
+}

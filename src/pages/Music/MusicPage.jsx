@@ -229,6 +229,11 @@ const MusicPage = () => {
               title: "No toggles found",
               message: "No listening events match your current filters. Try adjusting your criteria."
             }}
+            sortOptions={[
+              { value: 'timestamp', label: 'Listening Date', type: 'date' },
+            ]}
+            defaultSortField="timestamp"
+            defaultSortDirection="desc"
             renderGrid={(toggles) => (
               <ContentCardsGroup
                 items={toggles}

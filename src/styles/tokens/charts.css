@@ -13,8 +13,8 @@
   /* Responsive height scale for chart containers */
   --chart-height-default: 500px;   /* Default chart height */
   --chart-height-mobile: 400px;    /* Mobile chart height */
-  --chart-height-tablet: 500px;    /* Tablet chart height */
-  --chart-height-desktop: 600px;   /* Desktop chart height */
+  --chart-height-tablet: 400px;    /* Tablet chart height */
+  --chart-height-desktop: 550px;   /* Desktop chart height */
 
   /* ===== CHART LAYOUT PROPORTIONS ===== */
   /* Internal layout ratios for chart components */

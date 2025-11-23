@@ -23,7 +23,6 @@ import KpiCard from '../../components/charts/KpiCard/index';
 
 // Import chart components for analysis tab
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
-import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
 import TopChart from '../../components/charts/TopChart';
 
 // Helper function to parse time string to minutes for efficient sorting
@@ -325,10 +324,7 @@ const NutritionPage = () => {
             }}
             sortOptions={[
               { value: 'date', label: 'Date', type: 'date' },
-              { value: 'time', label: 'Time', type: 'string' },
-              { value: 'meal', label: 'Meal Type', type: 'string' },
-              { value: 'usda_meal_score', label: 'USDA Score', type: 'number' },
-              { value: 'meal_assessment', label: 'Assessment', type: 'number' }
+              { value: 'usda_meal_score', label: 'USDA Score', type: 'number' }
             ]}
             defaultSortField="date"
             defaultSortDirection="desc"
@@ -380,7 +376,8 @@ const NutritionPage = () => {
                     { value: 'ingredient occurrences', label: 'Number of Food Occurrences', aggregation: 'sum', field: 'food_quantity', decimals: 0 },
                     { value: 'drink occurrences', label: 'Number of Drink Occurrences', aggregation: 'sum', field: 'drink_quantity', decimals: 0 },
                     { value: 'meal score', label: 'Avg Meal Score', aggregation: 'average', field: 'usda_meal_score', decimals: 1 },
-                    { value: 'meal taste', label: 'Avg Meal Taste', aggregation: 'average', field: 'meal_assessment', decimals: 1 }
+                    { value: 'meal taste', label: 'Avg Meal Taste', aggregation: 'average', field: 'meal_assessment', decimals: 1 },
+                    { value: 'amount', label: 'Avg Amount', aggregation: 'average', field: 'amount', decimals: 1 }
                   ]}
                   defaultMetric="meals"
                   title="Meals Over Time"
@@ -411,7 +408,7 @@ const NutritionPage = () => {
                     enableSortToggle={true}
                     scrollable={true}
                     barHeight={50}
-                                />
+                />
               </>
             )}
           />

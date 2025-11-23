@@ -102,6 +102,29 @@ const PodcastPage = () => {
               onFiltersChange={handleFiltersChange}
             >
               <Filter
+                type="daterange"
+                label="Listened Date"
+                field="listened_date"
+                icon={<Calendar />}
+                dataSources={['podcasts']}
+              />
+              <Filter
+                type="multiselect"
+                label="Podcast"
+                field="podcast_name"
+                icon={<Tag />}
+                placeholder="Select podcast"
+                dataSources={['podcasts']}
+              />
+              <Filter
+                type="multiselect"
+                label="Host"
+                field="artist"
+                icon={<Tag />}
+                placeholder="Select host"
+                dataSources={['podcasts']}
+              />
+              <Filter
                 type="multiselect"
                 label="Genres"
                 field="genre"
@@ -125,13 +148,6 @@ const PodcastPage = () => {
                 defaultValue="all"
                 dataSources={['podcasts']}
                 options={['all', 'New Podcasts', 'Recurring Podcasts']}
-              />
-              <Filter
-                type="daterange"
-                label="Listened Date"
-                field="listened_date"
-                icon={<Calendar />}
-                dataSources={['podcasts']}
               />
             </FilteringPanel>
 
