@@ -104,6 +104,13 @@ const ShowsPage = () => {
               onFiltersChange={handleFiltersChange}
             >
               <Filter
+                type="daterange"
+                label="Watch Date"
+                field="watched_at"
+                icon={<Calendar />}
+                dataSources={['shows']}
+              />
+              <Filter
                 type="multiselect"
                 label="Show Title"
                 field="show_title"
@@ -113,23 +120,26 @@ const ShowsPage = () => {
               />
               <Filter
                 type="multiselect"
-                label="Show Year"
-                field="show_year"
-                icon={<Clock />}
-                placeholder="Select years"
+                label="Show Rating"
+                field="show_rating"
+                icon={<Star />}
+                placeholder="Select rating"
                 dataSources={['shows']}
-              />
-              <Filter
-                type="daterange"
-                label="Watch Date"
-                field="watched_at"
-                icon={<Calendar />}
-                dataSources={['shows']}
+                sortType="numeric"
               />
               <Filter
                 type="multiselect"
-                label="Show Rating"
-                field="show_rating"
+                label="Season Rating"
+                field="season_rating"
+                icon={<Star />}
+                placeholder="Select rating"
+                dataSources={['shows']}
+                sortType="numeric"
+              />
+              <Filter
+                type="multiselect"
+                label="Episode Rating"
+                field="episode_rating"
                 icon={<Star />}
                 placeholder="Select rating"
                 dataSources={['shows']}
@@ -244,16 +254,18 @@ const ShowsPage = () => {
                   data={episodes}
                   dateColumnName="watched_at"
                   metricOptions={[
-                    { value: 'episodes', label: 'Episodes Watched', aggregation: 'count', field: 'watch_id', decimals: 0 }
+                    { value: 'episodes', label: 'Episodes Watched', aggregation: 'count', field: 'watch_id', decimals: 0 },
+                    { value: 'episodes', label: 'Episodes Watched', aggregation: 'count', field: 'watch_id', decimals: 0 },
                   ]}
                   defaultMetric="episodes"
-                  title="Episodes Watched Over Time"
+                  title="Shows Watch Over Time"
                 />
                 <IntensityHeatmap
                   data={episodes}
                   dateColumnName="watched_at"
                   valueColumnName="watch_id"
-                  title="Watch Activity by Day and Time"
+                  aggregationType="count_distinct"
+                  title="Watched Episodes by Day and Time"
                   treatMidnightAsUnknown={false}
                 />
                 <TopChart

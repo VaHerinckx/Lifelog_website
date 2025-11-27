@@ -200,17 +200,17 @@ const PodcastPage = () => {
                 dataSource="podcasts"
                 field="podcast_id"
                 computation="count_distinct"
-                filterCondition={(item) => item.is_new_podcast === 1}
-                label="New Podcasts"
-                icon={<Sparkles />}
+                filterCondition={(item) => item.is_recurring_podcast === "Yes"}
+                label="Recurring Podcasts"
+                icon={<Repeat />}
               />
               <KpiCard
                 dataSource="podcasts"
                 field="podcast_id"
                 computation="count_distinct"
-                filterCondition={(item) => item.is_recurring_podcast === 1}
-                label="Recurring"
-                icon={<Repeat />}
+                filterCondition={(item) => item.is_new_recurring_podcast === "Yes"}
+                label="New Recurring Podcasts"
+                icon={<Sparkles />}
               />
             </KPICardsPanel>
 

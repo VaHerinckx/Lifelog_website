@@ -32,6 +32,7 @@ const getColor = (value, maxValue) => {
  * @param {Array} props.data - The dataset to visualize
  * @param {string} props.dateColumnName - The name of the date/timestamp column in the data
  * @param {string} props.valueColumnName - The field to analyze and display intensity for
+ * @param {string} props.aggregationType - How to aggregate values: "sum" | "count" | "count_distinct" | "average" (default: "sum")
  * @param {string} props.title - The chart title
  * @param {boolean} props.treatMidnightAsUnknown - If true, 00:00 timestamps are treated as "Unknown Time" (default: true)
  */
@@ -39,6 +40,7 @@ const IntensityHeatmap = ({
   data,
   dateColumnName,
   valueColumnName,
+  aggregationType = 'sum',
   title = "Activity Heatmap",
   treatMidnightAsUnknown = true
 }) => {
@@ -56,19 +58,25 @@ const IntensityHeatmap = ({
     const processDataForHeatmap = () => {
       try {
 
-        // Create a matrix for time periods and days
+        // Create matrices for different aggregation types
         const activityMatrix = {};
+        const countMatrix = {};      // For average calculation
+        const distinctSets = {};     // For count_distinct
 
-        // Initialize all period/day combinations with 0
+        // Initialize all period/day combinations
         Object.keys(TIME_PERIODS).forEach(period => {
           activityMatrix[period] = {};
+          countMatrix[period] = {};
+          distinctSets[period] = {};
           DAYS.forEach((_, dayIndex) => {
             activityMatrix[period][dayIndex] = 0;
+            countMatrix[period][dayIndex] = 0;
+            distinctSets[period][dayIndex] = new Set();
           });
         });
 
         // Process each data entry
-        data.forEach((item, index) => {
+        data.forEach((item) => {
           // Some data sources might have encoding issues or different timestamp formats
           const rawTimestamp = item[dateColumnName];
           let date;
@@ -126,14 +134,44 @@ const IntensityHeatmap = ({
 
           if (!period) return;
 
-          // Get the value from the valueColumnName field
-          const value = parseFloat(item[valueColumnName]) || 0;
+          // Get the raw value from the valueColumnName field
+          const rawValue = item[valueColumnName];
 
-          // For podcast data, we typically want to convert from seconds to minutes
-          const normalizedValue = valueColumnName === 'duration' ? value / 60 : value;
-
-          activityMatrix[period][adjustedDayIndex] += normalizedValue;
+          // Apply aggregation based on type
+          if (aggregationType === 'count') {
+            activityMatrix[period][adjustedDayIndex] += 1;
+          } else if (aggregationType === 'count_distinct') {
+            distinctSets[period][adjustedDayIndex].add(rawValue);
+          } else if (aggregationType === 'average') {
+            const avgValue = parseFloat(rawValue) || 0;
+            activityMatrix[period][adjustedDayIndex] += avgValue;
+            countMatrix[period][adjustedDayIndex] += 1;
+          } else {
+            // sum (default)
+            const sumValue = parseFloat(rawValue) || 0;
+            // For podcast data, we typically want to convert from seconds to minutes
+            const normalizedValue = valueColumnName === 'duration' ? sumValue / 60 : sumValue;
+            activityMatrix[period][adjustedDayIndex] += normalizedValue;
+          }
         });
+
+        // Finalize values based on aggregation type
+        if (aggregationType === 'count_distinct') {
+          Object.keys(TIME_PERIODS).forEach(period => {
+            DAYS.forEach((_, dayIndex) => {
+              activityMatrix[period][dayIndex] = distinctSets[period][dayIndex].size;
+            });
+          });
+        } else if (aggregationType === 'average') {
+          Object.keys(TIME_PERIODS).forEach(period => {
+            DAYS.forEach((_, dayIndex) => {
+              const count = countMatrix[period][dayIndex];
+              activityMatrix[period][dayIndex] = count > 0
+                ? activityMatrix[period][dayIndex] / count
+                : 0;
+            });
+          });
+        }
 
         // Find max value
         const max = Math.max(
@@ -150,7 +188,7 @@ const IntensityHeatmap = ({
     };
 
     processDataForHeatmap();
-  }, [data, dateColumnName, valueColumnName, treatMidnightAsUnknown]);
+  }, [data, dateColumnName, valueColumnName, aggregationType, treatMidnightAsUnknown]);
 
   // Dynamically determine time periods for rendering (outside useEffect)
   const TIME_PERIODS = treatMidnightAsUnknown
