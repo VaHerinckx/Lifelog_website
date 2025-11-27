@@ -144,8 +144,16 @@ const PodcastPage = () => {
               />
               <Filter
                 type="multiselect"
-                label="New Podcast"
-                field="is_new_podcast"
+                label="New Recurring Podcast"
+                field="is_new_recurring_podcast"
+                icon={<Globe />}
+                placeholder="Select option"
+                dataSources={['podcasts']}
+              />
+              <Filter
+                type="multiselect"
+                label="Recurring Podcast"
+                field="is_recurring_podcast"
                 icon={<Globe />}
                 placeholder="Select option"
                 dataSources={['podcasts']}
@@ -308,7 +316,8 @@ const PodcastPage = () => {
                     { value: 'genre', label: 'Genre', field: 'genre', labelFields: ['genre'] },
                     { value: 'artist', label: 'Host', field: 'artist', labelFields: ['artist'] },
                     { value: 'language', label: 'Language', field: 'language', labelFields: ['language'] },
-                    { value: 'episode_title', label: 'Episode', field: 'episode_title', labelFields: ['episode_title'] }
+                    { value: 'episode_title', label: 'Episode', field: 'episode_title', labelFields: ['episode_title'] },
+                    { value: 'recurring', label: 'Recurring Podcasts', field: 'is_recurring_podcast', labelFields: ['is_recurring_podcast'] }
                   ]}
                   metricOptions={[
                     { value: 'listened_hours', label: 'Hours', aggregation: 'sum', field: 'listened_hours', countLabel: 'hours', decimals: 0 },
