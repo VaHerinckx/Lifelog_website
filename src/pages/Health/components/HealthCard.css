@@ -12,7 +12,7 @@
 }
 
 .health-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(calc(-1 * var(--spacing-xs)));
   box-shadow: var(--shadow-lg);
 }
 
@@ -53,8 +53,8 @@
 }
 
 .health-card--list:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(calc(-1 * var(--spacing-2xs)));
+  box-shadow: var(--shadow-md);
 }
 
 .health-card--list .health-info {
@@ -227,7 +227,7 @@
   }
 
   .health-indicator {
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     padding: var(--spacing-2xs) var(--spacing-2xs);
   }
 }

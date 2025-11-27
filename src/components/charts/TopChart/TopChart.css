@@ -93,7 +93,7 @@
 }
 
 .chart-scrollable-container::-webkit-scrollbar {
-  width: 8px;
+  width: var(--spacing-xs);
 }
 
 .chart-scrollable-container::-webkit-scrollbar-track {
@@ -138,19 +138,19 @@
 /* Artwork image styling */
 .chart-item-artwork {
   border-radius: var(--radius-xs);
-  border: 1px solid var(--border-color-light);
+  border: var(--border-width-thin) solid var(--border-color-light);
 }
 
 /* Indicator styles */
 .popularity-indicator,
 .year-indicator {
-  stroke: #171738;
-  stroke-width: 1;
+  stroke: var(--background-color);
+  stroke-width: var(--border-width-thin);
 }
 
 .popularity-text,
 .year-text {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 /* Name labels */
@@ -172,30 +172,30 @@
 .top-artists-tooltip,
 .top-tracks-tooltip,
 .top-albums-tooltip {
-  background-color: white;
-  padding: 0.75rem;
-  border: 1px solid #3423A6;
-  border-radius: 0.25rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: var(--color-white);
+  padding: var(--spacing-sm);
+  border: var(--border-width-thin) solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
   display: flex;
-  gap: 0.75rem;
+  gap: var(--spacing-sm);
   align-items: center;
 }
 
 .tooltip-name {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-on-surface);
-  margin-bottom: 0.25rem;
+  margin-bottom: var(--spacing-2xs);
 }
 
 .tooltip-time {
-  font-size: 0.875rem;
+  font-size: var(--font-size-sm);
   color: var(--color-text-on-surface);
 }
 
 .tooltip-popularity {
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--color-primary);
 }
 
@@ -242,7 +242,7 @@
   /* Stack sort button with filters */
   .sort-direction-btn {
     width: 100%;
-    min-height: 36px;
+    min-height: var(--nav-height-mobile);
     font-size: var(--font-size-sm);
   }
 

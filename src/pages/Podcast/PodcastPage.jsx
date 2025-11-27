@@ -23,6 +23,8 @@ import KpiCard from '../../components/charts/KpiCard';
 
 // Import chart components for analysis tab
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
+import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
+import TopChart from '../../components/charts/TopChart';
 
 const PodcastPage = () => {
   usePageTitle('Podcasts');
@@ -141,13 +143,12 @@ const PodcastPage = () => {
                 dataSources={['podcasts']}
               />
               <Filter
-                type="singleselect"
-                label="Podcast Type"
-                field="podcast_type"
-                icon={<Mic />}
-                defaultValue="all"
+                type="multiselect"
+                label="New Podcast"
+                field="is_new_podcast"
+                icon={<Globe />}
+                placeholder="Select option"
                 dataSources={['podcasts']}
-                options={['all', 'New Podcasts', 'Recurring Podcasts']}
               />
             </FilteringPanel>
 
@@ -173,9 +174,8 @@ const PodcastPage = () => {
               />
               <KpiCard
                 dataSource="podcasts"
-                field="listened_seconds"
+                field="listened_hours"
                 computation="sum"
-                computationOptions={{ convertToHours: true, decimals: 0 }}
                 label="Hours Listened"
                 icon={<Clock />}
               />
@@ -286,30 +286,44 @@ const PodcastPage = () => {
                   data={episodes}
                   dateColumnName="listened_date"
                   metricOptions={[
-                    {
-                      value: 'podcast_count',
-                      label: 'Podcasts Listened',
-                      aggregation: 'countDistinct',
-                      field: 'podcast_id',
-                      decimals: 0
-                    },
-                    {
-                      value: 'episode_count',
-                      label: 'Episodes Listened',
-                      aggregation: 'count',
-                      decimals: 0
-                    },
-                    {
-                      value: 'listening_time',
-                      label: 'Hours Listened',
-                      aggregation: 'sum',
-                      field: 'listened_seconds',
-                      decimals: 1,
-                      convertToHours: true
-                    }
+                    { value: 'podcast_count', label: 'Podcasts', aggregation: 'count_distinct', field: 'podcast_id', decimals: 0 },
+                    { value: 'episode_count', label: 'Episodes', aggregation: 'count_distinct', field: 'episode_uuid', decimals: 0 },
+                    { value: 'listening_time', label: 'Hours', aggregation: 'sum', field: 'listened_hours', decimals: 1 },
+                    { value: 'avg_completion', label: 'Average Completion Rate', aggregation: 'average', field: 'completion_percent', decimals: 1 },
                   ]}
-                  defaultMetric="episode_count"
+                  defaultMetric="podcast_count"
                   title="Podcast Listening Activity"
+                />
+                <IntensityHeatmap
+                  data={episodes}
+                  dateColumnName="listened_date"
+                  valueColumnName="listened_hours"
+                  title="Podcast Activity by Day and Time"
+                  treatMidnightAsUnknown={true}
+                />
+                <TopChart
+                  data={episodes}
+                  dimensionOptions={[
+                    { value: 'podcast_name', label: 'Podcast', field: 'podcast_name', labelFields: ['podcast'] },
+                    { value: 'genre', label: 'Genre', field: 'genre', labelFields: ['genre'] },
+                    { value: 'artist', label: 'Host', field: 'artist', labelFields: ['artist'] },
+                    { value: 'language', label: 'Language', field: 'language', labelFields: ['language'] },
+                    { value: 'episode_title', label: 'Episode', field: 'episode_title', labelFields: ['episode_title'] }
+                  ]}
+                  metricOptions={[
+                    { value: 'listened_hours', label: 'Hours', aggregation: 'sum', field: 'listened_hours', countLabel: 'hours', decimals: 0 },
+                    { value: 'episodes', label: 'Episodes', aggregation: 'count_distinct', field: 'episode_uuid', countLabel: 'episodes', decimals: 0 },
+                  ]}
+                  defaultDimension="podcast_name"
+                  defaultMetric="listened_hours"
+                  title="Top Podcast Analysis"
+                  topN={10}
+                  imageField="artwork_url"
+                  enableTopNControl={true}
+                  topNOptions={[5, 10, 15, 20, 25, 30]}
+                  enableSortToggle={true}
+                  scrollable={true}
+                  barHeight={50}
                 />
               </>
             )}

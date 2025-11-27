@@ -1,4 +1,6 @@
 /* LoadingSpinner.css */
+@import '../../../../styles/variables.css';
+
 .loading-container {
   position: fixed;
   top: 0;
@@ -18,7 +20,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 2rem 2rem 4rem;
+  padding: var(--spacing-3xl) var(--spacing-3xl) var(--spacing-5xl);
   min-height: 400px;
 }
 
@@ -39,8 +41,8 @@
   color: var(--color-primary);
   z-index: 10;
   background-color: var(--color-hover);
-  border-radius: 50%;
-  padding: 15px;
+  border-radius: var(--radius-full);
+  padding: var(--spacing-md);
   box-shadow: 0 0 20px var(--color-focus);
 }
 
@@ -100,10 +102,10 @@
 }
 
 .loading-text {
-  color: white;
-  font-size: 1.25rem;
-  font-weight: 500;
-  margin-top: 2rem;
+  color: var(--color-white);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  margin-top: var(--spacing-3xl);
   text-align: center;
 }
 
@@ -127,21 +129,21 @@
 
 .loading-message {
   text-align: center;
-  margin-top: 2rem;
+  margin-top: var(--spacing-3xl);
 }
 
-.loading-text {
-  color: white;
-  font-size: 1.5rem;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
+.loading-message .loading-text {
+  color: var(--color-white);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--spacing-xs);
   animation: fadeInOut 2s ease-in-out infinite;
 }
 
 .loading-subtext {
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 1rem;
-  font-weight: 400;
+  color: var(--overlay-white-70);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
 }
 
 @keyframes fadeInOut {

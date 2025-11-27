@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
-import { Music, Music as MusicIcon, List, Grid, Calendar, Tag, User, Disc } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Music, Music as MusicIcon, List, Grid, Calendar, Tag, User, Disc, Star, SkipForward, Repeat } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
 // Import components
-import MusicDetails from './MusicDetails';
-import MusicCard from './MusicCard';
+import MusicDetails from './components/MusicDetails';
+import MusicCard from './components/MusicCard';
 
 // Import standardized UI components
 import {
@@ -65,25 +65,44 @@ const MusicPage = () => {
       setMusicToggles(sortedToggles);
       setFilteredToggles(sortedToggles);
 
-      // Defer setting isProcessing to false to ensure all state updates complete
-      setTimeout(() => setIsProcessing(false), 0);
+      setIsProcessing(false);
       }
   }, [data?.music]);
 
   // Apply filters when FilteringPanel filters change
-  const handleFiltersChange = (filteredDataSources) => {
+  const handleFiltersChange = useCallback((filteredDataSources) => {
     // Re-sort filtered data (most recent first)
     const sortedToggles = sortByDateSafely(filteredDataSources.music || []);
     setFilteredToggles(sortedToggles);
-  };
+  }, []);
 
-  const handleToggleClick = (toggle) => {
+  // Memoized handlers to prevent child re-renders
+  const handleToggleClick = useCallback((toggle) => {
     setSelectedToggle(toggle);
-  };
+  }, []);
 
-  const handleCloseDetails = () => {
+  const handleCloseDetails = useCallback(() => {
     setSelectedToggle(null);
-  };
+  }, []);
+
+  // Memoized render functions for ContentCardsGroup
+  const renderGridItem = useCallback((toggle) => (
+    <MusicCard
+      key={toggle.toggle_id}
+      toggle={toggle}
+      viewMode="grid"
+      onClick={handleToggleClick}
+    />
+  ), [handleToggleClick]);
+
+  const renderListItem = useCallback((toggle) => (
+    <MusicCard
+      key={`list-${toggle.toggle_id}`}
+      toggle={toggle}
+      viewMode="list"
+      onClick={handleToggleClick}
+    />
+  ), [handleToggleClick]);
 
   // Memoize data object to prevent FilteringPanel re-renders
   const filterPanelData = useMemo(() => ({
@@ -147,7 +166,38 @@ const MusicPage = () => {
                 placeholder="Select albums"
                 dataSources={['music']}
               />
-
+              <Filter
+                type="multiselect"
+                label="First Artist Listen"
+                field="is_new_artist"
+                icon={<Star />}
+                placeholder="Select"
+                dataSources={['music']}
+              />
+              <Filter
+                type="multiselect"
+                label="First Track Listen"
+                field="is_new_track"
+                icon={<Star />}
+                placeholder="Select"
+                dataSources={['music']}
+              />
+              <Filter
+                type="multiselect"
+                label="New Recurring Artist"
+                field="is_new_recurring_artist"
+                icon={<Repeat />}
+                placeholder="Select"
+                dataSources={['music']}
+              />
+              <Filter
+                type="multiselect"
+                label="New Recurring Track"
+                field="is_new_recurring_track"
+                icon={<Repeat />}
+                placeholder="Select"
+                dataSources={['music']}
+              />
             </FilteringPanel>
 
             {/* Statistics Cards with KpiCard children */}
@@ -239,14 +289,7 @@ const MusicPage = () => {
                 items={toggles}
                 viewMode="grid"
                 itemsPerPage={50}
-                renderItem={(toggle) => (
-                  <MusicCard
-                    key={toggle.toggle_id}
-                    toggle={toggle}
-                    viewMode="grid"
-                    onClick={handleToggleClick}
-                  />
-                )}
+                renderItem={renderGridItem}
               />
             )}
             renderList={(toggles) => (
@@ -254,14 +297,7 @@ const MusicPage = () => {
                 items={toggles}
                 viewMode="list"
                 itemsPerPage={50}
-                renderItem={(toggle) => (
-                  <MusicCard
-                    key={`list-${toggle.toggle_id}`}
-                    toggle={toggle}
-                    viewMode="list"
-                    onClick={handleToggleClick}
-                  />
-                )}
+                renderItem={renderListItem}
               />
             )}
           />

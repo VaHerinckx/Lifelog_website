@@ -10,12 +10,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(23, 23, 56, 0.8);
+  background-color: var(--overlay-backdrop);
   display: flex;
   justify-content: center;
   align-items: center;
   padding: var(--spacing-md);
-  z-index: 1000;
+  z-index: var(--z-modal);
   backdrop-filter: blur(5px);
 }
 
@@ -23,13 +23,13 @@
 /* Inherits: background, border-radius, dimensions, overflow, shadow */
 .movie-details-modal {
   background-color: var(--color-surface);
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--radius-lg);
   width: 100%;
-  max-width: 900px;
+  max-width: var(--modal-max-width);
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-xl);
 }
 
 /* Close button extends modal-close-button from components.css */
@@ -47,12 +47,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-full);
+  background-color: var(--overlay-light);
 }
 
 .close-button:hover {
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: var(--overlay-light-hover);
 }
 
 .movie-details-content {
@@ -61,7 +61,7 @@
 }
 
 .movie-details-poster {
-  flex: 0 0 300px;
+  flex: 0 0 var(--modal-cover-width);
   margin-right: var(--spacing-xl);
   position: sticky;
   top: var(--spacing-xl);
@@ -71,9 +71,9 @@
 
 .movie-details-poster img {
   width: 100%;
-  max-height: 450px;
+  max-height: var(--modal-cover-max-height);
   object-fit: contain;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
   background-color: var(--color-primary);
 }
@@ -112,7 +112,7 @@
   color: var(--color-text-on-surface);
   margin-top: 0;
   margin-bottom: var(--spacing-sm);
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: var(--border-width-thin) solid var(--color-border);
   padding-bottom: var(--spacing-xs);
 }
 
@@ -130,8 +130,8 @@
   gap: var(--spacing-xs);
   padding: var(--spacing-xs) var(--spacing-sm);
   background-color: var(--color-background-dark);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-sm);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-on-surface);
@@ -151,9 +151,9 @@
   line-height: var(--line-height-relaxed);
   margin-bottom: var(--spacing-md);
   padding: var(--spacing-sm) var(--spacing-md);
-  background-color: rgba(52, 35, 166, 0.05);
+  background-color: var(--color-primary-tint-5);
   border-left: 3px solid var(--color-primary);
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--radius-sm);
 }
 
 .movie-details-meta {
@@ -193,8 +193,8 @@
 
 /* Ratings grid */
 .ratings-grid {
-  background-color: rgba(52, 35, 166, 0.1);
-  border-radius: var(--border-radius-md);
+  background-color: var(--color-primary-tint-10);
+  border-radius: var(--radius-md);
   padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
@@ -274,7 +274,7 @@
 .movie-category {
   display: inline-block;
   padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   background-color: var(--color-primary);
   color: var(--color-white);
@@ -320,7 +320,7 @@
   position: relative;
   width: 100%;
   padding-bottom: 56.25%; /* 16:9 aspect ratio */
-  border-radius: var(--border-radius-md);
+  border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-md);
 }
@@ -344,11 +344,11 @@
 .keyword-tag {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px var(--spacing-sm);
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
   background-color: var(--color-background-dark);
-  border: 1px solid var(--color-border);
-  border-radius: var(--border-radius-sm);
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-sm);
   font-size: var(--font-size-xs);
   color: var(--color-text-on-surface);
 }
@@ -372,7 +372,7 @@
   background-color: var(--color-primary);
   color: var(--color-white);
   text-decoration: none;
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-weight-medium);
   transition: background-color var(--transition-normal);
   font-size: var(--font-size-sm);
@@ -424,7 +424,7 @@
 
   .movie-details-modal {
     max-height: 95vh;
-    margin: 10px;
+    margin: var(--spacing-sm);
   }
 
   .movie-details-info h2 {

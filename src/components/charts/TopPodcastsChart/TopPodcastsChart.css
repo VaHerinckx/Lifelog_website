@@ -24,8 +24,8 @@
 }
 
 .podcast-artwork {
-  width: 20px;
-  height: 20px;
+  width: var(--icon-size-xs);
+  height: var(--icon-size-xs);
   border-radius: var(--radius-sm);
 }
 
@@ -53,8 +53,8 @@
 }
 
 .tooltip-artwork {
-  width: 30px;
-  height: 30px;
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
   border-radius: var(--radius-sm);
 }
 

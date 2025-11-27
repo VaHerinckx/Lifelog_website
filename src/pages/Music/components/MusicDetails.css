@@ -1,5 +1,5 @@
-@import '../../styles/variables.css';
-@import '../../styles/components.css';
+@import '../../../styles/variables.css';
+@import '../../../styles/components.css';
 
 /* ============================================
    MODAL OVERLAY
@@ -12,12 +12,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(23, 23, 56, 0.8);
+  background-color: var(--overlay-backdrop);
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 20px;
-  z-index: 1000;
+  padding: var(--spacing-md);
+  z-index: var(--z-modal);
   backdrop-filter: blur(5px);
 }
 
@@ -28,13 +28,13 @@
 /* Inherits: background, border-radius, dimensions, overflow, shadow */
 .music-details-modal {
   background-color: var(--color-surface);
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   width: 100%;
-  max-width: 900px;
+  max-width: var(--modal-max-width);
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-xl);
 }
 
 /* ============================================
@@ -44,23 +44,23 @@
 /* Inherits: position, styling, transitions, hover effects */
 .close-button {
   position: absolute;
-  top: 15px;
-  right: 15px;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
   background: none;
   border: none;
   color: var(--color-text-on-surface);
   cursor: pointer;
   z-index: 10;
-  padding: 5px;
+  padding: var(--spacing-xs);
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-full);
+  background-color: var(--overlay-light);
 }
 
 .close-button:hover {
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: var(--overlay-light-hover);
 }
 
 /* ============================================
@@ -69,37 +69,68 @@
 
 .music-details-content {
   display: flex;
-  padding: 30px;
+  padding: var(--spacing-xl);
 }
 
 /* ============================================
    ARTWORK SECTION
    ============================================ */
 
+.music-details-artwork-section {
+  flex: 0 0 var(--modal-cover-width);
+  margin-right: var(--spacing-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
 .music-details-artwork {
-  flex: 0 0 300px;
-  margin-right: 30px;
+  width: 100%;
 }
 
 .music-details-artwork img {
   width: 100%;
-  max-height: 450px;
+  max-height: var(--modal-cover-width);
   object-fit: contain;
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
   background-color: var(--color-primary);
 }
 
 .music-placeholder-large {
   width: 100%;
-  height: 450px;
+  height: var(--modal-cover-width);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--color-surface);
   background-color: var(--color-primary);
-  border-radius: 8px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+
+.music-details-artist-artwork {
+  position: relative;
+  width: 100%;
+}
+
+.music-details-artist-artwork img {
+  width: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.artist-artwork-label {
+  position: absolute;
+  bottom: var(--spacing-xs);
+  left: var(--spacing-xs);
+  background-color: var(--overlay-dark);
+  color: var(--color-white);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
 }
 
 /* ============================================
@@ -112,23 +143,23 @@
 }
 
 .music-details-info h2 {
-  font-size: 1.8rem;
+  font-size: var(--font-size-2xl);
   color: var(--color-text-on-surface);
-  margin-bottom: 5px;
+  margin-bottom: var(--spacing-xs);
 }
 
 .music-details-info h3 {
-  font-size: 1.2rem;
-  font-weight: 500;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
   color: var(--color-primary);
   margin-top: 0;
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-md);
 }
 
 .music-details-info .album-name {
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   color: var(--color-text-on-surface);
-  margin: 0 0 20px 0;
+  margin: 0 0 var(--spacing-md) 0;
 }
 
 /* ============================================
@@ -138,15 +169,15 @@
 .music-details-meta {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 25px;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 1rem;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-base);
 }
 
 /* ============================================
@@ -154,33 +185,33 @@
    ============================================ */
 
 .music-details-section {
-  background-color: rgba(52, 35, 166, 0.1);
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 25px;
+  background-color: var(--color-primary-tint-10);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 
 .music-details-section h4 {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-on-surface);
-  margin: 0 0 15px 0;
+  margin: 0 0 var(--spacing-md) 0;
 }
 
 .artist-info,
 .listening-stats {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--spacing-sm);
 }
 
 .info-row,
 .stat-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--spacing-sm);
   color: var(--color-text-on-surface);
-  font-size: 0.95rem;
+  font-size: var(--font-size-base);
 }
 
 /* ============================================
@@ -190,28 +221,28 @@
 .discovery-badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 15px;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
 }
 
 .discovery-badge {
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  border: 1px solid;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  border: var(--border-width-thin) solid;
 }
 
 .discovery-badge.new-artist {
-  background: rgba(255, 195, 0, 0.1);
-  color: #ffb800;
-  border-color: #ffb800;
+  background: color-mix(in srgb, var(--color-badge-new) 10%, transparent);
+  color: var(--color-badge-new);
+  border-color: var(--color-badge-new);
 }
 
 .discovery-badge.new-track {
-  background: rgba(0, 200, 255, 0.1);
-  color: #00c8ff;
-  border-color: #00c8ff;
+  background: color-mix(in srgb, var(--color-badge-recurring) 10%, transparent);
+  color: var(--color-badge-recurring);
+  border-color: var(--color-badge-recurring);
 }
 
 /* ============================================
@@ -219,30 +250,30 @@
    ============================================ */
 
 .music-genres-section {
-  background-color: rgba(52, 35, 166, 0.1);
-  border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 25px;
+  background-color: var(--color-primary-tint-10);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 }
 
 .music-genres-section h4 {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-on-surface);
-  margin: 0 0 15px 0;
+  margin: 0 0 var(--spacing-md) 0;
 }
 
 .genres-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: var(--spacing-sm);
 }
 
 .genre-badge {
   display: inline-block;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 0.9rem;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
   background-color: var(--color-primary);
   color: var(--color-white);
 }
@@ -254,31 +285,36 @@
 @media (max-width: 768px) {
   .music-details-content {
     flex-direction: column;
-    padding: 20px;
-    padding-top: 40px; /* Extra padding to account for the close button */
+    padding: var(--spacing-md);
+    padding-top: var(--spacing-2xl); /* Extra padding to account for the close button */
+  }
+
+  .music-details-artwork-section {
+    margin-right: 0;
+    margin-bottom: var(--spacing-md);
+    align-self: center;
+    max-width: 220px;
+    flex: none;
   }
 
   .music-details-artwork {
     margin-right: 0;
-    margin-bottom: 20px;
-    align-self: center;
-    max-width: 220px;
   }
 
   .music-details-modal {
     max-height: 95vh;
-    margin: 10px;
+    margin: var(--spacing-sm);
   }
 
   .music-details-info h2 {
-    font-size: 1.5rem;
+    font-size: var(--font-size-xl);
   }
 
   .music-details-info h3 {
-    font-size: 1.1rem;
+    font-size: var(--font-size-lg);
   }
 
   .meta-item {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
   }
 }

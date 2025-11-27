@@ -24,7 +24,7 @@
 
 .book-card--grid .book-cover-container {
   width: 100%;
-  height: 220px;
+  height: var(--card-image-height);
   overflow: hidden;
   background-color: var(--color-primary);
   position: relative;
@@ -51,7 +51,7 @@
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  font-size: 0.95rem;
+  font-size: var(--font-size-base);
 }
 
 /* List View - Horizontal Layout */
@@ -69,8 +69,8 @@
 }
 
 .book-card--list .book-cover-container {
-  flex: 0 0 80px;
-  height: 120px;
+  flex: 0 0 var(--list-image-width);
+  height: var(--card-image-height-list);
   overflow: hidden;
   border-radius: var(--radius-sm);
   background-color: var(--color-primary);
@@ -92,8 +92,8 @@
 /* Book Info Section */
 .book-title {
   color: var(--background-color);
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
   margin-bottom: var(--spacing-xs);
 }
 
@@ -104,15 +104,15 @@
 }
 
 .book-card--list .book-title {
-  font-size: 1.2rem;
+  font-size: var(--font-size-lg);
   margin-bottom: var(--spacing-xs);
 }
 
 .book-author {
   color: var(--color-primary);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   margin-bottom: var(--spacing-xs);
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
 }
 
 .book-card--grid .book-author {
@@ -122,13 +122,13 @@
 }
 
 .book-card--list .book-author {
-  font-size: 0.95rem;
+  font-size: var(--font-size-base);
   margin-bottom: var(--spacing-xs);
 }
 
 .book-meta {
   color: var(--color-text-gray);
-  font-size: 0.8rem;
+  font-size: var(--font-size-xs);
   margin-bottom: var(--spacing-xs);
   display: flex;
   justify-content: space-between;
@@ -139,7 +139,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
 }
 
 .pages-info {
@@ -167,14 +167,14 @@
   color: var(--color-white);
   padding: calc(var(--spacing-xs) / 2) var(--spacing-xs);
   border-radius: var(--radius-sm);
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
 }
 
 .book-card--list .book-genre {
   padding: calc(var(--spacing-xs) / 2) var(--spacing-xs);
   border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
 }
 
 .fiction-tag {
@@ -202,7 +202,7 @@
 }
 
 .rating-label {
-  font-size: 0.85rem;
+  font-size: var(--font-size-sm);
   color: var(--background-color);
 }
 
@@ -221,18 +221,18 @@
 
 .rating-value {
   margin-left: var(--spacing-xs);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 /* Reading Dates and Duration */
 .reading-dates {
   margin-top: var(--spacing-sm);
-  font-size: 0.8rem;
+  font-size: var(--font-size-xs);
   color: var(--text-element);
 }
 
 .date-label {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .date-value {
@@ -240,7 +240,7 @@
 }
 
 .reading-duration {
-  font-size: 0.8rem;
+  font-size: var(--font-size-xs);
   color: var(--text-element);
   margin-top: calc(var(--spacing-xs) / 2);
 }
@@ -256,15 +256,15 @@
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .book-card--grid .book-cover-container {
-    height: 180px;
+    height: var(--card-image-height-mobile);
   }
 
   .book-card--grid .book-title {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
   }
 
   .book-card--grid .book-author {
-    font-size: 0.8rem;
+    font-size: var(--font-size-xs);
   }
 
   .book-card--list {
@@ -274,7 +274,7 @@
 
   .book-card--list .book-cover-container {
     width: 100%;
-    height: 180px;
+    height: var(--card-image-height-mobile);
     margin-bottom: var(--spacing-sm);
   }
 
@@ -288,7 +288,7 @@
   }
 
   .book-genre {
-    font-size: 0.65rem;
+    font-size: var(--font-size-xs);
     padding: calc(var(--spacing-xs) / 4) calc(var(--spacing-xs) / 2);
   }
 }

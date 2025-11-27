@@ -98,7 +98,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 200px;
+  height: var(--card-image-height);
   color: var(--color-text-secondary);
   opacity: 0.7;
   font-style: italic;

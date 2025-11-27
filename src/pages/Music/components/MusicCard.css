@@ -1,4 +1,4 @@
-@import '../../styles/variables.css';
+@import '../../../styles/variables.css';
 
 /* ============================================
    BASE CARD STYLES
@@ -30,7 +30,7 @@
 .music-card--grid .music-artwork-container {
   position: relative;
   width: 100%;
-  height: 220px;
+  height: var(--card-image-height);
   background-color: var(--color-primary);
   overflow: hidden;
   display: flex;
@@ -71,9 +71,9 @@
 
 .music-card--grid .music-track-name {
   color: var(--background-color);
-  font-size: 1rem;
-  font-weight: 600;
-  margin: 0 0 6px 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 var(--spacing-xs) 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -81,9 +81,9 @@
 
 .music-card--grid .music-artist-name {
   color: var(--color-primary);
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin: 0 0 6px 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  margin: 0 0 var(--spacing-xs) 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -91,8 +91,8 @@
 
 .music-card--grid .music-album-name {
   color: var(--color-text-gray);
-  font-size: 0.8rem;
-  margin: 0 0 6px 0;
+  font-size: var(--font-size-xs);
+  margin: 0 0 var(--spacing-xs) 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -100,11 +100,11 @@
 
 .music-card--grid .music-meta {
   color: var(--color-text-gray);
-  font-size: 0.8rem;
-  margin-bottom: 6px;
+  font-size: var(--font-size-xs);
+  margin-bottom: var(--spacing-xs);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--spacing-xs);
 }
 
 .music-card--grid .music-genres {
@@ -128,12 +128,12 @@
 
 .music-card--list:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-md);
 }
 
 .music-card--list .music-artwork-container {
-  flex: 0 0 80px;
-  height: 120px;
+  flex: 0 0 var(--list-image-width);
+  height: var(--card-image-height-list);
   overflow: hidden;
   border-radius: var(--radius-sm);
   background-color: var(--color-primary);
@@ -163,9 +163,9 @@
 
 .music-card--list .music-track-name {
   color: var(--background-color);
-  font-size: 1.2rem;
-  font-weight: 600;
-  margin: 0 0 5px 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: 0 0 var(--spacing-xs) 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -173,9 +173,9 @@
 
 .music-card--list .music-artist-name {
   color: var(--color-primary);
-  font-size: 0.95rem;
-  font-weight: 500;
-  margin: 0 0 10px 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  margin: 0 0 var(--spacing-sm) 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -183,8 +183,8 @@
 
 .music-card--list .music-album-name {
   color: var(--color-text-gray);
-  font-size: 0.8rem;
-  margin: 0 0 6px 0;
+  font-size: var(--font-size-xs);
+  margin: 0 0 var(--spacing-xs) 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -194,7 +194,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
   color: var(--color-text-gray);
 }
 
@@ -211,7 +211,7 @@
    ============================================ */
 
 .music-completion {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-primary);
 }
 
@@ -224,16 +224,16 @@
   display: inline-block;
   background-color: var(--color-primary);
   color: var(--color-white);
-  padding: 3px 6px;
-  border-radius: 4px;
-  font-size: 0.7rem;
+  padding: var(--spacing-xs) var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
 }
 
 .music-card--list .genre-tag {
-  padding: 4px 10px;
+  padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
 }
 
 .genre-tag.genre-more {
@@ -247,15 +247,15 @@
 
 @media (max-width: 768px) {
   .music-card--grid .music-artwork-container {
-    height: 180px;
+    height: var(--card-image-height-mobile);
   }
 
   .music-card--grid .music-track-name {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
   }
 
   .music-card--grid .music-artist-name {
-    font-size: 0.8rem;
+    font-size: var(--font-size-xs);
   }
 
   .music-card--list {
@@ -265,7 +265,7 @@
 
   .music-card--list .music-artwork-container {
     width: 100%;
-    height: 180px;
+    height: var(--card-image-height-mobile);
     margin-bottom: var(--spacing-sm);
   }
 
@@ -275,11 +275,11 @@
 
   .music-card--list .music-genres {
     margin-left: 0;
-    margin-top: 10px;
+    margin-top: var(--spacing-sm);
   }
 
   .genre-tag {
-    font-size: 0.65rem;
-    padding: 2px 4px;
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-xs);
   }
 }

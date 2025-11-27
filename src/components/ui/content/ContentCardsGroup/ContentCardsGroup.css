@@ -15,9 +15,9 @@
 
 /* Virtual scrolling container */
 .virtual-list {
-  border: var(--border-width) solid var(--border-color);
-  border-radius: var(--border-radius-lg);
-  background: var(--surface-color);
+  border: var(--border-width-thin) solid var(--border-color-medium);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
 }
 
 /* Grid View Layout */

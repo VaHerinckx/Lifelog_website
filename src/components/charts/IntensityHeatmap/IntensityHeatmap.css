@@ -48,22 +48,22 @@
 .heatmap-table th,
 .heatmap-table td {
   padding: clamp(0.1rem, 0.8vmin, 0.5rem);  /* Increased max padding for better vertical fill */
-  border: 1px solid rgba(52, 35, 166, 0.1);
+  border: var(--border-width-thin) solid var(--color-primary-tint-10);
   white-space: nowrap;  /* Prevent text wrapping - keep all columns visible */
 }
 
 .heatmap-table th {
-  font-weight: 600;
-  color: var(--text-element, #171738);
-  background-color: rgba(52, 35, 166, 0.05);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-element);
+  background-color: var(--color-primary-tint-5);
   white-space: normal;  /* Allow header text to wrap */
 }
 
 .day-label {
-  font-weight: 600;
-  color: var(--text-element, #171738);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-element);
   text-align: left;
-  background-color: rgba(52, 35, 166, 0.05);
+  background-color: var(--color-primary-tint-5);
 }
 
 .heatmap-cell {
@@ -84,13 +84,13 @@
 /* Styling for the totals */
 .total-header,
 .total-label {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   background-color: var(--color-active);
   color: var(--color-text-on-surface);
 }
 
 .total-cell {
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   background-color: var(--color-hover);
   color: var(--color-text-on-surface);
 }

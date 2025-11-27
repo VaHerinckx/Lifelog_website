@@ -1,7 +1,7 @@
-import { memo } from 'react';
+import { memo, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { Music } from 'lucide-react';
-import { formatDate } from '../../utils';
+import { formatDate } from '../../../utils';
 import './MusicCard.css';
 
 /**
@@ -20,17 +20,25 @@ import './MusicCard.css';
 const MusicCard = ({ toggle, viewMode = 'grid', onClick }) => {
   const cardClass = `music-card music-card--${viewMode}`;
 
-  // Format completion as percentage
-  const completionPercent = toggle.completion ? (toggle.completion * 100).toFixed(0) : 0;
+  // Memoize completion percentage calculation
+  const completionPercent = useMemo(() =>
+    toggle.completion ? (toggle.completion * 100).toFixed(0) : 0,
+    [toggle.completion]
+  );
 
-  // Get first 3 genres for display
-  const genresArray = toggle.genres ? toggle.genres.split(', ').filter(g => g.trim()) : [];
-  const displayGenres = genresArray.slice(0, 3);
+  // Memoize genres array processing
+  const { displayGenres, genresArray } = useMemo(() => {
+    const arr = toggle.genres ? toggle.genres.split(', ').filter(g => g.trim()) : [];
+    return { genresArray: arr, displayGenres: arr.slice(0, 3) };
+  }, [toggle.genres]);
+
+  // Stable click handler to prevent re-renders
+  const handleClick = useCallback(() => onClick(toggle), [onClick, toggle]);
 
   // List view - horizontal layout
   if (viewMode === 'list') {
     return (
-      <div className={cardClass} onClick={() => onClick(toggle)}>
+      <div className={cardClass} onClick={handleClick}>
         <div className="music-artwork-container">
           {toggle.album_artwork_url ? (
             <img
@@ -82,7 +90,7 @@ const MusicCard = ({ toggle, viewMode = 'grid', onClick }) => {
 
   // Grid view - vertical layout (default)
   return (
-    <div className={cardClass} onClick={() => onClick(toggle)}>
+    <div className={cardClass} onClick={handleClick}>
       <div className="music-artwork-container">
         {toggle.album_artwork_url ? (
           <img

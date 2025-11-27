@@ -1,10 +1,65 @@
 // src/components/ui/Filters/FilteringPanel/FilteringPanel.jsx
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import _ from 'lodash';
-import Papa from 'papaparse';
 import Filter from '../Filter/Filter';
-import { applyFilters, extractDelimitedUniqueValues, matchDelimitedValue, buildHierarchyWithCounts } from '../../../../utils/filterUtils';
+import { applyFilters, matchDelimitedValue, buildHierarchyWithCounts } from '../../../../utils/filterUtils';
 import './FilteringPanel.css';
+
+/**
+ * Helper: Check if an item matches a filter value
+ * Used for index-based filtering optimization
+ */
+const itemMatchesFilter = (item, config, filterValue) => {
+  const dataField = config.dataField || config.optionsSource;
+  if (!dataField) return true;
+
+  const itemValue = dataField.includes('.')
+    ? _.get(item, dataField)
+    : item[dataField];
+
+  if (config.type === 'multiselect') {
+    if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
+    if (config.delimiter) {
+      return matchDelimitedValue(itemValue, filterValue, config.delimiter, config.matchMode || 'any');
+    }
+    return filterValue.includes(itemValue);
+  }
+
+  if (config.type === 'singleselect') {
+    if (!filterValue || filterValue === 'all' || filterValue === config.defaultValue) return true;
+    return itemValue === filterValue;
+  }
+
+  if (config.type === 'daterange') {
+    if (!filterValue || (!filterValue.startDate && !filterValue.endDate)) return true;
+    if (!itemValue) return false;
+    const itemDate = new Date(itemValue);
+    if (isNaN(itemDate.getTime())) return false;
+    if (filterValue.startDate && itemDate < new Date(filterValue.startDate)) return false;
+    if (filterValue.endDate && itemDate > new Date(filterValue.endDate)) return false;
+    return true;
+  }
+
+  if (config.type === 'numberrange') {
+    if (!filterValue || (filterValue.min === null && filterValue.max === null)) return true;
+    if (itemValue === null || itemValue === undefined) return false;
+    const numValue = parseFloat(itemValue);
+    if (isNaN(numValue)) return false;
+    if (filterValue.min !== null && numValue < filterValue.min) return false;
+    if (filterValue.max !== null && numValue > filterValue.max) return false;
+    return true;
+  }
+
+  if (config.type === 'hierarchical') {
+    const values = config.selectionMode === 'single' ? [filterValue] : filterValue;
+    if (!values || values.length === 0 || values[0] === null) return true;
+    const parentValue = item[config.dataField];
+    const childValue = item[config.childField];
+    return values.some(selected => selected === parentValue || selected === childValue);
+  }
+
+  return true;
+};
 
 /**
  * A comprehensive filtering panel that manages filters and automatically
@@ -74,6 +129,117 @@ const FilteringPanel = ({
     return configs;
   }, [children]);
 
+  // Get primary data source (memoized)
+  const primarySource = useMemo(() => {
+    return Object.values(dataSources).find(source => Array.isArray(source) && source.length > 0) || [];
+  }, [dataSources]);
+
+  // OPTIMIZATION: Pre-compute unique values and value-to-indices mapping on data load
+  // This runs ONCE when data changes, not on every filter change
+  const precomputedOptions = useMemo(() => {
+    if (primarySource.length === 0) return { cache: {}, dateBoundaries: {}, numberBoundaries: {} };
+
+    const cache = {};
+    const dateBoundaries = {};
+    const numberBoundaries = {};
+
+    filterConfigs.forEach(config => {
+      const fieldName = config.dataField || config.optionsSource;
+      if (!fieldName) return;
+
+      if (config.optionsSource === 'static' && config.options) {
+        // Static options - just store them
+        cache[config.key] = { allValues: config.options, valueToItemIndices: null };
+        return;
+      }
+
+      if (config.type === 'daterange') {
+        // Pre-compute date boundaries from full dataset
+        let minDate = null;
+        let maxDate = null;
+        primarySource.forEach(item => {
+          const value = fieldName.includes('.') ? _.get(item, fieldName) : item[fieldName];
+          if (value) {
+            const date = new Date(value);
+            if (!isNaN(date.getTime()) && date.getFullYear() > 1900) {
+              if (!minDate || date < minDate) minDate = date;
+              if (!maxDate || date > maxDate) maxDate = date;
+            }
+          }
+        });
+        if (minDate && maxDate) {
+          dateBoundaries[config.key] = { minDate, maxDate };
+        }
+        return;
+      }
+
+      if (config.type === 'numberrange') {
+        // Pre-compute number boundaries from full dataset
+        let minNum = null;
+        let maxNum = null;
+        primarySource.forEach(item => {
+          const value = fieldName.includes('.') ? _.get(item, fieldName) : item[fieldName];
+          if (value !== null && value !== undefined && value !== '') {
+            const num = parseFloat(value);
+            if (!isNaN(num)) {
+              if (minNum === null || num < minNum) minNum = num;
+              if (maxNum === null || num > maxNum) maxNum = num;
+            }
+          }
+        });
+        if (minNum !== null && maxNum !== null) {
+          numberBoundaries[config.key] = { minNumber: minNum, maxNumber: maxNum };
+        }
+        return;
+      }
+
+      if (config.type === 'hierarchical') {
+        // For hierarchical, we'll compute on demand (uses buildHierarchyWithCounts)
+        return;
+      }
+
+      // For multiselect/singleselect: Build unique values + value-to-indices map
+      const uniqueSet = new Set();
+      const valueToItemIndices = new Map();
+
+      primarySource.forEach((item, index) => {
+        const value = fieldName.includes('.') ? _.get(item, fieldName) : item[fieldName];
+
+        if (value && value !== 'Unknown' && value.toString().trim() !== '') {
+          if (config.delimiter) {
+            // Handle delimited values (e.g., genres: "rock, pop, jazz")
+            value.split(config.delimiter).forEach(v => {
+              const trimmed = v.trim();
+              if (trimmed) {
+                uniqueSet.add(trimmed);
+                if (!valueToItemIndices.has(trimmed)) valueToItemIndices.set(trimmed, []);
+                valueToItemIndices.get(trimmed).push(index);
+              }
+            });
+          } else {
+            uniqueSet.add(value);
+            if (!valueToItemIndices.has(value)) valueToItemIndices.set(value, []);
+            valueToItemIndices.get(value).push(index);
+          }
+        }
+      });
+
+      // Sort allValues based on sortType
+      let allValues = Array.from(uniqueSet);
+      if (config.sortType === 'numeric') {
+        allValues.sort((a, b) => Number(a) - Number(b));
+      } else if (config.sortType === 'numericDesc') {
+        allValues.sort((a, b) => Number(b) - Number(a));
+      } else {
+        allValues.sort();
+      }
+
+      cache[config.key] = { allValues, valueToItemIndices };
+    });
+
+    return { cache, dateBoundaries, numberBoundaries };
+  }, [primarySource, filterConfigs]); // Only recompute when DATA changes, not on filter changes
+
   // Initialize filters state with proper defaults
   const [filters, setFilters] = useState(() => {
     const initialState = {};
@@ -113,367 +279,114 @@ const FilteringPanel = ({
     return () => clearTimeout(timer);
   }, [filters]);
 
-  // Calculate filtered options based on current filter selections (bi-directional cascading)
-  const filterOptions = useMemo(() => {
-    // Get primary data source for option calculation (first non-empty source)
-    const primarySource = Object.values(dataSources).find(source => Array.isArray(source) && source.length > 0) || [];
+  // OPTIMIZATION: Compute indices for each "exclude one filter" scenario
+  // This allows efficient cascading filter options calculation
+  const excludeOneFilterIndices = useMemo(() => {
+    if (primarySource.length === 0) return new Map();
 
-    if (primarySource.length === 0) return {};
+    const cache = new Map();
 
-    const options = {};
-    const dateBoundaries = {};
-    const numberBoundaries = {};
+    filterConfigs.forEach(excludeConfig => {
+      // Compute which items pass ALL filters EXCEPT this one
+      const passingIndices = new Set();
 
-    filterConfigs.forEach(config => {
-      if (config.optionsSource === 'static' && config.options) {
-        // Use static options as-is
-        options[config.key] = config.options;
-      } else if (config.type === 'daterange') {
-        // Handle date range boundaries - use full dataset if available for music data
-        const fieldName = config.dataField || config.optionsSource;
-        
-        if (fullDataset && typeof fullDataset === 'string' && fullDataset.length > 0) {
-          // Use full dataset to calculate date boundaries
-          const allDates = [];
-          let processedRows = 0;
+      for (let idx = 0; idx < primarySource.length; idx++) {
+        const item = primarySource[idx];
+        let passes = true;
 
-          Papa.parse(fullDataset, {
-            delimiter: "|",
-            header: true,
-            skipEmptyLines: true,
-            step: (row) => {
-              processedRows++;
-              const track = row.data;
+        for (const otherConfig of filterConfigs) {
+          if (otherConfig.key === excludeConfig.key) continue; // Skip the excluded filter
 
-              // Filter out tracks before 2017
-              const trackDate = new Date(track.timestamp);
-              if (isNaN(trackDate.getTime()) || trackDate < new Date('2017-01-01')) {
-                return; // Skip this track
-              }
-
-              // Add listening year for year filter options
-              track.listening_year = trackDate.getFullYear().toString();
-
-              const dateValue = track[fieldName];
-
-              if (dateValue) {
-                const date = new Date(dateValue);
-                if (!isNaN(date.getTime()) && date.getFullYear() > 1900) {
-                  allDates.push(date);
-                }
-              }
-            },
-            complete: () => {
-              if (allDates.length > 0) {
-                allDates.sort((a, b) => a - b);
-                dateBoundaries[config.key] = {
-                  minDate: allDates[0],
-                  maxDate: allDates[allDates.length - 1]
-                };
-              }
-            }
-          });
-        } else {
-          // Fallback to display data if full dataset not available
-          let filteredData = [...primarySource];
-
-          // Apply all other filters to determine date boundaries
-          filterConfigs.forEach(otherConfig => {
-            if (otherConfig.key === config.key || otherConfig.type === 'daterange') return;
-
-            const filterValue = debouncedFilters[otherConfig.key];
-            const dataField = otherConfig.dataField || otherConfig.optionsSource;
-
-            if (!filterValue || !dataField) return;
-
-            if (otherConfig.type === 'multiselect') {
-              if (Array.isArray(filterValue) && filterValue.length > 0) {
-                filteredData = filteredData.filter(item => {
-                  const itemValue = dataField.includes('.')
-                    ? _.get(item, dataField)
-                    : item[dataField];
-
-                  // Handle delimited values
-                  if (otherConfig.delimiter) {
-                    return matchDelimitedValue(itemValue, filterValue, otherConfig.delimiter, otherConfig.matchMode);
-                  }
-
-                  // Standard exact match
-                  return filterValue.includes(itemValue);
-                });
-              }
-            } else if (otherConfig.type === 'singleselect') {
-              if (filterValue && filterValue !== 'all' && filterValue !== otherConfig.defaultValue) {
-                filteredData = filteredData.filter(item => {
-                  const itemValue = dataField.includes('.')
-                    ? _.get(item, dataField)
-                    : item[dataField];
-                  return itemValue === filterValue;
-                });
-              }
-            }
-          });
-
-          // Extract date boundaries from filtered display data
-          const allDateValues = filteredData
-            .map(item => {
-              const value = fieldName.includes('.')
-                ? _.get(item, fieldName)
-                : item[fieldName];
-              return value;
-            })
-            .filter(Boolean);
-          
-          const validDates = allDateValues
-            .map(value => {
-              const date = new Date(value);
-              if (!isNaN(date.getTime()) && date.getFullYear() > 1900) {
-                return date;
-              }
-              return null;
-            })
-            .filter(Boolean)
-            .sort((a, b) => a - b);
-
-          if (validDates.length > 0) {
-            dateBoundaries[config.key] = {
-              minDate: validDates[0],
-              maxDate: validDates[validDates.length - 1]
-            };
+          const filterValue = debouncedFilters[otherConfig.key];
+          if (!itemMatchesFilter(item, otherConfig, filterValue)) {
+            passes = false;
+            break;
           }
         }
 
-      } else if (config.type === 'numberrange') {
-        // Handle number range boundaries
-        const fieldName = config.dataField || config.optionsSource;
-
-        let filteredData = [...primarySource];
-
-        // Apply all other filters to determine number boundaries
-        filterConfigs.forEach(otherConfig => {
-          if (otherConfig.key === config.key || otherConfig.type === 'numberrange') return;
-
-          const filterValue = debouncedFilters[otherConfig.key];
-          const dataField = otherConfig.dataField || otherConfig.optionsSource;
-
-          if (!filterValue || !dataField) return;
-
-          if (otherConfig.type === 'multiselect') {
-            if (Array.isArray(filterValue) && filterValue.length > 0) {
-              filteredData = filteredData.filter(item => {
-                const itemValue = dataField.includes('.')
-                  ? _.get(item, dataField)
-                  : item[dataField];
-
-                // Handle delimited values
-                if (otherConfig.delimiter) {
-                  return matchDelimitedValue(itemValue, filterValue, otherConfig.delimiter, otherConfig.matchMode);
-                }
-
-                // Standard exact match
-                return filterValue.includes(itemValue);
-              });
-            }
-          } else if (otherConfig.type === 'singleselect') {
-            if (filterValue && filterValue !== 'all' && filterValue !== otherConfig.defaultValue) {
-              filteredData = filteredData.filter(item => {
-                const itemValue = dataField.includes('.')
-                  ? _.get(item, dataField)
-                  : item[dataField];
-                return itemValue === filterValue;
-              });
-            }
-          } else if (otherConfig.type === 'daterange') {
-            if (filterValue && (filterValue.startDate || filterValue.endDate)) {
-              filteredData = filteredData.filter(item => {
-                const itemValue = dataField.includes('.')
-                  ? _.get(item, dataField)
-                  : item[dataField];
-
-                if (!itemValue) return false;
-
-                const itemDate = new Date(itemValue);
-                if (isNaN(itemDate.getTime())) return false;
-
-                const startDate = filterValue.startDate ? new Date(filterValue.startDate) : null;
-                const endDate = filterValue.endDate ? new Date(filterValue.endDate) : null;
-
-                if (startDate && itemDate < startDate) return false;
-                if (endDate && itemDate > endDate) return false;
-
-                return true;
-              });
-            }
-          }
-        });
-
-        // Extract number boundaries from filtered data
-        const allNumberValues = filteredData
-          .map(item => {
-            const value = fieldName.includes('.')
-              ? _.get(item, fieldName)
-              : item[fieldName];
-            return value;
-          })
-          .filter(value => value !== null && value !== undefined && value !== '');
-
-        const validNumbers = allNumberValues
-          .map(value => parseFloat(value))
-          .filter(num => !isNaN(num))
-          .sort((a, b) => a - b);
-
-        if (validNumbers.length > 0) {
-          numberBoundaries[config.key] = {
-            minNumber: validNumbers[0],
-            maxNumber: validNumbers[validNumbers.length - 1]
-          };
-        }
-
-      } else if (config.dataField || config.optionsSource) {
-        // For regular filters, apply all OTHER active filters to determine available options
-        let filteredData = [...primarySource];
-
-        // Apply all other filters (not the current one we're calculating options for)
-        filterConfigs.forEach(otherConfig => {
-          if (otherConfig.key === config.key) return; // Skip the current filter
-
-          const filterValue = debouncedFilters[otherConfig.key];
-          const dataField = otherConfig.dataField || otherConfig.optionsSource;
-
-          if (!filterValue || !dataField) return;
-
-          if (otherConfig.type === 'multiselect') {
-            // Multi-select filter: item must match at least one selected value
-            if (Array.isArray(filterValue) && filterValue.length > 0) {
-              filteredData = filteredData.filter(item => {
-                const itemValue = dataField.includes('.')
-                  ? _.get(item, dataField)
-                  : item[dataField];
-
-                // Handle delimited values
-                if (otherConfig.delimiter) {
-                  return matchDelimitedValue(itemValue, filterValue, otherConfig.delimiter, otherConfig.matchMode);
-                }
-
-                // Standard exact match
-                return filterValue.includes(itemValue);
-              });
-            }
-          } else if (otherConfig.type === 'singleselect') {
-            // Single-select filter: exact match (excluding 'all' or default values)
-            if (filterValue && filterValue !== 'all' && filterValue !== otherConfig.defaultValue) {
-              filteredData = filteredData.filter(item => {
-                const itemValue = dataField.includes('.')
-                  ? _.get(item, dataField)
-                  : item[dataField];
-                return itemValue === filterValue;
-              });
-            }
-          } else if (otherConfig.type === 'daterange') {
-            // Date range filter: item must be within the selected date range
-            if (filterValue && (filterValue.startDate || filterValue.endDate)) {
-              filteredData = filteredData.filter(item => {
-                const itemValue = dataField.includes('.')
-                  ? _.get(item, dataField)
-                  : item[dataField];
-
-                if (!itemValue) return false;
-
-                const itemDate = new Date(itemValue);
-                if (isNaN(itemDate.getTime())) return false;
-
-                const startDate = filterValue.startDate ? new Date(filterValue.startDate) : null;
-                const endDate = filterValue.endDate ? new Date(filterValue.endDate) : null;
-
-                if (startDate && itemDate < startDate) return false;
-                if (endDate && itemDate > endDate) return false;
-
-                return true;
-              });
-            }
-          } else if (otherConfig.type === 'numberrange') {
-            // Number range filter: item must be within the selected number range
-            if (filterValue && (filterValue.min !== null || filterValue.max !== null)) {
-              filteredData = filteredData.filter(item => {
-                const itemValue = dataField.includes('.')
-                  ? _.get(item, dataField)
-                  : item[dataField];
-
-                if (itemValue === null || itemValue === undefined) return false;
-
-                const numValue = parseFloat(itemValue);
-                if (isNaN(numValue)) return false;
-
-                if (filterValue.min !== null && numValue < filterValue.min) return false;
-                if (filterValue.max !== null && numValue > filterValue.max) return false;
-
-                return true;
-              });
-            }
-          } else if (otherConfig.type === 'hierarchical') {
-            // Hierarchical filter: match parent OR child values
-            const values = otherConfig.selectionMode === 'single' ? [filterValue] : filterValue;
-            if (values && values.length > 0 && values[0] !== null) {
-              filteredData = filteredData.filter(item => {
-                const parentValue = item[otherConfig.dataField];
-                const childValue = item[otherConfig.childField];
-
-                return values.some(selected => {
-                  return selected === parentValue || selected === childValue;
-                });
-              });
-            }
-          }
-        });
-
-        // Extract unique values from the filtered data for the current filter
-        const fieldName = config.dataField || config.optionsSource;
-
-        // Special handling for hierarchical filters
-        if (config.type === 'hierarchical' && config.childField) {
-          // Build hierarchy with counts from filtered data
-          const hierarchyWithCounts = buildHierarchyWithCounts(filteredData, fieldName, config.childField);
-          options[config.key] = hierarchyWithCounts;
-        } else {
-          let values;
-          if (config.delimiter) {
-            // Use delimiter-aware extraction for delimited values
-            values = extractDelimitedUniqueValues(filteredData, fieldName, config.delimiter, true);
-          } else {
-            // Standard unique value extraction
-            values = filteredData
-              .map(item => {
-                const value = fieldName.includes('.')
-                  ? _.get(item, fieldName)
-                  : item[fieldName];
-                return value;
-              })
-              .filter(value =>
-                value &&
-                value !== 'Unknown' &&
-                value.toString().trim() !== ''
-              );
-
-            // Remove duplicates and sort
-            values = _.uniq(values);
-
-            // Apply sorting based on sortType
-            if (config.sortType === 'numeric') {
-              values.sort((a, b) => Number(a) - Number(b));
-            } else if (config.sortType === 'numericDesc') {
-              values.sort((a, b) => Number(b) - Number(a));
-            } else {
-              values.sort(); // Default alphabetical sort
-            }
-          }
-
-          options[config.key] = values;
+        if (passes) {
+          passingIndices.add(idx);
         }
       }
+
+      cache.set(excludeConfig.key, passingIndices);
+    });
+
+    return cache;
+  }, [primarySource, filterConfigs, debouncedFilters]);
+
+  // OPTIMIZED: Calculate filtered options using precomputed data and exclusion indices
+  const filterOptions = useMemo(() => {
+    if (primarySource.length === 0) return { options: {}, dateBoundaries: {}, numberBoundaries: {} };
+
+    const options = {};
+    // Use precomputed boundaries (static, computed once on data load)
+    const dateBoundaries = { ...precomputedOptions.dateBoundaries };
+    const numberBoundaries = { ...precomputedOptions.numberBoundaries };
+
+    filterConfigs.forEach(config => {
+      // Static options - use as-is
+      if (config.optionsSource === 'static' && config.options) {
+        options[config.key] = config.options;
+        return;
+      }
+
+      // Skip daterange and numberrange (boundaries already precomputed)
+      if (config.type === 'daterange' || config.type === 'numberrange') {
+        return;
+      }
+
+      // Hierarchical filters need special handling (compute on demand with filtered data)
+      if (config.type === 'hierarchical' && config.childField) {
+        const passingIndices = excludeOneFilterIndices.get(config.key) || new Set();
+        const filteredData = [];
+        passingIndices.forEach(idx => filteredData.push(primarySource[idx]));
+        const hierarchyWithCounts = buildHierarchyWithCounts(
+          filteredData,
+          config.dataField || config.optionsSource,
+          config.childField
+        );
+        options[config.key] = hierarchyWithCounts;
+        return;
+      }
+
+      // For multiselect/singleselect: Use precomputed values + exclusion indices
+      const cached = precomputedOptions.cache[config.key];
+      if (!cached || !cached.valueToItemIndices) {
+        options[config.key] = cached?.allValues || [];
+        return;
+      }
+
+      // Get indices that pass all OTHER filters
+      const passingIndices = excludeOneFilterIndices.get(config.key);
+      if (!passingIndices || passingIndices.size === 0) {
+        // No items pass other filters - show empty options
+        options[config.key] = [];
+        return;
+      }
+
+      // If all items pass (no active filters), return all precomputed values
+      if (passingIndices.size === primarySource.length) {
+        options[config.key] = cached.allValues;
+        return;
+      }
+
+      // Filter allValues to only those that have at least one item in passingIndices
+      const availableValues = cached.allValues.filter(value => {
+        const itemIndices = cached.valueToItemIndices.get(value);
+        if (!itemIndices) return false;
+        // Check if ANY item with this value passes the other filters
+        for (const idx of itemIndices) {
+          if (passingIndices.has(idx)) return true;
+        }
+        return false;
+      });
+
+      options[config.key] = availableValues;
     });
 
     return { options, dateBoundaries, numberBoundaries };
-  }, [dataSources, filterConfigs, debouncedFilters, fullDataset]); // Use debounced filters for cascading options
+  }, [primarySource, filterConfigs, excludeOneFilterIndices, precomputedOptions]);
 
   // Use refs to store callback and configs to prevent infinite loops
   const onFiltersChangeRef = useRef(onFiltersChange);

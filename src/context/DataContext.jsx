@@ -236,9 +236,13 @@ export const DataProvider = ({ children }) => {
                 ...episode,
                 duration_seconds: episode.duration_seconds ? parseInt(episode.duration_seconds) : 0,
                 listened_seconds: episode.listened_seconds ? parseInt(episode.listened_seconds) : 0,
+                listened_minutes: episode.listened_minutes ? parseFloat(episode.listened_minutes) : 0,
+                listened_hours: episode.listened_hours ? parseFloat(episode.listened_hours) : 0,
                 completion_percent: episode.completion_percent ? parseFloat(episode.completion_percent) : 0,
-                is_new_podcast: episode.is_new_podcast ? parseInt(episode.is_new_podcast) : 0,
-                is_recurring_podcast: episode.is_recurring_podcast ? parseInt(episode.is_recurring_podcast) : 0
+                // Boolean columns - convert to Yes/No for user-friendly filtering
+                is_new_podcast: parseInt(episode.is_new_podcast) === 1 ? 'Yes' : 'No',
+                is_new_recurring_podcast: parseInt(episode.is_new_recurring_podcast) === 1 ? 'Yes' : 'No',
+                is_recurring_podcast: parseInt(episode.is_recurring_podcast) === 1 ? 'Yes' : 'No',
               }));
             }
 
@@ -268,10 +272,15 @@ export const DataProvider = ({ children }) => {
                 track_popularity: toggle.track_popularity ? parseInt(toggle.track_popularity) : 0,
                 track_duration: toggle.track_duration ? parseInt(toggle.track_duration) : 0,
                 completion: toggle.completion ? parseFloat(toggle.completion) : 0,
-                skip_next_track: toggle.skip_next_track ? parseFloat(toggle.skip_next_track) : 0,
                 listening_seconds: toggle.listening_seconds ? parseInt(toggle.listening_seconds) : 0,
-                new_artist_yn: toggle.new_artist_yn ? parseInt(toggle.new_artist_yn) : 0,
-                new_track_yn: toggle.new_track_yn ? parseInt(toggle.new_track_yn) : 0
+                // Boolean columns - convert to Yes/No for user-friendly filtering
+                is_skipped_track: parseInt(toggle.is_skipped_track) === 1 ? 'Yes' : 'No',
+                is_new_artist: parseInt(toggle.is_new_artist) === 1 ? 'Yes' : 'No',
+                is_new_track: parseInt(toggle.is_new_track) === 1 ? 'Yes' : 'No',
+                is_recurring_artist: parseInt(toggle.is_recurring_artist) === 1 ? 'Yes' : 'No',
+                is_recurring_track: parseInt(toggle.is_recurring_track) === 1 ? 'Yes' : 'No',
+                is_new_recurring_artist: parseInt(toggle.is_new_recurring_artist) === 1 ? 'Yes' : 'No',
+                is_new_recurring_track: parseInt(toggle.is_new_recurring_track) === 1 ? 'Yes' : 'No'
               }));
             }
 

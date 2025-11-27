@@ -12,7 +12,7 @@
 }
 
 .transaction-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(calc(-1 * var(--spacing-xs)));
   box-shadow: var(--shadow-lg);
 }
 
@@ -53,7 +53,7 @@
 
 .transaction-card--list:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 12px var(--shadow-color-md);
 }
 
 .transaction-card--list .transaction-info {
@@ -74,8 +74,8 @@
 /* Transaction Info Section */
 .transaction-category {
   color: var(--background-color);
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
   margin-bottom: var(--spacing-xs);
 }
 
@@ -86,7 +86,7 @@
 }
 
 .transaction-card--list .transaction-category {
-  font-size: 1.1rem;
+  font-size: var(--font-size-lg);
   margin-bottom: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -96,9 +96,9 @@
 
 .transaction-subcategory {
   color: var(--color-primary);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   margin-bottom: var(--spacing-xs);
-  font-size: 0.85rem;
+  font-size: var(--font-size-sm);
 }
 
 .transaction-card--grid .transaction-subcategory {
@@ -108,33 +108,33 @@
 }
 
 .transaction-card--list .transaction-subcategory {
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
   margin-bottom: var(--spacing-xs);
 }
 
 .transaction-amount {
-  font-size: 1.3rem;
-  font-weight: 700;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
   margin: var(--spacing-sm) 0;
 }
 
 .transaction-card--list .transaction-amount {
-  font-size: 1.2rem;
+  font-size: var(--font-size-xl);
   white-space: nowrap;
   margin: 0;
 }
 
 .amount-negative {
-  color: #e74c3c;
+  color: var(--color-expense);
 }
 
 .amount-positive {
-  color: #27ae60;
+  color: var(--color-income);
 }
 
 .transaction-note {
   color: var(--color-text-gray);
-  font-size: 0.8rem;
+  font-size: var(--font-size-xs);
   margin-bottom: var(--spacing-xs);
   font-style: italic;
 }
@@ -146,7 +146,7 @@
 }
 
 .transaction-card--list .transaction-note {
-  font-size: 0.85rem;
+  font-size: var(--font-size-sm);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -155,7 +155,7 @@
 
 .transaction-meta {
   color: var(--color-text-gray);
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   margin-top: auto;
   display: flex;
   flex-direction: column;
@@ -167,14 +167,14 @@
   flex-direction: row;
   align-items: center;
   gap: var(--spacing-md);
-  font-size: 0.8rem;
+  font-size: var(--font-size-xs);
   margin-top: 0;
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--spacing-xs);
 }
 
 .account-name {
@@ -201,36 +201,36 @@
 
 .transaction-type-badge {
   display: inline-block;
-  padding: 4px 8px;
+  padding: calc(var(--spacing-xs) / 2) var(--spacing-xs);
   border-radius: var(--radius-sm);
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .transaction-card--list .transaction-type-badge {
-  padding: 5px 10px;
-  font-size: 0.75rem;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
 }
 
 .type-expense {
-  background-color: #e74c3c;
+  background-color: var(--color-expense);
   color: var(--color-white);
 }
 
 .type-income {
-  background-color: #27ae60;
+  background-color: var(--color-income);
   color: var(--color-white);
 }
 
 .type-transfer-in {
-  background-color: #3498db;
+  background-color: var(--color-transfer);
   color: var(--color-white);
 }
 
 .type-transfer-out {
-  background-color: #95a5a6;
+  background-color: var(--color-neutral);
   color: var(--color-white);
 }
 
@@ -241,17 +241,17 @@
 
 .currency-badge {
   display: inline-block;
-  padding: 4px 8px;
+  padding: calc(var(--spacing-xs) / 2) var(--spacing-xs);
   border-radius: var(--radius-sm);
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   background-color: var(--color-accent);
   color: var(--color-white);
 }
 
 .transaction-card--list .currency-badge {
-  padding: 5px 10px;
-  font-size: 0.75rem;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
 }
 
 /* Responsive Adjustments */
@@ -262,11 +262,11 @@
   }
 
   .transaction-card--grid .transaction-category {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
   }
 
   .transaction-card--grid .transaction-amount {
-    font-size: 1.1rem;
+    font-size: var(--font-size-lg);
   }
 
   .transaction-card--list {
@@ -294,7 +294,7 @@
   }
 
   .transaction-card--list .transaction-amount {
-    font-size: 1.3rem;
+    font-size: var(--font-size-xl);
   }
 
   .transaction-card--list .transaction-note {
@@ -313,12 +313,12 @@
   }
 
   .transaction-type-badge {
-    font-size: 0.65rem;
-    padding: 3px 6px;
+    font-size: var(--font-size-xs);
+    padding: calc(var(--spacing-xs) / 2) calc(var(--spacing-xs) * 0.75);
   }
 
   .currency-badge {
-    font-size: 0.65rem;
-    padding: 3px 6px;
+    font-size: var(--font-size-xs);
+    padding: calc(var(--spacing-xs) / 2) calc(var(--spacing-xs) * 0.75);
   }
 }

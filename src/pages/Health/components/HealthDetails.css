@@ -9,12 +9,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(23, 23, 56, 0.8);
+  background-color: var(--overlay-backdrop);
   display: flex;
   justify-content: center;
   align-items: center;
   padding: var(--spacing-lg);
-  z-index: 1000;
+  z-index: var(--z-modal);
   backdrop-filter: blur(5px);
 }
 
@@ -23,7 +23,7 @@
   background-color: var(--color-surface);
   border-radius: var(--radius-lg);
   width: 100%;
-  max-width: 900px;
+  max-width: var(--modal-max-width);
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
@@ -44,13 +44,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-full);
+  background-color: var(--overlay-light);
   transition: background-color var(--transition-normal);
 }
 
 .close-button:hover {
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: var(--overlay-light-hover);
 }
 
 /* Content */
@@ -108,13 +108,13 @@
 }
 
 .health-section {
-  background-color: rgba(52, 35, 166, 0.05);
+  background-color: var(--color-primary-tint-5);
   border-radius: var(--radius-md);
   padding: var(--spacing-lg);
 }
 
 .health-notes-section {
-  background-color: rgba(156, 39, 176, 0.05);
+  background-color: color-mix(in srgb, var(--color-accent) 5%, transparent);
 }
 
 .section-title {
@@ -209,7 +209,7 @@
   line-height: var(--line-height-relaxed);
   margin: 0;
   padding: var(--spacing-sm);
-  background-color: rgba(255, 255, 255, 0.5);
+  background-color: var(--overlay-light);
   border-radius: var(--radius-sm);
   border-left: 3px solid var(--color-accent);
 }

@@ -9,12 +9,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(23, 23, 56, 0.8);
+  background-color: var(--overlay-backdrop);
   display: flex;
   justify-content: center;
   align-items: center;
   padding: var(--spacing-lg);
-  z-index: 1000;
+  z-index: var(--z-modal);
   backdrop-filter: blur(5px);
 }
 
@@ -44,13 +44,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: var(--radius-full);
+  background-color: var(--overlay-light);
   transition: background-color var(--transition-normal);
 }
 
 .close-button:hover {
-  background-color: rgba(255, 255, 255, 0.8);
+  background-color: var(--overlay-light-hover);
 }
 
 .transaction-details-content {
@@ -98,7 +98,7 @@
 
 .transaction-details-header h3 {
   font-size: var(--font-size-lg);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   color: var(--color-primary);
   margin-top: 0;
   margin-bottom: var(--spacing-sm);
@@ -106,16 +106,16 @@
 
 .detail-amount {
   font-size: var(--font-size-2xl);
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   margin: var(--spacing-sm) 0;
 }
 
 .amount-negative {
-  color: #e74c3c;
+  color: var(--color-expense);
 }
 
 .amount-positive {
-  color: #27ae60;
+  color: var(--color-income);
 }
 
 .transaction-type-badge {
@@ -123,29 +123,29 @@
   padding: var(--spacing-xs) var(--spacing-sm);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-top: var(--spacing-xs);
 }
 
 .type-expense {
-  background-color: #e74c3c;
+  background-color: var(--color-expense);
   color: var(--color-white);
 }
 
 .type-income {
-  background-color: #27ae60;
+  background-color: var(--color-income);
   color: var(--color-white);
 }
 
 .type-transfer-in {
-  background-color: #3498db;
+  background-color: var(--color-transfer);
   color: var(--color-white);
 }
 
 .type-transfer-out {
-  background-color: #95a5a6;
+  background-color: var(--color-neutral);
   color: var(--color-white);
 }
 
@@ -162,13 +162,13 @@
 }
 
 .details-section {
-  background-color: rgba(52, 35, 166, 0.05);
+  background-color: var(--color-primary-tint-5);
   border-radius: var(--radius-md);
   padding: var(--spacing-md);
 }
 
 .financial-section {
-  background-color: rgba(52, 35, 166, 0.1);
+  background-color: var(--color-primary-tint-10);
 }
 
 .details-section h4 {
@@ -176,7 +176,7 @@
   color: var(--color-text-on-surface);
   margin-top: 0;
   margin-bottom: var(--spacing-md);
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
 }
 
 .detail-item {
@@ -205,7 +205,7 @@
 }
 
 .detail-content label {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   font-size: var(--font-size-sm);
   color: var(--color-text-gray);
 }

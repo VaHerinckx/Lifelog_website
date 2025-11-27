@@ -11,7 +11,7 @@
 }
 
 .movie-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(calc(-1 * var(--spacing-xs)));
   box-shadow: var(--shadow-lg);
 }
 
@@ -24,7 +24,7 @@
 
 .movie-card--grid .movie-poster-container {
   width: 100%;
-  height: 280px;
+  height: var(--card-image-height-tall);
   overflow: hidden;
   background-color: var(--color-primary);
   position: relative;
@@ -51,7 +51,7 @@
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  font-size: 0.95rem;
+  font-size: var(--font-size-base);
 }
 
 /* List View - Horizontal Layout */
@@ -64,13 +64,13 @@
 }
 
 .movie-card--list:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(calc(-1 * var(--spacing-2xs)));
+  box-shadow: var(--shadow-md);
 }
 
 .movie-card--list .movie-poster-container {
-  flex: 0 0 80px;
-  height: 120px;
+  flex: 0 0 var(--list-image-width);
+  height: var(--card-image-height-list);
   overflow: hidden;
   border-radius: var(--radius-sm);
   background-color: var(--color-primary);
@@ -98,9 +98,9 @@
 
 .movie-title {
   color: var(--background-color);
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 6px;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-xs);
 }
 
 .movie-card--grid .movie-title {
@@ -110,20 +110,20 @@
 }
 
 .movie-card--list .movie-title {
-  font-size: 1.2rem;
+  font-size: var(--font-size-lg);
   margin-bottom: 0;
 }
 
 .movie-year {
   color: var(--color-primary);
-  font-weight: 500;
-  margin-bottom: 6px;
-  font-size: 0.9rem;
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-sm);
 }
 
 .movie-card--list .movie-year {
-  font-size: 0.95rem;
-  margin-bottom: 10px;
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-sm);
 }
 
 /* Metadata Badges Row */
@@ -182,8 +182,8 @@
 
 .movie-meta {
   color: var(--color-text-gray);
-  font-size: 0.8rem;
-  margin-bottom: 6px;
+  font-size: var(--font-size-xs);
+  margin-bottom: var(--spacing-xs);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -193,7 +193,7 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-md);
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
 }
 
 /* Genre Tags */
@@ -201,7 +201,7 @@
   margin-top: auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
+  gap: var(--spacing-xs);
 }
 
 .movie-card--list .movie-genre-tags {
@@ -213,32 +213,32 @@
   display: inline-block;
   background-color: var(--color-primary);
   color: var(--color-white);
-  padding: 3px 6px;
-  border-radius: 4px;
-  font-size: 0.7rem;
+  padding: var(--spacing-2xs) var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
 }
 
 .movie-card--list .movie-genre {
-  padding: 4px 10px;
+  padding: var(--spacing-2xs) var(--spacing-sm);
   border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
 }
 
 .movie-genre-more {
   display: inline-block;
   background-color: var(--color-text-gray);
   color: var(--color-white);
-  padding: 3px 6px;
-  border-radius: 4px;
-  font-size: 0.7rem;
+  padding: var(--spacing-2xs) var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
 }
 
 .movie-card--list .movie-genre-more {
-  padding: 4px 10px;
+  padding: var(--spacing-2xs) var(--spacing-sm);
   border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
 }
 
 /* Rewatch Badge */
@@ -248,8 +248,8 @@
   justify-content: center;
   background-color: var(--color-accent);
   color: var(--color-white);
-  padding: 4px;
-  border-radius: 50%;
+  padding: var(--spacing-2xs);
+  border-radius: var(--radius-full);
   flex-shrink: 0;
 }
 
@@ -259,13 +259,13 @@
   right: var(--spacing-xs);
   background-color: var(--color-accent);
   color: var(--color-white);
-  padding: 4px 8px;
+  padding: var(--spacing-2xs) var(--spacing-xs);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  gap: var(--spacing-2xs);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   z-index: 1;
 }
 
@@ -273,13 +273,13 @@
 .rating-container {
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin: 6px 0;
+  gap: var(--spacing-xs);
+  margin: var(--spacing-xs) 0;
 }
 
 .rating-value {
-  margin-left: 5px;
-  font-weight: 600;
+  margin-left: var(--spacing-xs);
+  font-weight: var(--font-weight-semibold);
 }
 
 /* Rating and Date Wrapper (List View) */
@@ -293,35 +293,35 @@
 .watch-date {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--spacing-xs);
 }
 
 .watch-date-container {
-  margin-top: 8px;
-  font-size: 0.8rem;
+  margin-top: var(--spacing-xs);
+  font-size: var(--font-size-xs);
   color: var(--text-element);
 }
 
 .date-label {
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .date-value {
-  margin-left: 4px;
+  margin-left: var(--spacing-2xs);
 }
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .movie-card--grid .movie-poster-container {
-    height: 220px;
+    height: var(--card-image-height);
   }
 
   .movie-card--grid .movie-title {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
   }
 
   .movie-card--grid .movie-year {
-    font-size: 0.8rem;
+    font-size: var(--font-size-xs);
   }
 
   .movie-card--list {
@@ -331,7 +331,7 @@
 
   .movie-card--list .movie-poster-container {
     width: 100%;
-    height: 180px;
+    height: var(--card-image-height-mobile);
     margin-bottom: var(--spacing-sm);
   }
 
@@ -341,16 +341,16 @@
 
   .movie-card--list .movie-genre-tags {
     margin-left: 0;
-    margin-top: 10px;
+    margin-top: var(--spacing-sm);
   }
 
   .movie-genre {
-    font-size: 0.65rem;
-    padding: 2px 4px;
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-2xs) var(--spacing-2xs);
   }
 
   .rewatch-badge-overlay {
-    font-size: 0.7rem;
-    padding: 3px 6px;
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-2xs) var(--spacing-xs);
   }
 }

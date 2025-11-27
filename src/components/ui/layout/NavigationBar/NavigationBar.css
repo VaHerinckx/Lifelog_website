@@ -1,13 +1,15 @@
 /* NavigationBar.css */
+@import '../../../../styles/variables.css';
+
 .navigation-bar {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  height: 64px;
+  height: var(--nav-height);
   background-color: var(--background-color);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  z-index: 9999 !important;
+  border-bottom: var(--border-width-thin) solid var(--border-color-light);
+  z-index: var(--z-modal);
 }
 
 .nav-container {
@@ -18,7 +20,7 @@
   justify-content: space-between;
   padding: 0 var(--spacing-lg);
   position: relative;
-  z-index: 9999;
+  z-index: var(--z-modal);
 }
 
 .nav-logo {
@@ -32,8 +34,8 @@
   display: flex;
   align-items: center;
   text-decoration: none;
-  color: white;
-  gap: 10px;
+  color: var(--color-white);
+  gap: var(--spacing-sm);
 }
 
 .nav-logo-img {
@@ -42,8 +44,9 @@
 }
 
 .nav-logo-text {
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  /* Brand gradient - keeping hardcoded accent colors */
   background: linear-gradient(to right, #ef4444, #dc2626);
   -webkit-background-clip: text;
   color: transparent;
@@ -51,7 +54,7 @@
 
 .nav-items {
   display: flex;
-  gap: 20px;
+  gap: var(--spacing-lg);
   align-items: center;
   overflow-x: auto;
   -ms-overflow-style: none;
@@ -61,7 +64,7 @@
   min-width: 0; /* Allow flex item to shrink */
   pointer-events: auto; /* Ensure clicks work */
   position: relative;
-  z-index: 9999;
+  z-index: var(--z-modal);
 }
 
 .nav-items::-webkit-scrollbar {
@@ -71,43 +74,44 @@
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-xs);
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.7);
-  padding: 8px 12px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
+  color: var(--color-text-inverse-muted);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
   white-space: nowrap;
   position: relative;
-  z-index: 10000;
+  z-index: var(--z-popover);
   pointer-events: auto;
   cursor: pointer;
 }
 
 .nav-item:hover {
-  color: white;
-  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--color-white);
+  background-color: var(--border-color-light);
 }
 
 .nav-item.active {
-  color: white;
+  color: var(--color-white);
+  /* Brand active state - keeping accent-based color */
   background-color: rgba(239, 68, 68, 0.2);
 }
 
 .nav-icon {
-  width: 20px;
-  height: 20px;
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
   object-fit: contain;
 }
 
 .nav-label {
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
 }
 
 /* Mobile responsive adjustments */
 @media (max-width: 768px) {
   .navigation-bar {
-    height: 56px;
+    height: var(--nav-height-mobile);
   }
 
   .nav-container {
@@ -123,20 +127,20 @@
   }
 
   .nav-logo-text {
-    font-size: 1.2rem;
+    font-size: var(--font-size-xl);
   }
 
   .nav-items {
-    gap: 10px;
+    gap: var(--spacing-sm);
   }
 
   .nav-item {
-    padding: 6px 8px;
+    padding: calc(var(--spacing-xs) * 0.75) var(--spacing-xs);
   }
 
   .nav-icon {
-    width: 16px;
-    height: 16px;
+    width: var(--icon-size-xs);
+    height: var(--icon-size-xs);
   }
 
   .nav-label {

@@ -11,7 +11,7 @@
 }
 
 .episode-card:hover {
-  transform: translateY(-5px);
+  transform: translateY(calc(-1 * var(--spacing-xs)));
   box-shadow: var(--shadow-lg);
 }
 
@@ -24,7 +24,7 @@
 
 .episode-card--grid .episode-artwork-container {
   width: 100%;
-  height: 220px;
+  height: var(--card-image-height);
   overflow: hidden;
   background-color: var(--color-primary);
   position: relative;
@@ -50,7 +50,7 @@
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  font-size: 0.95rem;
+  font-size: var(--font-size-base);
 }
 
 /* List View - Horizontal Layout */
@@ -63,13 +63,13 @@
 }
 
 .episode-card--list:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(calc(-1 * var(--spacing-2xs)));
+  box-shadow: var(--shadow-md);
 }
 
 .episode-card--list .episode-artwork-container {
-  flex: 0 0 80px;
-  height: 80px;
+  flex: 0 0 var(--list-image-width);
+  height: var(--list-image-width);
   overflow: hidden;
   border-radius: var(--radius-sm);
   background-color: var(--color-primary);
@@ -91,10 +91,10 @@
 /* Episode Info Section */
 .episode-title {
   color: var(--background-color);
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 6px;
-  line-height: 1.3;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-xs);
+  line-height: var(--line-height-normal);
 }
 
 .episode-card--grid .episode-title {
@@ -106,15 +106,15 @@
 }
 
 .episode-card--list .episode-title {
-  font-size: 1.1rem;
-  margin-bottom: 5px;
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-xs);
 }
 
 .podcast-name {
   color: var(--color-primary);
-  font-weight: 500;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-sm);
 }
 
 .episode-card--grid .podcast-name {
@@ -124,51 +124,51 @@
 }
 
 .episode-card--list .podcast-name {
-  font-size: 0.95rem;
-  margin-bottom: 10px;
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-sm);
 }
 
 /* Episode Meta */
 .episode-meta {
   color: var(--color-text-gray);
-  font-size: 0.8rem;
-  margin-bottom: 8px;
+  font-size: var(--font-size-xs);
+  margin-bottom: var(--spacing-xs);
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--spacing-2xs);
 }
 
 .episode-card--list .episode-meta {
   flex-direction: row;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
-  font-size: 0.85rem;
+  font-size: var(--font-size-sm);
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--spacing-2xs);
 }
 
 .meta-item--highlight {
   color: var(--color-primary);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 /* Completion Progress */
 .completion-container {
-  margin-top: 8px;
-  margin-bottom: 8px;
+  margin-top: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
 }
 
 .completion-bar {
   width: 100%;
-  height: 6px;
+  height: var(--spacing-xs);
   background-color: var(--color-border-gray);
   border-radius: var(--radius-sm);
   overflow: hidden;
-  margin-bottom: 4px;
+  margin-bottom: var(--spacing-2xs);
 }
 
 .completion-fill {
@@ -178,9 +178,9 @@
 }
 
 .completion-text {
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   color: var(--color-text-gray);
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 
 .episode-card--list .completion-info {
@@ -189,7 +189,7 @@
 }
 
 .episode-card--list .completion-text {
-  font-size: 0.85rem;
+  font-size: var(--font-size-sm);
 }
 
 /* Episode Badges */
@@ -197,8 +197,8 @@
   margin-top: auto;
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  padding-top: 8px;
+  gap: var(--spacing-xs);
+  padding-top: var(--spacing-xs);
 }
 
 .episode-card--list .episode-badges {
@@ -209,15 +209,15 @@
 
 .episode-badge {
   display: inline-block;
-  padding: 4px 8px;
+  padding: var(--spacing-2xs) var(--spacing-xs);
   border-radius: var(--radius-sm);
-  font-size: 0.7rem;
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
 }
 
 .episode-card--list .episode-badge {
-  padding: 4px 10px;
-  font-size: 0.75rem;
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
 }
 
 .episode-badge--language {
@@ -238,15 +238,15 @@
 /* Responsive Adjustments */
 @media (max-width: 768px) {
   .episode-card--grid .episode-artwork-container {
-    height: 180px;
+    height: var(--card-image-height-mobile);
   }
 
   .episode-card--grid .episode-title {
-    font-size: 0.9rem;
+    font-size: var(--font-size-sm);
   }
 
   .episode-card--grid .podcast-name {
-    font-size: 0.8rem;
+    font-size: var(--font-size-xs);
   }
 
   .episode-card--list {
@@ -256,7 +256,7 @@
 
   .episode-card--list .episode-artwork-container {
     width: 100%;
-    height: 180px;
+    height: var(--card-image-height-mobile);
     margin-bottom: var(--spacing-sm);
   }
 
@@ -266,16 +266,16 @@
 
   .episode-card--list .episode-badges {
     margin-left: 0;
-    margin-top: 10px;
+    margin-top: var(--spacing-sm);
   }
 
   .episode-card--list .episode-meta {
     flex-direction: column;
-    gap: 4px;
+    gap: var(--spacing-2xs);
   }
 
   .episode-badge {
-    font-size: 0.65rem;
-    padding: 3px 6px;
+    font-size: var(--font-size-xs);
+    padding: var(--spacing-2xs) var(--spacing-xs);
   }
 }

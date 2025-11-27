@@ -79,6 +79,41 @@
   --timeline-color-4: var(--base-color-timeline-4);  /* Lavender */
   --timeline-color-5: var(--base-color-timeline-5);  /* Green */
 
+  /* ===== OVERLAY & TINT COLORS ===== */
+  /* Semi-transparent colors for overlays, backgrounds, and tints */
+
+  /* Modal/Dialog overlays */
+  --overlay-backdrop: rgba(23, 23, 56, 0.8);        /* Modal backdrop */
+  --overlay-dark: rgba(0, 0, 0, 0.7);               /* Dark overlay (labels on images) */
+  --overlay-light: rgba(255, 255, 255, 0.5);        /* Light overlay (close buttons) */
+  --overlay-light-hover: rgba(255, 255, 255, 0.8);  /* Light overlay hover state */
+
+  /* Primary color tints (for backgrounds, highlights) */
+  --color-primary-tint-5: rgba(52, 35, 166, 0.05);  /* Very subtle primary tint */
+  --color-primary-tint-8: rgba(52, 35, 166, 0.08);  /* Subtle primary tint */
+  --color-primary-tint-10: rgba(52, 35, 166, 0.1);  /* Light primary tint */
+  --color-primary-tint-20: rgba(52, 35, 166, 0.2);  /* Medium primary tint */
+
+  /* Shadow overlay colors (for box-shadow rgba values) */
+  --shadow-color-sm: rgba(0, 0, 0, 0.1);            /* Light shadow */
+  --shadow-color-md: rgba(0, 0, 0, 0.15);           /* Medium shadow */
+  --shadow-color-lg: rgba(0, 0, 0, 0.2);            /* Strong shadow */
+  --shadow-color-xl: rgba(0, 0, 0, 0.3);            /* Extra strong shadow */
+
+  /* Text on dark backgrounds (inverse text) */
+  --color-text-inverse-muted: rgba(255, 255, 255, 0.7);   /* Muted white text */
+  --color-text-inverse-subtle: rgba(255, 255, 255, 0.9);  /* Subtle white text */
+
+  /* Border with opacity */
+  --border-color-primary-light: rgba(23, 23, 56, 0.2);    /* Light primary border */
+
+  /* ===== FINANCE/TRANSACTION STATUS COLORS ===== */
+  /* Semantic colors for financial transaction types */
+  --color-expense: #e74c3c;    /* Red - Expenses/outgoing */
+  --color-income: #27ae60;     /* Green - Income/incoming */
+  --color-transfer: #3498db;   /* Blue - Transfers */
+  --color-neutral: #95a5a6;    /* Gray - Neutral/other */
+
   /* ===== LEGACY VARIABLE MAPPINGS ===== */
   /* Backward compatibility with old variable names */
   --title-color: var(--color-accent);

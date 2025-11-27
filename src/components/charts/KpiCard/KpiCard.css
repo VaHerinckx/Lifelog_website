@@ -11,7 +11,7 @@
 }
 
 .kpi-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(calc(-1 * var(--spacing-2xs)));
 }
 
 .kpi-card-icon {

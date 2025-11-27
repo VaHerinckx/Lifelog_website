@@ -23,4 +23,29 @@
   --icon-size-xl: 3rem;    /* 48px - Extra large icons */
   --icon-size-2xl: 5rem;   /* 80px - Double extra large icons */
   --icon-size-3xl: 6.25rem; /* 100px - Triple extra large icons */
+
+  /* ===== COMPONENT DIMENSIONS ===== */
+  /* Fixed dimensions for specific UI components */
+
+  /* Card image heights */
+  --card-image-height: 220px;        /* Grid view card images */
+  --card-image-height-tall: 280px;   /* Tall cards (movie posters) */
+  --card-image-height-mobile: 180px; /* Mobile grid view */
+  --card-image-height-list: 120px;   /* List view card images */
+
+  /* Modal dimensions */
+  --modal-max-width: 900px;          /* Standard modal width */
+  --modal-cover-width: 300px;        /* Cover image in modals */
+  --modal-cover-max-height: 450px;   /* Max cover image height */
+
+  /* Navigation */
+  --nav-height: 64px;                /* Desktop navigation height */
+  --nav-height-mobile: 56px;         /* Mobile navigation height */
+
+  /* Content widths */
+  --content-max-width-narrow: 800px; /* Narrow content (hero sections) */
+  --content-max-width-medium: 900px; /* Medium content (modals) */
+
+  /* List view */
+  --list-image-width: 80px;          /* List view image width */
 }

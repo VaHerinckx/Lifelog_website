@@ -7,11 +7,11 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: var(--overlay-dark);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1000;
+  z-index: var(--z-modal);
   padding: var(--spacing-md);
 }
 
@@ -30,9 +30,9 @@
   position: absolute;
   top: var(--spacing-md);
   right: var(--spacing-md);
-  background: rgba(255, 255, 255, 0.5);
+  background: var(--overlay-light);
   border: none;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   padding: var(--spacing-xs);
   cursor: pointer;
   display: flex;
@@ -44,7 +44,7 @@
 }
 
 .close-button:hover {
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--overlay-light-hover);
   color: var(--color-text-on-surface);
 }
 
@@ -68,7 +68,7 @@
 }
 
 .meal-icon-large {
-  filter: drop-shadow(0 var(--spacing-xs) var(--spacing-xs) rgba(0, 0, 0, 0.1));
+  filter: drop-shadow(0 var(--spacing-xs) var(--spacing-xs) var(--shadow-color-sm));
 }
 
 .meal-details-info {
@@ -104,7 +104,7 @@
   flex-wrap: wrap;
   gap: var(--spacing-md);
   padding: var(--spacing-md);
-  background: rgba(52, 35, 166, 0.1);
+  background: var(--color-primary-tint-10);
   border-radius: var(--radius-md);
 }
 
@@ -125,7 +125,7 @@
   grid-template-columns: 1fr;
   gap: var(--spacing-md);
   padding: var(--spacing-md);
-  background: rgba(52, 35, 166, 0.1);
+  background: var(--color-primary-tint-10);
   border-radius: var(--radius-md);
 }
 
@@ -166,7 +166,7 @@
   flex-direction: column;
   gap: var(--spacing-sm);
   padding: var(--spacing-md);
-  background: rgba(52, 35, 166, 0.1);
+  background: var(--color-primary-tint-10);
   border-radius: var(--radius-md);
 }
 
@@ -219,7 +219,7 @@
   flex-direction: column;
   gap: var(--spacing-xs);
   padding: var(--spacing-sm);
-  background: rgba(52, 35, 166, 0.1);
+  background: var(--color-primary-tint-10);
   border-radius: var(--radius-sm);
 }
 

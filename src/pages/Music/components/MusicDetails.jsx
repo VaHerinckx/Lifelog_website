@@ -1,33 +1,35 @@
-import React from 'react';
+import { memo, useMemo } from 'react';
 import { X, Music as MusicIcon, Calendar, Clock, User, Disc, TrendingUp, Play } from 'lucide-react';
 import './MusicDetails.css';
-import { formatDate } from '../../utils';
+import { formatDate } from '../../../utils';
 
-const MusicDetails = ({ toggle, onClose }) => {
+// Pure utility functions - defined outside component to avoid recreation
+const formatDuration = (ms) => {
+  if (!ms) return 'Unknown';
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
+
+const formatListeningTime = (seconds) => {
+  if (!seconds) return '0s';
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  if (mins > 0) {
+    return `${mins}m ${secs}s`;
+  }
+  return `${secs}s`;
+};
+
+const MusicDetails = memo(({ toggle, onClose }) => {
+  // Memoize genres array processing - must be called before any conditional returns
+  const genresArray = useMemo(() =>
+    toggle?.genres ? toggle.genres.split(', ').filter(g => g.trim()) : [],
+    [toggle?.genres]
+  );
+
   if (!toggle) return null;
-
-  // Format duration from milliseconds to minutes:seconds
-  const formatDuration = (ms) => {
-    if (!ms) return 'Unknown';
-    const totalSeconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
-
-  // Format listening time from seconds
-  const formatListeningTime = (seconds) => {
-    if (!seconds) return '0s';
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    if (mins > 0) {
-      return `${mins}m ${secs}s`;
-    }
-    return `${secs}s`;
-  };
-
-  // Parse genres from comma-separated string
-  const genresArray = toggle.genres ? toggle.genres.split(', ').filter(g => g.trim()) : [];
 
   return (
     <div className="music-details-overlay" onClick={onClose}>
@@ -37,22 +39,40 @@ const MusicDetails = ({ toggle, onClose }) => {
         </button>
 
         <div className="music-details-content">
-          {/* Album Artwork Section */}
-          <div className="music-details-artwork">
-            {toggle.album_artwork_url ? (
-              <img
-                src={toggle.album_artwork_url}
-                alt={`${toggle.album_name} artwork`}
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.style.display = 'none';
-                  e.target.nextSibling.style.display = 'flex';
-                }}
-              />
-            ) : null}
-            <div className="music-placeholder-large" style={{ display: toggle.album_artwork_url ? 'none' : 'flex' }}>
-              <MusicIcon size={80} />
+          {/* Artwork Section */}
+          <div className="music-details-artwork-section">
+            {/* Album Artwork */}
+            <div className="music-details-artwork">
+              {toggle.album_artwork_url ? (
+                <img
+                  src={toggle.album_artwork_url}
+                  alt={`${toggle.album_name} artwork`}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div className="music-placeholder-large" style={{ display: toggle.album_artwork_url ? 'none' : 'flex' }}>
+                <MusicIcon size={80} />
+              </div>
             </div>
+
+            {/* Artist Artwork */}
+            {toggle.artist_artwork_url && (
+              <div className="music-details-artist-artwork">
+                <img
+                  src={toggle.artist_artwork_url}
+                  alt={`${toggle.artist_name}`}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.parentElement.style.display = 'none';
+                  }}
+                />
+                <span className="artist-artwork-label">Artist</span>
+              </div>
+            )}
           </div>
 
           {/* Track Information */}
@@ -126,20 +146,20 @@ const MusicDetails = ({ toggle, onClose }) => {
                     <span>Listened: {formatListeningTime(toggle.listening_seconds)}</span>
                   </div>
                 )}
-                {toggle.skip_next_track > 0 && (
+                {toggle.is_skipped_track === 'Yes' && (
                   <div className="stat-row">
                     <Disc size={16} />
-                    <span>Skipped {toggle.skip_next_track.toFixed(0)} tracks after</span>
+                    <span>Track was skipped</span>
                   </div>
                 )}
               </div>
 
               {/* Discovery Badges */}
               <div className="discovery-badges">
-                {toggle.new_artist_yn === 1 && (
+                {toggle.is_new_artist === 'Yes' && (
                   <span className="discovery-badge new-artist">First Artist Listen</span>
                 )}
-                {toggle.new_track_yn === 1 && (
+                {toggle.is_new_track === 'Yes' && (
                   <span className="discovery-badge new-track">First Track Listen</span>
                 )}
               </div>
@@ -161,6 +181,6 @@ const MusicDetails = ({ toggle, onClose }) => {
       </div>
     </div>
   );
-};
+});
 
 export default MusicDetails;

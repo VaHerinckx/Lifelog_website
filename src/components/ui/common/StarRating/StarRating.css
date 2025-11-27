@@ -4,7 +4,7 @@
 
 .star-rating {
   display: flex;
-  gap: 2px;
+  gap: var(--spacing-2xs);
   align-items: center;
 }
 
