@@ -17,32 +17,118 @@
   overflow: hidden;  /* Prevent overflow */
 }
 
+/* Header container with title and optional controls */
+.heatmap-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: var(--chart-header-height-ratio);  /* 20% */
+  flex-shrink: 0;  /* Never shrink */
+  gap: var(--spacing-md);
+}
+
 .heatmap-title {
   color: var(--chart-title-color);
   font-size: var(--chart-title-size);
   font-weight: var(--chart-title-weight);
   margin: 0;
-
-  /* Match TimeSeriesBarChart header proportions */
-  height: var(--chart-header-height-ratio);  /* 20% */
-  flex-shrink: 0;  /* Never shrink */
   display: flex;
   align-items: center;
 }
 
+/* Controls container for metric selector */
+.heatmap-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+/* Chart filter styling (matches TimeSeriesBarChart pattern) */
+.heatmap-container .chart-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.heatmap-container .chart-filter label {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.heatmap-container .filter-select {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-primary);
+  border: var(--border-width-thin) solid var(--border-color-medium);
+  background-color: var(--color-surface-elevated);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  min-width: 120px;
+}
+
+.heatmap-container .filter-select:hover {
+  border-color: var(--color-primary);
+}
+
+.heatmap-container .filter-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-tint-20);
+}
+
+/* Axis swap button */
+.axis-swap-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  border: var(--border-width-thin) solid var(--border-color-medium);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+}
+
+.axis-swap-button:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-tint-5);
+}
+
+.axis-swap-button:active {
+  background-color: var(--color-primary-tint-10);
+}
+
+.axis-swap-button:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-tint-20);
+}
+
+.axis-swap-button svg {
+  flex-shrink: 0;
+}
+
 .heatmap-table-container {
   height: var(--chart-content-height-ratio);  /* 80% */
-  flex-shrink: 0;  /* Never shrink */
+  flex: 1 1 auto;  /* Allow growing/shrinking */
   overflow: hidden;  /* No scroll */
   width: 100%;
   font-size: clamp(0.1rem, 1.5vmin, 1rem);  /* Increased max for better vertical fill */
+  display: flex;
+  align-items: stretch;
 }
 
 .heatmap-table {
   width: 100%;
-  height: auto;  /* Natural height, not forced */
+  height: 100%;  /* Fill container - rows will distribute evenly */
   border-collapse: collapse;
   text-align: center;
+  table-layout: fixed;  /* Fixed layout for consistent column widths */
 }
 
 .heatmap-table th,
@@ -67,8 +153,15 @@
 }
 
 .heatmap-cell {
-  transition: all 0.3s ease;
+  transition: background-color 0.2s ease, color 0.2s ease;
   /* font-size inherited from .heatmap-table-container for responsive scaling */
+}
+
+/* Smooth transition for axis swap */
+.heatmap-table tr,
+.heatmap-table th,
+.heatmap-table td {
+  transition: height 0.2s ease, padding 0.2s ease;
 }
 
 .heatmap-cell:hover {
@@ -120,8 +213,28 @@
     padding: var(--spacing-md);
   }
 
+  .heatmap-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    height: auto;
+    margin-bottom: var(--spacing-sm);
+  }
+
   .heatmap-title {
     font-size: var(--font-size-base);
+  }
+
+  .heatmap-controls {
+    width: 100%;
+  }
+
+  .heatmap-container .chart-filter {
+    width: 100%;
+  }
+
+  .heatmap-container .filter-select {
+    flex: 1;
   }
 
   /* Reduce table font size further on mobile */
@@ -147,8 +260,13 @@
 
   /* Allow table container to use remaining space - match TimeSeriesBarChart behavior */
   .heatmap-table-container {
-    height: auto !important;
-    min-height: 180px !important;
+    min-height: 180px;
     flex: 1 1 auto;
+  }
+
+  /* Table still fills container on mobile */
+  .heatmap-table {
+    height: 100%;
+    min-width: 400px;  /* Reduced from 600px for better mobile fit */
   }
 }
