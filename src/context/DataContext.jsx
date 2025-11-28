@@ -262,6 +262,15 @@ export const DataProvider = ({ children }) => {
               }));
             }
 
+            if (dataType === 'shows') {
+              cleanedData = cleanedData.map(episode => ({
+                ...episode,
+                episode_runtime: episode.episode_runtime ? parseInt(episode.episode_runtime) : 0,
+                episode_runtime_hours: episode.episode_runtime_hours ? parseFloat(episode.episode_runtime_hours) : 0,
+
+              }));
+            }
+
             // Type conversion for music
             if (dataType === 'music') {
               cleanedData = cleanedData.map(toggle => ({

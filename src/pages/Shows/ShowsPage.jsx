@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Tv, List, Grid, Clock, Calendar, Star } from 'lucide-react';
+import { Film, Grid, List, Calendar, Tag, Star, User, Clock, Award, Tv } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -145,6 +145,39 @@ const ShowsPage = () => {
                 dataSources={['shows']}
                 sortType="numeric"
               />
+              <Filter
+                type="multiselect"
+                label="Cast"
+                field="episode_cast"
+                icon={<User />}
+                placeholder="Search cast members"
+                searchPlaceholder="Search actors..."
+                delimiter=","
+                matchMode="contains"
+                dataSources={['shows']}
+              />
+              <Filter
+                type="multiselect"
+                label="Director"
+                field="episode_director"
+                icon={<User />}
+                placeholder="Search director"
+                searchPlaceholder="Search director..."
+                delimiter=","
+                matchMode="contains"
+                dataSources={['shows']}
+              />
+              <Filter
+                type="multiselect"
+                label="Writer"
+                field="episode_writer"
+                icon={<User />}
+                placeholder="Search writer"
+                searchPlaceholder="Search writer..."
+                delimiter=","
+                matchMode="contains"
+                dataSources={['shows']}
+              />
             </FilteringPanel>
 
             {/* Statistics Cards with KpiCard children */}
@@ -176,9 +209,10 @@ const ShowsPage = () => {
               />
               <KpiCard
                 dataSource="shows"
-                field="show_title"
-                computation="mode"
-                label="Most Watched Show"
+                field="episode_runtime_hours"
+                computation="sum"
+                computationOptions={{ decimals: 0, filterZeros: true }}
+                label="Runtime (h)"
                 icon={<Tv />}
               />
             </KPICardsPanel>
@@ -255,7 +289,7 @@ const ShowsPage = () => {
                   dateColumnName="watched_at"
                   metricOptions={[
                     { value: 'episodes', label: 'Episodes Watched', aggregation: 'count', field: 'watch_id', decimals: 0 },
-                    { value: 'episodes', label: 'Episodes Watched', aggregation: 'count', field: 'watch_id', decimals: 0 },
+                    { value: 'runtime', label: 'Runtime', aggregation: 'sum', field: 'episode_runtime_hours', decimals: 1 },
                   ]}
                   defaultMetric="episodes"
                   title="Shows Watch Over Time"
@@ -263,24 +297,40 @@ const ShowsPage = () => {
                 <IntensityHeatmap
                   data={episodes}
                   dateColumnName="watched_at"
-                  valueColumnName="watch_id"
-                  aggregationType="count_distinct"
-                  title="Watched Episodes by Day and Time"
-                  treatMidnightAsUnknown={false}
+                  metricOptions={[
+                    { value: 'episodes', label: 'Episodes', column: 'watch_id', aggregation: 'count_distinct', unit: 'episodes' },
+                    { value: 'episode_runtime_hours', label: 'Watch Time', column: 'episode_runtime_hours', aggregation: 'sum', unit: 'hour', decimals: 1 }
+                  ]}
+                  rowAxis="time_period"    // Time periods as rows
+                  columnAxis="weekday"     // Days as columns
+                  defaultMetric="episodes"
+                  showAxisSwap={true}  // Hide the swap button
+                  title="TV Activity"
                 />
                 <TopChart
                   data={episodes}
                   dimensionOptions={[
                     { value: 'show_title', label: 'Show', field: 'show_title', labelFields: ['show_title'] },
-                    { value: 'show_year', label: 'Release Year', field: 'show_year', labelFields: ['show_year'] }
+                    { value: 'show_year', label: 'Release Year', field: 'show_year', labelFields: ['show_year'] },
+                    { value: 'episode_cast', label: 'Actor', field: 'episode_cast', labelFields: ['episode_cast'], delimiter: ',' },
+                    { value: 'episode_director', label: 'Director', field: 'episode_director', labelFields: ['episode_director'], delimiter: ',' },
+                    { value: 'episode_writer', label: 'Writer', field: 'episode_writer', labelFields: ['episode_writer'], delimiter: ',' }
                   ]}
                   metricOptions={[
-                    { value: 'watch_id', label: 'Episodes', aggregation: 'count', decimals: 0 }
+                    { value: 'watch_id', label: 'Episodes', aggregation: 'count_distinct', field: 'watch_id', countLabel: 'episodes', decimals: 0 },
+                    { value: 'episode_runtime_hours', label: 'Runtime', aggregation: 'sum', field: 'episode_runtime_hours', countLabel: 'hours', decimals: 1 },
+                    { value: 'episode_rating', label: 'Rating', aggregation: 'average', field: 'episode_rating', suffix: '★', decimals: 1 }
                   ]}
                   defaultDimension="show_title"
                   defaultMetric="watch_id"
-                  title="Top Shows by Episodes Watched"
+                  title="Top Shows Analysis"
                   topN={10}
+                  imageField="cover_url"
+                  enableTopNControl={true}
+                  topNOptions={[5, 10, 15, 20, 25, 30]}
+                  enableSortToggle={true}
+                  scrollable={true}
+                  barHeight={50}
                 />
               </>
             )}
