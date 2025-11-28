@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { DollarSign, List, Grid, Calendar, Tag, Building, TrendingUp, FileText } from 'lucide-react';
+import { DollarSign, List, Grid, Calendar, Tag, Building, TrendingUp, FileText, ShoppingBag } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -23,6 +23,8 @@ import KpiCard from '../../components/charts/KpiCard';
 
 // Import chart components for analysis tab
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
+import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
+import TopChart from '../../components/charts/TopChart';
 
 // Import utilities
 import { sortByDateSafely } from '../../utils/sortingUtils';
@@ -124,19 +126,12 @@ const FinancePage = () => {
             >
               <Filter
                 type="daterange"
-                label="Date Range"
+                label="Transaction Date"
                 field="date"
                 icon={<Calendar />}
                 dataSources={['finance']}
               />
-              <Filter
-                type="multiselect"
-                label="Transaction Type"
-                field="transaction_type"
-                icon={<TrendingUp />}
-                placeholder="Select transaction types"
-                dataSources={['finance']}
-              />
+
               <Filter
                 type="hierarchical"
                 selectionMode="multi"
@@ -149,12 +144,28 @@ const FinancePage = () => {
               />
               <Filter
                 type="multiselect"
+                label="Counterparty"
+                field="note"
+                icon={<TrendingUp />}
+                placeholder="Select counterparty"
+                dataSources={['finance']}
+              />
+              <Filter
+                type="multiselect"
                 label="Accounts"
                 field="accounts"
                 icon={<Building />}
                 placeholder="Select accounts"
                 dataSources={['finance']}
                 options={accountOptions}
+              />
+              <Filter
+                type="multiselect"
+                label="Transaction Type"
+                field="transaction_type"
+                icon={<TrendingUp />}
+                placeholder="Select transaction types"
+                dataSources={['finance']}
               />
             </FilteringPanel>
 
@@ -245,6 +256,13 @@ const FinancePage = () => {
                 label="Most Frequent Category"
                 icon={<Tag />}
               />
+              <KpiCard
+                dataSource="finance"
+                field="note"
+                computation="mode"
+                label="Most Frequent Counterparty"
+                icon={<ShoppingBag />}
+              />
             </KPICardsPanel>
 
             {/* Tab Navigation */}
@@ -314,23 +332,56 @@ const FinancePage = () => {
             }}
             renderCharts={(transactionsData) => (
               <>
-                <TimeSeriesBarChart
-                  data={transactionsData}
-                  dateColumnName="date"
-                  metricOptions={[
-                    {
-                      value: 'expenses',
-                      label: 'Total Expenses',
-                      aggregation: 'sum',
-                      field: 'corrected_eur',
-                      decimals: 2,
-                      prefix: '€',
-                      filterCondition: (item) => item.transaction_type === 'expense'
-                    }
-                  ]}
-                  defaultMetric="expenses"
-                  title="Monthly Expenses Over Time"
-                />
+              <TimeSeriesBarChart
+                data={transactionsData}
+                dateColumnName="date"
+                metricOptions={[
+                  { value: 'total_amount', label: 'Total Amount', aggregation: 'sum', field: 'corrected_eur', decimals: 0, suffix: '€'},
+                  { value: 'average_amount', label: 'Average Amount', aggregation: 'average', field: 'corrected_eur', decimals: 0, suffix: '€'},
+                  { value: 'balance', label: 'Balance', aggregation: 'sum', field: 'movement', decimals: 0, suffix: '€'},
+                  { value: 'cumulative_balance', label: 'Cumulative Balance', aggregation: 'cumsum', field: 'movement', decimals: 0, suffix: '€'},
+                  { value: 'transactions', label: 'Total Transactions', field: 'transaction_id', aggregation: 'count_distinct', unit: 'transactions', decimals: 0},
+                ]}
+                defaultMetric="total_amount"
+                title="Finances Over Time"
+              />
+              <IntensityHeatmap
+                data={transactionsData}
+                dateColumnName="date"
+                metricOptions={[
+                  { value: 'total_amount', label: 'Total Amount', column: 'corrected_eur', aggregation: 'sum', unit: 'eur', suffix: ' €' },
+                  { value: 'avg_amount', label: 'Average Amount', column: 'corrected_eur', aggregation: 'average', unit: 'eur', decimals: 1, suffix: ' €' },
+                  { value: 'transactions', label: 'Total Transactions', column: 'transaction_id', aggregation: 'count_distinct', unit: 'transactions', decimals: 0},
+                ]}
+                rowAxis="time_period"    // Time periods as rows
+                columnAxis="weekday"     // Days as columns
+                defaultMetric="total_amount"
+                showAxisSwap={true}  // Hide the swap button
+                title="Transactions Activity"
+              />
+              <TopChart
+                data={transactionsData}
+                dimensionOptions={[
+                  { value: 'category', label: 'Category', field: 'category', labelFields: ['category'] },
+                  { value: 'subcategory', label: 'Subcategory', field: 'subcategory', labelFields: ['subcategory'] },
+                  { value: 'counterparty', label: 'Counterparty', field: 'note', labelFields: ['counterparty'] },
+                  { value: 'accounts', label: 'Accounts', field: 'accounts', labelFields: ['accounts'] },
+                ]}
+                metricOptions={[
+                  { value: 'total_amount', label: 'Total Amount', aggregation: 'sum', field: 'corrected_eur', decimals: 0, suffix: '€'},
+                  { value: 'average_amount', label: 'Average Amount', aggregation: 'average', field: 'corrected_eur', decimals: 0, suffix: '€'},
+                  { value: 'transactions', label: 'Total Transactions', field: 'transaction_id', aggregation: 'count_distinct', unit: 'transactions', decimals: 0},
+                ]}
+                defaultDimension="category"
+                defaultMetric="total_amount"
+                title="Top Finance Analysis"
+                topN={10}
+                enableTopNControl={true}
+                topNOptions={[5, 10, 15, 20, 25, 30]}
+                enableSortToggle={true}
+                scrollable={true}
+                barHeight={50}
+              />
               </>
             )}
           />

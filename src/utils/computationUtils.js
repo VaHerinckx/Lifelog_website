@@ -59,6 +59,12 @@ export const performComputation = (data, field, computation, options = {}) => {
     case 'count_time_range':
       return computeCountTimeRange(data, options);
 
+    case 'cumsum':
+      // Note: cumsum is typically handled at the chart level since it requires
+      // computing over sorted time periods, not the entire dataset at once.
+      // This fallback just returns a sum if called directly.
+      return computeSum(data, field, options);
+
     default:
       console.warn(`Unknown computation type: ${computation}`);
       return options.defaultValue ?? 0;

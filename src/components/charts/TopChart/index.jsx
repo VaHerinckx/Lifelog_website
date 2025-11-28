@@ -98,6 +98,8 @@ const TopChart = ({
           break;
         }
         case 'sum':
+        case 'cumsum':
+          // cumsum treated as sum for TopChart (ranking doesn't have natural time ordering)
           metricValue = _.sumBy(items, item => {
             const val = parseFloat(item[metricField]);
             return isNaN(val) ? 0 : val;
@@ -155,6 +157,11 @@ const TopChart = ({
     const countLabel = currentMetricConfig.countLabel || currentMetricConfig.suffix || '';
 
     return countLabel;
+  };
+
+  const getMetricPrefix = () => {
+    if (!currentMetricConfig) return '';
+    return currentMetricConfig.prefix || '';
   };
 
   const CustomBar = (props) => {
@@ -216,7 +223,7 @@ const TopChart = ({
           textAnchor="start"
           className="value-label"
         >
-          {formatNumber(value, decimals)} {getMetricLabel()}
+          {getMetricPrefix()}{formatNumber(value, decimals)} {getMetricLabel()}
         </text>
       </g>
     );
@@ -395,8 +402,9 @@ TopChart.propTypes = {
     PropTypes.shape({
       value: PropTypes.string.isRequired,
       label: PropTypes.string.isRequired,
-      aggregation: PropTypes.oneOf(['count', 'count_distinct', 'sum', 'average']).isRequired,
+      aggregation: PropTypes.oneOf(['count', 'count_distinct', 'sum', 'average', 'cumsum']).isRequired,
       field: PropTypes.string,
+      prefix: PropTypes.string,
       suffix: PropTypes.string,
       decimals: PropTypes.number,
       countLabel: PropTypes.string

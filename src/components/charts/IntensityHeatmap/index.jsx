@@ -63,6 +63,8 @@ const IntensityHeatmap = ({
   columnAxis = 'weekday',
   decimals,
   unit = 'minutes',
+  prefix = '',
+  suffix = '',
   showAxisSwap = true
 }) => {
   const [heatmapData, setHeatmapData] = useState({});
@@ -214,7 +216,7 @@ const IntensityHeatmap = ({
         matrix[rowKey][colKey] += avgValue;
         countMatrix[rowKey][colKey] += 1;
       } else {
-        // sum (default)
+        // sum or cumsum (cumsum treated as sum for heatmaps - 2D grid doesn't have natural ordering)
         const sumValue = parseFloat(rawValue) || 0;
         const normalizedValue = columnName === 'duration' ? sumValue / 60 : sumValue;
         matrix[rowKey][colKey] += normalizedValue;
@@ -297,18 +299,71 @@ const IntensityHeatmap = ({
     return currentMetricConfig?.unit || '';
   };
 
+  // Format large values compactly (K for thousands, M for millions)
+  const formatCompactValue = (value) => {
+    const absValue = Math.abs(value);
+
+    if (absValue >= 1000000) {
+      // Millions
+      const millions = value / 1000000;
+      return millions % 1 === 0 ? `${millions}M` : `${millions.toFixed(1)}M`;
+    } else if (absValue >= 10000) {
+      // Thousands (for 5+ digit numbers: 10,000+)
+      const thousands = value / 1000;
+      return `${Math.round(thousands)}K`;
+    }
+
+    return null; // Signal to use regular formatting
+  };
+
   // Format value for display
   const formatValue = (value) => {
+    let formatted;
+    let valuePrefix = '';
+    let valueSuffix = '';
+
     if (useSimpleAPI) {
       if (decimals !== undefined) {
-        return value.toFixed(decimals);
+        formatted = value.toFixed(decimals);
+      } else {
+        formatted = Math.round(value).toLocaleString();
       }
-      return Math.round(value).toLocaleString();
+      valuePrefix = prefix;
+      valueSuffix = suffix;
+    } else {
+      if (currentMetricConfig?.decimals !== undefined) {
+        formatted = value.toFixed(currentMetricConfig.decimals);
+      } else {
+        formatted = Math.round(value).toLocaleString();
+      }
+      valuePrefix = currentMetricConfig?.prefix || '';
+      valueSuffix = currentMetricConfig?.suffix || '';
     }
-    if (currentMetricConfig?.decimals !== undefined) {
-      return value.toFixed(currentMetricConfig.decimals);
+
+    return `${valuePrefix}${formatted}${valueSuffix}`;
+  };
+
+  // Format value for total cells (uses compact formatting for large numbers)
+  const formatTotalValue = (value) => {
+    let valuePrefix = '';
+    let valueSuffix = '';
+
+    if (useSimpleAPI) {
+      valuePrefix = prefix;
+      valueSuffix = suffix;
+    } else {
+      valuePrefix = currentMetricConfig?.prefix || '';
+      valueSuffix = currentMetricConfig?.suffix || '';
     }
-    return Math.round(value).toLocaleString();
+
+    // Check if value needs compact formatting (5+ digits = 10,000+)
+    const compact = formatCompactValue(value);
+    if (compact) {
+      return `${valuePrefix}${compact}${valueSuffix}`;
+    }
+
+    // Fall back to regular formatting
+    return formatValue(value);
   };
 
   // Generate tooltip content
@@ -323,7 +378,10 @@ const IntensityHeatmap = ({
         const formatted = opt.decimals !== undefined
           ? value.toFixed(opt.decimals)
           : Math.round(value).toLocaleString();
-        return `${opt.label}: ${formatted}${opt.unit ? ' ' + opt.unit : ''}`;
+        const optPrefix = opt.prefix || '';
+        const optSuffix = opt.suffix || '';
+        const optUnit = opt.unit ? ' ' + opt.unit : '';
+        return `${opt.label}: ${optPrefix}${formatted}${optSuffix}${optUnit}`;
       }).join('\n');
     }
   };
@@ -425,7 +483,7 @@ const IntensityHeatmap = ({
                     );
                   })}
                   <td className="total-cell">
-                    {formatValue(rowTotal)}
+                    {formatTotalValue(rowTotal)}
                     {grandTotal > 0 && (
                       <span className="percentage">
                         {' '}({Math.round((rowTotal / grandTotal) * 100)}%)
@@ -446,7 +504,7 @@ const IntensityHeatmap = ({
 
                 return (
                   <td key={`total-${col.key}`} className="total-cell">
-                    {formatValue(columnTotal)}
+                    {formatTotalValue(columnTotal)}
                     {grandTotal > 0 && (
                       <span className="percentage">
                         {' '}({Math.round((columnTotal / grandTotal) * 100)}%)
@@ -458,7 +516,7 @@ const IntensityHeatmap = ({
 
               {/* Grand total (bottom-right cell) */}
               <td className="grand-total-cell">
-                {formatValue(grandTotal)}
+                {formatTotalValue(grandTotal)}
               </td>
             </tr>
           </tbody>
@@ -472,22 +530,26 @@ IntensityHeatmap.propTypes = {
   data: PropTypes.array.isRequired,
   dateColumnName: PropTypes.string.isRequired,
   valueColumnName: PropTypes.string,
-  aggregationType: PropTypes.oneOf(['sum', 'count', 'count_distinct', 'average']),
+  aggregationType: PropTypes.oneOf(['sum', 'count', 'count_distinct', 'average', 'cumsum']),
   title: PropTypes.string,
   treatMidnightAsUnknown: PropTypes.bool,
   metricOptions: PropTypes.arrayOf(PropTypes.shape({
     value: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
     column: PropTypes.string.isRequired,
-    aggregation: PropTypes.oneOf(['sum', 'count', 'count_distinct', 'average']).isRequired,
+    aggregation: PropTypes.oneOf(['sum', 'count', 'count_distinct', 'average', 'cumsum']).isRequired,
     unit: PropTypes.string,
-    decimals: PropTypes.number
+    decimals: PropTypes.number,
+    prefix: PropTypes.string,
+    suffix: PropTypes.string
   })),
   defaultMetric: PropTypes.string,
   rowAxis: PropTypes.oneOf(['weekday', 'time_period']),
   columnAxis: PropTypes.oneOf(['weekday', 'time_period']),
   decimals: PropTypes.number,
   unit: PropTypes.string,
+  prefix: PropTypes.string,
+  suffix: PropTypes.string,
   showAxisSwap: PropTypes.bool
 };
 

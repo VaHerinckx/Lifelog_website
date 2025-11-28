@@ -180,12 +180,15 @@ const TimeSeriesBarChart = ({
       defaultValue: 0
     };
 
+    // For cumsum, we first compute sum per period, then accumulate
+    const baseAggregationType = aggregationType === 'cumsum' ? 'sum' : aggregationType;
+
     const chartDataArray = Object.values(periodGroups).map(group => {
       // Use performComputation to calculate the aggregated value for this period
       const value = performComputation(
         group.data,
         metricField,
-        aggregationType,
+        baseAggregationType,
         computationOptions
       );
 
@@ -198,6 +201,15 @@ const TimeSeriesBarChart = ({
 
     // Sort chronologically
     chartDataArray.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+
+    // Apply cumulative sum if aggregationType is 'cumsum'
+    if (aggregationType === 'cumsum') {
+      let runningTotal = 0;
+      chartDataArray.forEach(item => {
+        runningTotal += item.value;
+        item.value = parseFloat(runningTotal.toFixed(decimals));
+      });
+    }
 
     setChartData(chartDataArray);
   }, [data, dateColumnName, metricColumnName, selectedPeriod, selectedMetric, useSimpleAPI, currentMetricConfig]);
@@ -217,7 +229,9 @@ const TimeSeriesBarChart = ({
   // Helper function to format Y-axis values
   const formatYAxisValue = (value) => {
     const decimals = useSimpleAPI ? 0 : (currentMetricConfig?.decimals || 0);
-    return formatComputedValue(value, { type: 'number', decimals });
+    const prefix = useSimpleAPI ? '' : (currentMetricConfig?.prefix || '');
+    const suffix = useSimpleAPI ? '' : (currentMetricConfig?.suffix || '');
+    return formatComputedValue(value, { type: 'number', decimals, prefix, suffix });
   };
 
   // Helper function to calculate X-axis label interval
@@ -324,9 +338,10 @@ TimeSeriesBarChart.propTypes = {
     PropTypes.shape({
       value: PropTypes.string.isRequired,
       label: PropTypes.string.isRequired,
-      aggregation: PropTypes.oneOf(['count', 'count_distinct', 'sum', 'average', 'median', 'min', 'max', 'mode']).isRequired,
+      aggregation: PropTypes.oneOf(['count', 'count_distinct', 'sum', 'average', 'median', 'min', 'max', 'mode', 'cumsum']).isRequired,
       field: PropTypes.string,
       suffix: PropTypes.string,
+      prefix: PropTypes.string,
       decimals: PropTypes.number,
       convertToHours: PropTypes.bool
     })

@@ -30,7 +30,7 @@
 .transaction-card--grid {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 220px;
   padding: var(--spacing-md);
 }
 
