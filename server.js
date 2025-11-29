@@ -11,10 +11,16 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // HTTP Basic Auth - only in production when credentials are set
-const AUTH_USER = process.env.AUTH_USER;
-const AUTH_PASS = process.env.AUTH_PASS;
+// Supports multiple users: AUTH_USER/AUTH_PASS (admin) and GUEST_USER/GUEST_PASS (guest)
+const validUsers = [];
+if (process.env.AUTH_USER && process.env.AUTH_PASS) {
+    validUsers.push({ user: process.env.AUTH_USER, pass: process.env.AUTH_PASS });
+}
+if (process.env.GUEST_USER && process.env.GUEST_PASS) {
+    validUsers.push({ user: process.env.GUEST_USER, pass: process.env.GUEST_PASS });
+}
 
-if (process.env.NODE_ENV === 'production' && AUTH_USER && AUTH_PASS) {
+if (process.env.NODE_ENV === 'production' && validUsers.length > 0) {
     app.use((req, res, next) => {
         const authHeader = req.headers.authorization;
 
@@ -27,7 +33,8 @@ if (process.env.NODE_ENV === 'production' && AUTH_USER && AUTH_PASS) {
         const credentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
         const [username, password] = credentials.split(':');
 
-        if (username === AUTH_USER && password === AUTH_PASS) {
+        const isValid = validUsers.some(u => u.user === username && u.pass === password);
+        if (isValid) {
             return next();
         }
 
