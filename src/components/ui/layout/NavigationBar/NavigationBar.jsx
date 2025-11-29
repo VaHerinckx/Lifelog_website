@@ -1,12 +1,14 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, BookOpen, Film, Music, UtensilsCrossed, Mic, Tv, DollarSign, Activity, Dumbbell, Briefcase } from 'lucide-react';
+import { useAuth } from '../../../../context/AuthContext';
 import './NavigationBar.css';
 
 const NavigationBar = () => {
   const location = useLocation();
+  const { isPageAllowed } = useAuth();
 
-  const navItems = [
+  const allNavItems = [
     { path: '/', label: 'Home', icon: Home, implemented: true },
     { path: '/reading', label: 'Reading', icon: BookOpen, implemented: true },
     { path: '/movies', label: 'Movies', icon: Film, implemented: true },
@@ -19,6 +21,9 @@ const NavigationBar = () => {
     { path: '/sport', label: 'Sport', icon: Dumbbell, implemented: false },
     { path: '/work', label: 'Work', icon: Briefcase, implemented: false }
   ];
+
+  // Filter nav items based on user role
+  const navItems = allNavItems.filter(item => isPageAllowed(item.path));
 
   const handleNavClick = (item) => {
     console.log('🔍 Navigation item clicked:', {

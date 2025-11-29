@@ -3,11 +3,13 @@ import { useState, useEffect, useRef } from 'react';
 import { BookOpen, Film, Music, UtensilsCrossed, Mic, Tv, DollarSign, Activity, Dumbbell, Briefcase, Clock } from 'lucide-react';
 import { usePageTitle } from '../../hooks/usePageTitle';
 import { useData } from '../../context/DataContext';
+import { useAuth } from '../../context/AuthContext';
 import './Homepage.css';
 
 const Homepage = () => {
   usePageTitle('Dashboard');
   const { data, fetchData } = useData();
+  const { isPageAllowed } = useAuth();
   const [categoryStatuses, setCategoryStatuses] = useState({});
   const [isLoadingTracking, setIsLoadingTracking] = useState(true);
   const hasCalculated = useRef(false);
@@ -179,6 +181,9 @@ const Homepage = () => {
     }
   ];
 
+  // Filter categories based on user role
+  const visibleCategories = categories.filter(cat => isPageAllowed(cat.path));
+
   return (
     <div className="homepage">
       {/* Fixed Hero Header */}
@@ -195,7 +200,7 @@ const Homepage = () => {
           {/* Category List */}
           <section className="categories-section">
             <div className="category-list">
-              {categories.map((category) => {
+              {visibleCategories.map((category) => {
                 const IconComponent = category.icon;
                 const status = categoryStatuses[category.id];
 

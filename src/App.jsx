@@ -2,6 +2,7 @@
 import './styles/variables.css';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { DataProvider } from './context/DataContext';
+import { AuthProvider } from './context/AuthContext';
 import { Layout } from './components/ui';
 import Homepage from './pages/Home/Homepage';
 import ReadingPage from './pages/Reading/ReadingPage';
@@ -15,6 +16,7 @@ import HealthPage from './pages/Health/HealthPage';
 
 const App = () => {
   return (
+    <AuthProvider>
     <DataProvider>
       <Router
         future={{
@@ -56,6 +58,7 @@ const App = () => {
         </Routes>
       </Router>
     </DataProvider>
+    </AuthProvider>
   );
 };
 

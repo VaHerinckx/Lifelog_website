@@ -93,6 +93,25 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+// API endpoint to get current user role and allowed pages
+app.get('/api/user-info', (req, res) => {
+    // In development, return admin role
+    if (process.env.NODE_ENV !== 'production') {
+        return res.json({ role: 'admin', allowedPages: null });
+    }
+
+    // Return guest restrictions
+    if (req.userRole === 'guest') {
+        return res.json({
+            role: 'guest',
+            allowedPages: GUEST_ALLOWED_PAGES
+        });
+    }
+
+    // Admin has full access
+    return res.json({ role: 'admin', allowedPages: null });
+});
+
 // API endpoint for Google Drive files
 app.get('/api/google-drive/:fileId', async (req, res) => {
     try {
