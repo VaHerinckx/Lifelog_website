@@ -182,31 +182,42 @@ const ReadingPage = () => {
             >
               <KpiCard
                 dataSource="readingBooks"
-                computation="count"
-                label="Books Read"
+                metricOptions={{
+                  label: 'Books Read',
+                  aggregation: 'count'
+                }}
                 icon={<Book />}
               />
               <KpiCard
                 dataSource="readingBooks"
-                field="number_of_pages"
-                computation="sum"
-                label="Total Pages"
+                metricOptions={{
+                  label: 'Total Pages',
+                  aggregation: 'sum',
+                  field: 'number_of_pages',
+                  decimals: 0
+                }}
                 icon={<BookIcon />}
               />
               <KpiCard
                 dataSource="readingBooks"
-                field="my_rating"
-                computation="average"
-                computationOptions={{ decimals: 1, filterZeros: true }}
-                label="Average Rating"
+                metricOptions={{
+                  label: 'Average Rating',
+                  aggregation: 'average',
+                  field: 'my_rating',
+                  decimals: 1,
+                  filterConditions: [{ field: 'my_rating', operator: '>', value: 0 }]
+                }}
                 icon={<Star />}
               />
               <KpiCard
                 dataSource="readingBooks"
-                field="pages_per_day"
-                computation="average"
-                computationOptions={{ decimals: 0, filterZeros: true }}
-                label="Avg. Pages per day"
+                metricOptions={{
+                  label: 'Avg. Pages per day',
+                  aggregation: 'average',
+                  field: 'pages_per_day',
+                  decimals: 0,
+                  filterConditions: [{ field: 'pages_per_day', operator: '>', value: 0 }]
+                }}
                 icon={<Clock />}
               />
             </KPICardsPanel>
@@ -316,10 +327,10 @@ const ReadingPage = () => {
                     { value: 'format', label: 'Format', field: 'reading_format', labelFields: ['reading_format'] }
                   ]}
                   metricOptions={[
-                    { value: 'pages', label: 'Total Pages', aggregation: 'sum', field: 'number_of_pages', countLabel: 'pages', decimals: 0 },
-                    { value: 'books', label: 'Total Books', aggregation: 'count_distinct', field: 'book_id', countLabel: 'books', decimals: 0 },
-                    { value: 'pages per day', label: 'Avg pages per day', aggregation: 'average', field: 'pages_per_day', countLabel: 'pages per day', decimals: 0 },
-                    { value: 'reading_duration_final', label: 'Completion Time', aggregation: 'sum', field: 'reading_duration_final', countLabel: 'days', decimals: 0 },
+                    { value: 'pages', label: 'Total Pages', aggregation: 'sum', field: 'number_of_pages', suffix: ' pages', decimals: 0 },
+                    { value: 'books', label: 'Total Books', aggregation: 'count_distinct', field: 'book_id', suffix: ' books', decimals: 0 },
+                    { value: 'pages per day', label: 'Avg pages per day', aggregation: 'average', field: 'pages_per_day', suffix: ' pages per day', decimals: 0 },
+                    { value: 'reading_duration_final', label: 'Completion Time', aggregation: 'sum', field: 'reading_duration_final', suffix: ' days', decimals: 0 },
                     { value: 'my_rating', label: 'Avg Rating', aggregation: 'average', field: 'my_rating', suffix: '★', decimals: 1 }
                   ]}
                   defaultDimension="author"

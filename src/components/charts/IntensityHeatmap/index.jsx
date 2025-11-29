@@ -1,6 +1,7 @@
 // src/components/charts/IntensityHeatmap/index.jsx
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import { applyMetricFilter } from '../../../utils/computationUtils';
 import './IntensityHeatmap.css';
 
 // Fixed time periods - ordered from morning to night, with unknown at the end
@@ -39,15 +40,17 @@ const getColor = (value, maxValue) => {
  * @param {Array} props.metricOptions - Array of metric configs for multi-metric mode
  * @param {string} props.metricOptions[].value - Internal identifier for the metric
  * @param {string} props.metricOptions[].label - Display label for the metric
- * @param {string} props.metricOptions[].column - Data column name
+ * @param {string} props.metricOptions[].field - Data field name to aggregate
  * @param {string} props.metricOptions[].aggregation - Aggregation type: 'sum' | 'count' | 'count_distinct' | 'average'
- * @param {string} props.metricOptions[].unit - Optional unit label (e.g., 'minutes', 'episodes')
  * @param {number} props.metricOptions[].decimals - Optional decimal places for display
+ * @param {string} props.metricOptions[].prefix - Optional prefix for display
+ * @param {string} props.metricOptions[].suffix - Optional suffix for display
+ * @param {boolean} props.metricOptions[].compactNumbers - Optional compact formatting for large numbers
  * @param {string} props.defaultMetric - Default selected metric value (for multi-metric mode)
  * @param {string} props.rowAxis - What to display on Y-axis: 'weekday' | 'time_period' (default: 'time_period')
  * @param {string} props.columnAxis - What to display on X-axis: 'weekday' | 'time_period' (default: 'weekday')
  * @param {number} props.decimals - Decimal places for display (simple API only, default: 0)
- * @param {string} props.unit - Unit label for display (simple API only, default: 'minutes')
+ * @param {boolean} props.compactNumbers - Whether to format large numbers as K/M (default: false)
  * @param {boolean} props.showAxisSwap - Whether to show the axis swap button (default: true)
  */
 const IntensityHeatmap = ({
@@ -62,9 +65,9 @@ const IntensityHeatmap = ({
   rowAxis = 'time_period',
   columnAxis = 'weekday',
   decimals,
-  unit = 'minutes',
   prefix = '',
   suffix = '',
+  compactNumbers = false,
   showAxisSwap = true
 }) => {
   const [heatmapData, setHeatmapData] = useState({});
@@ -174,7 +177,7 @@ const IntensityHeatmap = ({
   }, [treatMidnightAsUnknown]);
 
   // Aggregate data for a single metric configuration
-  const aggregateMetric = useCallback((items, columnName, aggType) => {
+  const aggregateMetric = useCallback((items, columnName, aggType, metricConfig = null) => {
     const matrix = {};
     const countMatrix = {};
     const distinctSets = {};
@@ -191,8 +194,11 @@ const IntensityHeatmap = ({
       });
     });
 
+    // Apply metric filter before aggregation
+    const filteredItems = applyMetricFilter(items, metricConfig);
+
     // Process each item
-    items.forEach(item => {
+    filteredItems.forEach(item => {
       const parsed = parseTimestamp(item[dateColumnName]);
       if (!parsed) return;
 
@@ -248,7 +254,7 @@ const IntensityHeatmap = ({
     try {
       if (useSimpleAPI) {
         // Simple API: use valueColumnName + aggregationType
-        const matrix = aggregateMetric(data, valueColumnName, aggregationType);
+        const matrix = aggregateMetric(data, valueColumnName, aggregationType, null);
         const max = Math.max(
           ...Object.values(matrix).flatMap(row => Object.values(row))
         );
@@ -258,7 +264,7 @@ const IntensityHeatmap = ({
         // Advanced API: compute all metrics, display selected one
         const allMetrics = {};
         metricOptions.forEach(opt => {
-          allMetrics[opt.value] = aggregateMetric(data, opt.column, opt.aggregation);
+          allMetrics[opt.value] = aggregateMetric(data, opt.field, opt.aggregation, opt);
         });
         setAllMetricsData(allMetrics);
 
@@ -291,13 +297,8 @@ const IntensityHeatmap = ({
     }
   }, [selectedMetric, allMetricsData, useSimpleAPI]);
 
-  // Get unit label for display
-  const getUnit = () => {
-    if (useSimpleAPI) {
-      return unit;
-    }
-    return currentMetricConfig?.unit || '';
-  };
+  // Determine if compact number formatting should be used
+  const shouldUseCompactNumbers = useSimpleAPI ? compactNumbers : (currentMetricConfig?.compactNumbers || false);
 
   // Format large values compactly (K for thousands, M for millions)
   const formatCompactValue = (value) => {
@@ -317,10 +318,26 @@ const IntensityHeatmap = ({
   };
 
   // Format value for display
-  const formatValue = (value) => {
+  const formatValue = (value, useCompact = false) => {
     let formatted;
     let valuePrefix = '';
     let valueSuffix = '';
+
+    if (useSimpleAPI) {
+      valuePrefix = prefix;
+      valueSuffix = suffix;
+    } else {
+      valuePrefix = currentMetricConfig?.prefix || '';
+      valueSuffix = currentMetricConfig?.suffix || '';
+    }
+
+    // Check for compact formatting
+    if (useCompact && shouldUseCompactNumbers) {
+      const compact = formatCompactValue(value);
+      if (compact) {
+        return `${valuePrefix}${compact}${valueSuffix}`;
+      }
+    }
 
     if (useSimpleAPI) {
       if (decimals !== undefined) {
@@ -328,22 +345,18 @@ const IntensityHeatmap = ({
       } else {
         formatted = Math.round(value).toLocaleString();
       }
-      valuePrefix = prefix;
-      valueSuffix = suffix;
     } else {
       if (currentMetricConfig?.decimals !== undefined) {
         formatted = value.toFixed(currentMetricConfig.decimals);
       } else {
         formatted = Math.round(value).toLocaleString();
       }
-      valuePrefix = currentMetricConfig?.prefix || '';
-      valueSuffix = currentMetricConfig?.suffix || '';
     }
 
     return `${valuePrefix}${formatted}${valueSuffix}`;
   };
 
-  // Format value for total cells (uses compact formatting for large numbers)
+  // Format value for total cells (always uses compact formatting for large numbers in totals)
   const formatTotalValue = (value) => {
     let valuePrefix = '';
     let valueSuffix = '';
@@ -356,7 +369,7 @@ const IntensityHeatmap = ({
       valueSuffix = currentMetricConfig?.suffix || '';
     }
 
-    // Check if value needs compact formatting (5+ digits = 10,000+)
+    // Totals always use compact formatting for large values (10,000+)
     const compact = formatCompactValue(value);
     if (compact) {
       return `${valuePrefix}${compact}${valueSuffix}`;
@@ -370,7 +383,7 @@ const IntensityHeatmap = ({
   const generateTooltip = (rowKey, colKey) => {
     if (useSimpleAPI) {
       const value = heatmapData[rowKey]?.[colKey] || 0;
-      return `${formatValue(value)} ${getUnit()}`;
+      return formatValue(value);
     } else {
       // Show all metrics in tooltip
       return metricOptions.map(opt => {
@@ -380,8 +393,7 @@ const IntensityHeatmap = ({
           : Math.round(value).toLocaleString();
         const optPrefix = opt.prefix || '';
         const optSuffix = opt.suffix || '';
-        const optUnit = opt.unit ? ' ' + opt.unit : '';
-        return `${opt.label}: ${optPrefix}${formatted}${optSuffix}${optUnit}`;
+        return `${opt.label}: ${optPrefix}${formatted}${optSuffix}`;
       }).join('\n');
     }
   };
@@ -536,20 +548,34 @@ IntensityHeatmap.propTypes = {
   metricOptions: PropTypes.arrayOf(PropTypes.shape({
     value: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
-    column: PropTypes.string.isRequired,
+    field: PropTypes.string.isRequired,
     aggregation: PropTypes.oneOf(['sum', 'count', 'count_distinct', 'average', 'cumsum']).isRequired,
-    unit: PropTypes.string,
     decimals: PropTypes.number,
     prefix: PropTypes.string,
-    suffix: PropTypes.string
+    suffix: PropTypes.string,
+    compactNumbers: PropTypes.bool,
+    // Filter conditions: array of conditions with AND logic
+    filterConditions: PropTypes.arrayOf(PropTypes.shape({
+      field: PropTypes.string.isRequired,
+      operator: PropTypes.oneOf(['=', '==', '!=', '!==', '>', '>=', '<', '<=']),
+      value: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number,
+        PropTypes.bool,
+        PropTypes.array
+      ]).isRequired
+    })),
+    // Legacy filter API (backward compatible)
+    filterField: PropTypes.string,
+    filterValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool, PropTypes.array])
   })),
   defaultMetric: PropTypes.string,
   rowAxis: PropTypes.oneOf(['weekday', 'time_period']),
   columnAxis: PropTypes.oneOf(['weekday', 'time_period']),
   decimals: PropTypes.number,
-  unit: PropTypes.string,
   prefix: PropTypes.string,
   suffix: PropTypes.string,
+  compactNumbers: PropTypes.bool,
   showAxisSwap: PropTypes.bool
 };
 

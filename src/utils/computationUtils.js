@@ -8,6 +8,86 @@
 import _ from 'lodash';
 
 /**
+ * Apply metric filter to data before aggregation
+ *
+ * Supports two APIs:
+ * 1. Legacy: filterField/filterValue - simple field matching
+ * 2. New: filterConditions - array of conditions with operators and AND logic
+ *
+ * @param {Array} data - The data array to filter
+ * @param {Object} metricConfig - The metric configuration object
+ * @param {string} [metricConfig.filterField] - (Legacy) The field to filter on
+ * @param {string|Array} [metricConfig.filterValue] - (Legacy) Value(s) to match
+ * @param {Array} [metricConfig.filterConditions] - Array of filter conditions with AND logic
+ * @param {string} metricConfig.filterConditions[].field - The field to filter on
+ * @param {string} [metricConfig.filterConditions[].operator] - Operator: '=', '==', '!=', '>', '>=', '<', '<=' (default: '=')
+ * @param {*} metricConfig.filterConditions[].value - Value to compare (array = OR within this condition)
+ * @returns {Array} Filtered data array
+ */
+export const applyMetricFilter = (data, metricConfig) => {
+  // Support new API: filterConditions array
+  const conditions = metricConfig?.filterConditions;
+
+  // Backward compatibility: use old API if filterConditions not provided
+  if (!conditions && metricConfig?.filterField && metricConfig?.filterValue !== undefined) {
+    const { filterField, filterValue } = metricConfig;
+    return data.filter(item => {
+      const itemValue = item[filterField];
+      // Support array of values (OR condition)
+      if (Array.isArray(filterValue)) {
+        return filterValue.includes(itemValue);
+      }
+      // Single value match
+      return itemValue === filterValue;
+    });
+  }
+
+  // No filter conditions provided
+  if (!conditions || !Array.isArray(conditions) || conditions.length === 0) {
+    return data;
+  }
+
+  // Apply all conditions with AND logic
+  return data.filter(item => {
+    return conditions.every(condition => {
+      const { field, value, operator = '=' } = condition;
+      const itemValue = item[field];
+
+      // Handle array values (OR within this condition) - only for equality operators
+      if (Array.isArray(value)) {
+        if (operator === '!=' || operator === '!==') {
+          // For not-equals with array, item must not match ANY value
+          return !value.includes(itemValue);
+        }
+        // For equals (default), item must match at least one value
+        return value.includes(itemValue);
+      }
+
+      // Handle comparison operators (mathematical symbols)
+      switch (operator) {
+        case '=':
+        case '==':
+          return itemValue === value;
+        case '!=':
+        case '!==':
+          return itemValue !== value;
+        case '>':
+          return itemValue > value;
+        case '>=':
+          return itemValue >= value;
+        case '<':
+          return itemValue < value;
+        case '<=':
+          return itemValue <= value;
+        default:
+          // Default to equality check
+          return itemValue === value;
+      }
+    });
+  });
+};
+
+/**
  * Performs a computation on a dataset
  *
  * @param {Array} data - The data array to compute on

@@ -1,87 +1,79 @@
 // src/components/charts/KpiCard/index.jsx
-import React, { useMemo } from 'react';
-import { performComputation, formatComputedValue } from '../../../utils/computationUtils';
+import { useMemo } from 'react';
+import PropTypes from 'prop-types';
+import { performComputation, formatComputedValue, applyMetricFilter } from '../../../utils/computationUtils';
 import './KpiCard.css';
 
 /**
  * A reusable KPI card component for displaying key metrics
- *
- * Supports two modes:
- * 1. Legacy mode: Pass pre-computed value directly
- * 2. Smart mode: Pass data + computation config for automatic calculation
+ * Uses the same metricOptions structure as chart components for consistency
  *
  * @param {Object} props
- *
- * LEGACY MODE (backward compatible):
- * @param {string|number} props.value - The main value to display (pre-computed)
- * @param {string} props.label - The descriptive label for the KPI
- * @param {React.ReactNode} [props.icon] - Optional icon to display
- *
- * SMART MODE (new):
  * @param {Array} props.data - The dataset to compute from
- * @param {string} props.dataSource - Which data source to use (e.g., 'readingBooks')
- * @param {string} props.field - The field name to compute on
- * @param {string} props.computation - Type of computation (count, sum, average, etc.)
- * @param {Function} [props.customValue] - Custom function to compute value (bypasses computation)
- * @param {Function} [props.filterCondition] - Filter function to apply before computation
- * @param {Object} [props.computationOptions] - Additional options for computation
- * @param {Object} [props.formatOptions] - Formatting options for display
- * @param {string} props.label - The descriptive label for the KPI
+ * @param {string} props.dataSource - Which data source to use (for KPICardsPanel compatibility)
+ * @param {Object} props.metricOptions - Metric configuration (same structure as chart metricOptions)
+ * @param {string} props.metricOptions.value - Unique identifier for this metric
+ * @param {string} props.metricOptions.label - Display label for the KPI
+ * @param {string} props.metricOptions.aggregation - Aggregation type: 'count', 'sum', 'average', 'mode', etc.
+ * @param {string} props.metricOptions.field - Data field to aggregate
+ * @param {number} [props.metricOptions.decimals] - Decimal places for display
+ * @param {string} [props.metricOptions.prefix] - Text before value (e.g., '€')
+ * @param {string} [props.metricOptions.suffix] - Text after value (e.g., ' hours')
+ * @param {boolean} [props.metricOptions.compactNumbers] - Format large numbers as K/M
+ * @param {Array} [props.metricOptions.filterConditions] - Filter conditions array
  * @param {React.ReactNode} [props.icon] - Optional icon to display
  */
 const KpiCard = ({
-  // Legacy mode props
-  value,
-
-  // Smart mode props
   data,
-  dataSource,
-  field,
-  computation,
-  customValue,
-  filterCondition,
-  computationOptions = {},
-  formatOptions = {},
-
-  // Common props
-  label,
+  dataSource, // eslint-disable-line no-unused-vars -- used by KPICardsPanel to route data
+  metricOptions,
   icon
 }) => {
-  // Determine which mode we're in
-  const isLegacyMode = value !== undefined;
+  // Extract configuration from metricOptions
+  const {
+    label = '',
+    aggregation = 'count',
+    field,
+    decimals = 0,
+    prefix = '',
+    suffix = '',
+    compactNumbers = false,
+    filterConditions
+  } = metricOptions || {};
 
-  // Compute value if in smart mode
+  // Compute value from data
   const computedValue = useMemo(() => {
-    if (isLegacyMode) {
-      return value; // Use pre-computed value
-    }
-
-    // Check for custom value function
-    if (customValue && typeof customValue === 'function') {
-      return customValue();
-    }
-
-    // Smart mode: compute from data
-    if (!data || !computation) {
-      console.warn('KpiCard in smart mode requires data and computation props');
+    if (!data || !aggregation) {
+      console.warn('KpiCard requires data and metricOptions.aggregation props');
       return 0;
     }
 
-    // Apply filterCondition if provided
-    const dataToCompute = filterCondition && typeof filterCondition === 'function'
-      ? data.filter(filterCondition)
-      : data;
+    // Apply filterConditions if provided
+    const dataToCompute = applyMetricFilter(data, { filterConditions });
 
     // Perform the computation on filtered data
-    const result = performComputation(dataToCompute, field, computation, computationOptions);
-
-    // Format if options provided
-    if (formatOptions && Object.keys(formatOptions).length > 0) {
-      return formatComputedValue(result, formatOptions);
-    }
+    const computationOptions = { decimals, defaultValue: 0 };
+    const result = performComputation(dataToCompute, field, aggregation, computationOptions);
 
     return result;
-  }, [isLegacyMode, value, customValue, data, field, computation, filterCondition, computationOptions, formatOptions]);
+  }, [data, field, aggregation, filterConditions, decimals]);
+
+  // Format large values compactly (K for thousands, M for millions)
+  const formatCompactValue = (val) => {
+    const absValue = Math.abs(val);
+
+    if (absValue >= 1000000) {
+      // Millions
+      const millions = val / 1000000;
+      return millions % 1 === 0 ? `${millions}M` : `${millions.toFixed(1)}M`;
+    } else if (absValue >= 10000) {
+      // Thousands (for 5+ digit numbers: 10,000+)
+      const thousands = val / 1000;
+      return `${Math.round(thousands)}K`;
+    }
+
+    return null; // Signal to use regular formatting
+  };
 
   // Format the display value
   const displayValue = useMemo(() => {
@@ -90,18 +82,28 @@ const KpiCard = ({
       return computedValue;
     }
 
-    // If number and no format options, use default formatting
+    // If number, apply formatting
     if (typeof computedValue === 'number') {
-      // Check if it's a decimal that should show one decimal place
-      if (computedValue % 1 !== 0 && computedValue < 100) {
-        return computedValue.toFixed(1);
+      // Check for compact formatting first
+      if (compactNumbers) {
+        const compact = formatCompactValue(computedValue);
+        if (compact) {
+          return `${prefix}${compact}${suffix}`;
+        }
       }
-      // Otherwise, format with locale
-      return computedValue.toLocaleString();
+
+      // Use formatComputedValue for consistent formatting
+      return formatComputedValue(computedValue, {
+        type: 'number',
+        decimals,
+        prefix,
+        suffix,
+        locale: 'en-US'
+      });
     }
 
     return computedValue;
-  }, [computedValue]);
+  }, [computedValue, compactNumbers, decimals, prefix, suffix]);
 
   return (
     <div className="kpi-card">
@@ -110,6 +112,32 @@ const KpiCard = ({
       <div className="kpi-card-label">{label}</div>
     </div>
   );
+};
+
+KpiCard.propTypes = {
+  data: PropTypes.array,
+  dataSource: PropTypes.string,
+  metricOptions: PropTypes.shape({
+    value: PropTypes.string,
+    label: PropTypes.string.isRequired,
+    aggregation: PropTypes.oneOf(['count', 'count_distinct', 'sum', 'average', 'median', 'min', 'max', 'mode', 'cumsum']).isRequired,
+    field: PropTypes.string,
+    decimals: PropTypes.number,
+    prefix: PropTypes.string,
+    suffix: PropTypes.string,
+    compactNumbers: PropTypes.bool,
+    filterConditions: PropTypes.arrayOf(PropTypes.shape({
+      field: PropTypes.string.isRequired,
+      operator: PropTypes.oneOf(['=', '==', '!=', '!==', '>', '>=', '<', '<=']),
+      value: PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number,
+        PropTypes.bool,
+        PropTypes.array
+      ]).isRequired
+    }))
+  }).isRequired,
+  icon: PropTypes.node
 };
 
 export default KpiCard;

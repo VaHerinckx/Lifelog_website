@@ -255,42 +255,51 @@ const NutritionPage = () => {
             >
               <KpiCard
                 dataSource="nutrition"
-                field="meal_id"
-                computation="count_distinct"
-                label="Total Meals/Occurrences"
-                icon={<Utensils />}
-              />
-
-              <KpiCard
-                dataSource="nutritionItems"
-                field="food_quantity"
-                computation="sum"
-                computationOptions={{ decimals: 0 }}
-                label="Total Food Items"
+                metricOptions={{
+                  label: 'Total Meals/Occurrences',
+                  aggregation: 'count_distinct',
+                  field: 'meal_id'
+                }}
                 icon={<Utensils />}
               />
               <KpiCard
                 dataSource="nutritionItems"
-                field="drink_quantity"
-                computation="sum"
-                computationOptions={{ decimals: 0 }}
-                label="Total Drink Items"
+                metricOptions={{
+                  label: 'Total Food Items',
+                  aggregation: 'sum',
+                  field: 'food_quantity',
+                  decimals: 0
+                }}
+                icon={<Utensils />}
+              />
+              <KpiCard
+                dataSource="nutritionItems"
+                metricOptions={{
+                  label: 'Total Drink Items',
+                  aggregation: 'sum',
+                  field: 'drink_quantity',
+                  decimals: 0
+                }}
                 icon={<Utensils />}
               />
               <KpiCard
                 dataSource="nutrition"
-                field="usda_meal_score"
-                computation="average"
-                computationOptions={{ decimals: 2, filterZeros: false }}
-                label="Avg Meal Score"
+                metricOptions={{
+                  label: 'Avg Meal Score',
+                  aggregation: 'average',
+                  field: 'usda_meal_score',
+                  decimals: 2
+                }}
                 icon={<Tag />}
               />
               <KpiCard
                 dataSource="nutrition"
-                field="meal_assessment"
-                computation="average"
-                computationOptions={{ decimals: 1, filterZeros: false }}
-                label="Avg Meal Taste"
+                metricOptions={{
+                  label: 'Avg Meal Taste',
+                  aggregation: 'average',
+                  field: 'meal_assessment',
+                  decimals: 1
+                }}
                 icon={<Tag />}
               />
             </KPICardsPanel>
@@ -392,11 +401,11 @@ const NutritionPage = () => {
                       { value: 'origin', label: 'Origin', field: 'origin', labelFields: ['origin'] },
                     ]}
                     metricOptions={[
-                      { value: 'occurences', label: 'Occurences', aggregation: 'count_distinct', field: 'meal_id', countLabel: 'times', decimals: 0 },
-                      { value: 'f_quantity', label: 'Food Quantity', aggregation: 'sum', field: 'food_quantity', countLabel: 'times', decimals: 0 },
-                      { value: 'd_quantity', label: 'Drink Quantity', aggregation: 'sum', field: 'drink_quantity', countLabel: 'times', decimals: 0 },
-                      { value: 'meal_score', label: 'Meal Score', aggregation: 'average', field: 'usda_meal_score', countLabel: '', decimals: 1 },
-                      { value: 'meal_taste', label: 'Meal Taste', aggregation: 'average', field: 'meal_assessment', countLabel: '', decimals: 1 }
+                      { value: 'occurences', label: 'Occurences', aggregation: 'count_distinct', field: 'meal_id', suffix: ' times', decimals: 0 },
+                      { value: 'f_quantity', label: 'Food Quantity', aggregation: 'sum', field: 'food_quantity', suffix: ' times', decimals: 0 },
+                      { value: 'd_quantity', label: 'Drink Quantity', aggregation: 'sum', field: 'drink_quantity', suffix: ' times', decimals: 0 },
+                      { value: 'meal_score', label: 'Meal Score', aggregation: 'average', field: 'usda_meal_score', decimals: 1 },
+                      { value: 'meal_taste', label: 'Meal Taste', aggregation: 'average', field: 'meal_assessment', decimals: 1 }
                     ]}
                     defaultDimension="food"
                     defaultMetric="occurences"

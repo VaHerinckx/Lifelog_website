@@ -8,6 +8,7 @@
   color: var(--color-text-on-surface);
   box-shadow: var(--shadow-sm);
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .kpi-card:hover {
@@ -26,6 +27,8 @@
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
   margin-bottom: var(--spacing-xs);
+  word-break: break-word;
+  overflow-wrap: break-word;
 }
 
 .kpi-card-label {

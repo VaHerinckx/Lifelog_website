@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import _ from 'lodash';
+import { applyMetricFilter } from '../../../utils/computationUtils';
 import './TopChart.css';
 
 const formatNumber = (num, decimals = 0) => {
@@ -14,6 +15,21 @@ const formatNumber = (num, decimals = 0) => {
     }).format(num);
   }
   return new Intl.NumberFormat().format(Math.round(num));
+};
+
+// Format large values compactly (K for thousands, M for millions)
+const formatCompactValue = (value) => {
+  const absValue = Math.abs(value);
+
+  if (absValue >= 1000000) {
+    const millions = value / 1000000;
+    return millions % 1 === 0 ? `${millions}M` : `${millions.toFixed(1)}M`;
+  } else if (absValue >= 10000) {
+    const thousands = value / 1000;
+    return `${Math.round(thousands)}K`;
+  }
+
+  return null;
 };
 
 const TopChart = ({
@@ -75,6 +91,9 @@ const TopChart = ({
       });
       filteredData = expandedData;
     }
+
+    // Apply metric filter before grouping
+    filteredData = applyMetricFilter(filteredData, currentMetricConfig);
 
     // Group by dimension field
     const grouped = _(filteredData).groupBy(dimensionField);
@@ -151,12 +170,7 @@ const TopChart = ({
 
   const getMetricLabel = () => {
     if (!currentMetricConfig) return '';
-
-    // Use countLabel if provided (this is the unit displayed next to bar values)
-    // Otherwise fall back to suffix
-    const countLabel = currentMetricConfig.countLabel || currentMetricConfig.suffix || '';
-
-    return countLabel;
+    return currentMetricConfig.suffix || '';
   };
 
   const getMetricPrefix = () => {
@@ -167,12 +181,18 @@ const TopChart = ({
   const CustomBar = (props) => {
     const { x, y, width, height, displayName, value, artwork } = props;
     const decimals = currentMetricConfig?.decimals || 0;
+    const useCompact = currentMetricConfig?.compactNumbers || false;
 
     // Only show artwork for "title" dimension (Book Title)
     const showArtwork = artwork && imageField && selectedDimension === 'title';
     const artworkSize = 24;
     const artworkPadding = 8;
     const labelStartX = showArtwork ? x - 190 + artworkSize + artworkPadding : x - 190;
+
+    // Format the value, using compact notation if enabled
+    const formattedValue = useCompact
+      ? (formatCompactValue(value) || formatNumber(value, decimals))
+      : formatNumber(value, decimals);
 
     return (
       <g>
@@ -223,7 +243,7 @@ const TopChart = ({
           textAnchor="start"
           className="value-label"
         >
-          {getMetricPrefix()}{formatNumber(value, decimals)} {getMetricLabel()}
+          {getMetricPrefix()}{formattedValue} {getMetricLabel()}
         </text>
       </g>
     );
@@ -395,9 +415,10 @@ TopChart.propTypes = {
   // - label: Display name shown in dropdown (e.g., 'Total Pages', 'Total Books')
   // - aggregation: How to calculate the metric ('count', 'count_distinct', 'sum', 'average')
   // - field: Which data field to aggregate (required for sum/average/count_distinct)
-  // - countLabel: Unit displayed next to bar values (e.g., 'pages', 'books', 'days') - THIS IS THE LABEL ON THE RIGHT
-  // - suffix: Alternative to countLabel (e.g., '★' for ratings)
+  // - suffix: Unit displayed next to bar values (e.g., ' pages', ' books', '★')
+  // - prefix: Text displayed before the value (e.g., '€', '$')
   // - decimals: Number of decimal places to show (default: 0)
+  // - compactNumbers: If true, format large values as K/M (e.g., 10K, 1.5M)
   metricOptions: PropTypes.arrayOf(
     PropTypes.shape({
       value: PropTypes.string.isRequired,
@@ -407,7 +428,21 @@ TopChart.propTypes = {
       prefix: PropTypes.string,
       suffix: PropTypes.string,
       decimals: PropTypes.number,
-      countLabel: PropTypes.string
+      compactNumbers: PropTypes.bool,
+      // Filter conditions: array of conditions with AND logic
+      filterConditions: PropTypes.arrayOf(PropTypes.shape({
+        field: PropTypes.string.isRequired,
+        operator: PropTypes.oneOf(['=', '==', '!=', '!==', '>', '>=', '<', '<=']),
+        value: PropTypes.oneOfType([
+          PropTypes.string,
+          PropTypes.number,
+          PropTypes.bool,
+          PropTypes.array
+        ]).isRequired
+      })),
+      // Legacy filter API (backward compatible)
+      filterField: PropTypes.string,
+      filterValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool, PropTypes.array])
     })
   ).isRequired,
   defaultDimension: PropTypes.string,

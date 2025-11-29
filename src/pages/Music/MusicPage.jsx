@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Music, Music as MusicIcon, List, Grid, Calendar, Tag, User, Disc, Star, SkipForward, Repeat } from 'lucide-react';
+import { Music, Music as MusicIcon, List, Grid, Calendar, Tag, User, Disc, Star, Repeat } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -209,45 +209,58 @@ const MusicPage = () => {
             >
               <KpiCard
                 dataSource="music"
-                computation="count"
-                label="Total Toggles"
+                metricOptions={{
+                  label: 'Total Toggles',
+                  aggregation: 'count'
+                }}
                 icon={<Music />}
               />
               <KpiCard
                 dataSource="music"
-                field="artist_name"
-                computation="count_distinct"
-                label="Unique Artists"
+                metricOptions={{
+                  label: 'Unique Artists',
+                  aggregation: 'count_distinct',
+                  field: 'artist_name'
+                }}
                 icon={<User />}
               />
               <KpiCard
                 dataSource="music"
-                field="track_name"
-                computation="count_distinct"
-                label="Unique Tracks"
+                metricOptions={{
+                  label: 'Unique Tracks',
+                  aggregation: 'count_distinct',
+                  field: 'track_name'
+                }}
                 icon={<MusicIcon />}
               />
               <KpiCard
                 dataSource="music"
-                field="listening_seconds"
-                computation="sum"
-                computationOptions={{ decimals: 0, convertToHours: true }}
-                label="Total Hours"
+                metricOptions={{
+                  label: 'Total Hours',
+                  aggregation: 'sum',
+                  field: 'listening_hours',
+                  decimals: 0
+                }}
                 icon={<Music />}
               />
               <KpiCard
                 dataSource="music"
-                field="completion"
-                computation="average"
-                computationOptions={{ decimals: 2, asPercentage: true }}
-                label="Avg Completion"
+                metricOptions={{
+                  label: 'Avg Completion',
+                  aggregation: 'average',
+                  field: 'completion',
+                  decimals: 0,
+                  suffix: '%'
+                }}
                 icon={<Music />}
               />
               <KpiCard
                 dataSource="music"
-                field="simplified_genre"
-                computation="count_distinct"
-                label="Unique Genres"
+                metricOptions={{
+                  label: 'Unique Genres',
+                  aggregation: 'count_distinct',
+                  field: 'simplified_genre'
+                }}
                 icon={<Tag />}
               />
             </KPICardsPanel>
@@ -334,17 +347,14 @@ const MusicPage = () => {
               <TopChart
                data={toggles}
                dimensionOptions={[
-
                  { value: 'track', label: 'Track', field: 'track_name', labelFields: ['track_name'] },
                  { value: 'artist', label: 'Artist', field: 'artist_name', labelFields: ['artist_name'] },
                  { value: 'album', label: 'Album', field: 'album_name', labelFields: ['album_name'] },
                  { value: 'genre', label: 'Genre', field: 'simplified_genre', labelFields: ['genre'] },
-
                ]}
                metricOptions={[
-                 { value: 'listening time', label: 'Listening Time', aggregation: 'sum', field: 'listening_seconds', countLabel: 'seconds', decimals: 0 },
-                 { value: 'toggles', label: 'Toggles', aggregation: 'count_distinct', field: 'toggle_id', countLabel: 'toggles', decimals: 0 },
-
+                 { value: 'listening time', label: 'Listening Time', aggregation: 'sum', field: 'listening_seconds', suffix: ' seconds', decimals: 0 },
+                 { value: 'toggles', label: 'Toggles', aggregation: 'count_distinct', field: 'toggle_id', suffix: ' toggles', decimals: 0 },
                ]}
                defaultDimension="genre"
                defaultMetric="listening time"

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { performComputation, formatComputedValue } from '../../../utils/computationUtils';
+import { performComputation, formatComputedValue, applyMetricFilter } from '../../../utils/computationUtils';
 import { parseDate } from '../../../utils/dateUtils';
 import './TimeSeriesBarChart.css';
 
@@ -176,7 +176,6 @@ const TimeSeriesBarChart = ({
     const decimals = useSimpleAPI ? 0 : (currentMetricConfig?.decimals || 0);
     const computationOptions = {
       decimals,
-      convertToHours: currentMetricConfig?.convertToHours,
       defaultValue: 0
     };
 
@@ -184,9 +183,12 @@ const TimeSeriesBarChart = ({
     const baseAggregationType = aggregationType === 'cumsum' ? 'sum' : aggregationType;
 
     const chartDataArray = Object.values(periodGroups).map(group => {
+      // Apply metric filter to this period's data before aggregation
+      const filteredGroupData = applyMetricFilter(group.data, currentMetricConfig);
+
       // Use performComputation to calculate the aggregated value for this period
       const value = performComputation(
-        group.data,
+        filteredGroupData,
         metricField,
         baseAggregationType,
         computationOptions
@@ -226,11 +228,36 @@ const TimeSeriesBarChart = ({
     return currentMetricConfig.label || 'Value';
   };
 
+  // Format large values compactly (K for thousands, M for millions)
+  const formatCompactValue = (value) => {
+    const absValue = Math.abs(value);
+
+    if (absValue >= 1000000) {
+      const millions = value / 1000000;
+      return millions % 1 === 0 ? `${millions}M` : `${millions.toFixed(1)}M`;
+    } else if (absValue >= 10000) {
+      const thousands = value / 1000;
+      return `${Math.round(thousands)}K`;
+    }
+
+    return null;
+  };
+
   // Helper function to format Y-axis values
   const formatYAxisValue = (value) => {
     const decimals = useSimpleAPI ? 0 : (currentMetricConfig?.decimals || 0);
     const prefix = useSimpleAPI ? '' : (currentMetricConfig?.prefix || '');
     const suffix = useSimpleAPI ? '' : (currentMetricConfig?.suffix || '');
+    const useCompact = !useSimpleAPI && currentMetricConfig?.compactNumbers;
+
+    // Check for compact formatting first
+    if (useCompact) {
+      const compact = formatCompactValue(value);
+      if (compact) {
+        return `${prefix}${compact}${suffix}`;
+      }
+    }
+
     return formatComputedValue(value, { type: 'number', decimals, prefix, suffix });
   };
 
@@ -343,7 +370,21 @@ TimeSeriesBarChart.propTypes = {
       suffix: PropTypes.string,
       prefix: PropTypes.string,
       decimals: PropTypes.number,
-      convertToHours: PropTypes.bool
+      compactNumbers: PropTypes.bool,
+      // Filter conditions: array of conditions with AND logic
+      filterConditions: PropTypes.arrayOf(PropTypes.shape({
+        field: PropTypes.string.isRequired,
+        operator: PropTypes.oneOf(['=', '==', '!=', '!==', '>', '>=', '<', '<=']),
+        value: PropTypes.oneOfType([
+          PropTypes.string,
+          PropTypes.number,
+          PropTypes.bool,
+          PropTypes.array
+        ]).isRequired
+      })),
+      // Legacy filter API (backward compatible)
+      filterField: PropTypes.string,
+      filterValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool, PropTypes.array])
     })
   ),
   defaultMetric: PropTypes.string,

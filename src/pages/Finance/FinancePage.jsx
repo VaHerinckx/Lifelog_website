@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { DollarSign, List, Grid, Calendar, Tag, Building, TrendingUp, FileText, ShoppingBag } from 'lucide-react';
+import { DollarSign, List, Grid, Calendar, Tag, Building, TrendingUp, FileText, ShoppingBag, Asterisk } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -163,7 +163,7 @@ const FinancePage = () => {
                 type="multiselect"
                 label="Transaction Type"
                 field="transaction_type"
-                icon={<TrendingUp />}
+                icon={<Asterisk />}
                 placeholder="Select transaction types"
                 dataSources={['finance']}
               />
@@ -178,89 +178,78 @@ const FinancePage = () => {
             >
               <KpiCard
                 dataSource="finance"
-                computation="count"
-                label="Total Transactions"
+                metricOptions={{
+                  label: 'Total Transactions',
+                  aggregation: 'count'
+                }}
                 icon={<FileText />}
               />
               <KpiCard
                 dataSource="finance"
-                field="movement"
-                computation="sum"
-                filterCondition={(item) => item.transaction_type === 'income'}
-                computationOptions={{
-                  decimals: 2
+                metricOptions={{
+                  label: 'Total Income',
+                  aggregation: 'sum',
+                  field: 'movement',
+                  decimals: 0,
+                  suffix: ' €',
+                  compactNumbers: true,
+                  filterConditions: [{ field: 'transaction_type', value: 'income' }]
                 }}
-                formatOptions={{
-                  type: 'number',
-                  decimals: 2,
-                  prefix: '€',
-                  locale: 'en-US'
-                }}
-                label="Total Income"
                 icon={<TrendingUp />}
               />
               <KpiCard
                 dataSource="finance"
-                field="movement"
-                computation="sum"
-                filterCondition={(item) => item.transaction_type === 'expense'}
-                computationOptions={{
-                  decimals: 2
+                metricOptions={{
+                  label: 'Total Expenses',
+                  aggregation: 'sum',
+                  field: 'movement',
+                  decimals: 0,
+                  suffix: ' €',
+                  compactNumbers: true,
+                  filterConditions: [{ field: 'transaction_type', value: 'expense' }]
                 }}
-                formatOptions={{
-                  type: 'number',
-                  decimals: 2,
-                  prefix: '€',
-                  locale: 'en-US'
-                }}
-                label="Total Expenses"
                 icon={<DollarSign />}
               />
               <KpiCard
                 dataSource="finance"
-                field="movement"
-                computation="sum"
-                computationOptions={{
-                  decimals: 2
+                metricOptions={{
+                  label: 'Net Balance',
+                  aggregation: 'sum',
+                  field: 'movement',
+                  decimals: 0,
+                  suffix: ' €',
+                  compactNumbers: true
                 }}
-                formatOptions={{
-                  type: 'number',
-                  decimals: 2,
-                  prefix: '€',
-                  locale: 'en-US'
-                }}
-                label="Net Balance"
                 icon={<TrendingUp />}
               />
               <KpiCard
                 dataSource="finance"
-                field="corrected_eur"
-                computation="average"
-                filterCondition={(item) => item.transaction_type === 'expense'}
-                computationOptions={{
-                  decimals: 2
+                metricOptions={{
+                  label: 'Average Transaction',
+                  aggregation: 'average',
+                  field: 'corrected_eur',
+                  decimals: 0,
+                  suffix: ' €',
+                  filterConditions: [{ field: 'transaction_type', value: 'expense' }]
                 }}
-                formatOptions={{
-                  type: 'number',
-                  decimals: 2,
-                  prefix: '€',
-                  locale: 'en-US'
-                }}
-                label="Average Transaction"
                 icon={<DollarSign />}
               />
               <KpiCard
                 dataSource="finance"
-                field="category"
-                computation="mode"
-                label="Most Frequent Category"
+                metricOptions={{
+                  label: 'Most Frequent Category',
+                  aggregation: 'mode',
+                  field: 'category'
+                }}
                 icon={<Tag />}
               />
               <KpiCard
                 dataSource="finance"
-                field="note"
-                computation="mode"
-                label="Most Frequent Counterparty"
+                metricOptions={{
+                  label: 'Most Frequent Counterparty',
+                  aggregation: 'mode',
+                  field: 'note'
+                }}
                 icon={<ShoppingBag />}
               />
             </KPICardsPanel>
@@ -336,22 +325,23 @@ const FinancePage = () => {
                 data={transactionsData}
                 dateColumnName="date"
                 metricOptions={[
-                  { value: 'total_amount', label: 'Total Amount', aggregation: 'sum', field: 'corrected_eur', decimals: 0, suffix: '€'},
+                  { value: 'total_expenses', label: 'Total Expenses', aggregation: 'sum', field: 'corrected_eur', decimals: 0, suffix: '€', filterConditions: [{ field: 'transaction_type', value: 'expense' }] },
+                  { value: 'total_incomes', label: 'Total Incomes', aggregation: 'sum', field: 'corrected_eur', decimals: 0, suffix: '€', filterConditions: [{ field: 'transaction_type', value: 'income' }, { field: 'note', operator: '!=', value: 'Initial capital'}]},
                   { value: 'average_amount', label: 'Average Amount', aggregation: 'average', field: 'corrected_eur', decimals: 0, suffix: '€'},
                   { value: 'balance', label: 'Balance', aggregation: 'sum', field: 'movement', decimals: 0, suffix: '€'},
                   { value: 'cumulative_balance', label: 'Cumulative Balance', aggregation: 'cumsum', field: 'movement', decimals: 0, suffix: '€'},
-                  { value: 'transactions', label: 'Total Transactions', field: 'transaction_id', aggregation: 'count_distinct', unit: 'transactions', decimals: 0},
+                  { value: 'transactions', label: 'Total Transactions', field: 'transaction_id', aggregation: 'count_distinct', suffix: ' transactions', decimals: 0},
                 ]}
-                defaultMetric="total_amount"
+                defaultMetric="total_expenses"
                 title="Finances Over Time"
               />
               <IntensityHeatmap
                 data={transactionsData}
                 dateColumnName="date"
                 metricOptions={[
-                  { value: 'total_amount', label: 'Total Amount', column: 'corrected_eur', aggregation: 'sum', unit: 'eur', suffix: ' €' },
-                  { value: 'avg_amount', label: 'Average Amount', column: 'corrected_eur', aggregation: 'average', unit: 'eur', decimals: 1, suffix: ' €' },
-                  { value: 'transactions', label: 'Total Transactions', column: 'transaction_id', aggregation: 'count_distinct', unit: 'transactions', decimals: 0},
+                  { value: 'total_expenses', label: 'Total Expenses', aggregation: 'sum', field: 'corrected_eur', decimals: 0, suffix: '€', filterConditions: [{ field: 'transaction_type', value: 'expense' }] },
+                  { value: 'total_incomes', label: 'Total Incomes', aggregation: 'sum', field: 'corrected_eur', decimals: 0, suffix: '€', filterConditions: [{ field: 'transaction_type', value: 'income' }, { field: 'note', operator: '!=', value: 'Initial capital'}]},
+                  { value: 'transactions', label: 'Total Transactions', field: 'transaction_id', aggregation: 'count_distinct', suffix: ' transactions', decimals: 0},
                 ]}
                 rowAxis="time_period"    // Time periods as rows
                 columnAxis="weekday"     // Days as columns
@@ -368,9 +358,9 @@ const FinancePage = () => {
                   { value: 'accounts', label: 'Accounts', field: 'accounts', labelFields: ['accounts'] },
                 ]}
                 metricOptions={[
-                  { value: 'total_amount', label: 'Total Amount', aggregation: 'sum', field: 'corrected_eur', decimals: 0, suffix: '€'},
-                  { value: 'average_amount', label: 'Average Amount', aggregation: 'average', field: 'corrected_eur', decimals: 0, suffix: '€'},
-                  { value: 'transactions', label: 'Total Transactions', field: 'transaction_id', aggregation: 'count_distinct', unit: 'transactions', decimals: 0},
+                  { value: 'total_expenses', label: 'Total Expenses', aggregation: 'sum', field: 'corrected_eur', decimals: 0, suffix: '€', filterConditions: [{ field: 'transaction_type', value: 'expense' }] },
+                  { value: 'total_incomes', label: 'Total Incomes', aggregation: 'sum', field: 'corrected_eur', decimals: 0, suffix: '€', filterConditions: [{ field: 'transaction_type', value: 'income' }, { field: 'note', operator: '!=', value: 'Initial capital'}]},
+                  { value: 'transactions', label: 'Total Transactions', field: 'transaction_id', aggregation: 'count_distinct', suffix: ' transactions', decimals: 0},
                 ]}
                 defaultDimension="category"
                 defaultMetric="total_amount"

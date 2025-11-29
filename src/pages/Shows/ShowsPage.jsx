@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Film, Grid, List, Calendar, Tag, Star, User, Clock, Award, Tv } from 'lucide-react';
+import { Grid, List, Calendar, Star, User, Tv } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -189,30 +189,38 @@ const ShowsPage = () => {
             >
               <KpiCard
                 dataSource="shows"
-                computation="count"
-                label="Episodes Watched"
+                metricOptions={{
+                  label: 'Episodes Watched',
+                  aggregation: 'count'
+                }}
                 icon={<Tv />}
               />
               <KpiCard
                 dataSource="shows"
-                field="show_title"
-                computation="count_distinct"
-                label="Unique Shows"
+                metricOptions={{
+                  label: 'Unique Shows',
+                  aggregation: 'count_distinct',
+                  field: 'show_title'
+                }}
                 icon={<Tv />}
               />
               <KpiCard
                 dataSource="shows"
-                field="season_show_id"
-                computation="count_distinct"
-                label="Seasons Watched"
+                metricOptions={{
+                  label: 'Seasons Watched',
+                  aggregation: 'count_distinct',
+                  field: 'season_show_id'
+                }}
                 icon={<Tv />}
               />
               <KpiCard
                 dataSource="shows"
-                field="episode_runtime_hours"
-                computation="sum"
-                computationOptions={{ decimals: 0, filterZeros: true }}
-                label="Runtime (h)"
+                metricOptions={{
+                  label: 'Runtime (h)',
+                  aggregation: 'sum',
+                  field: 'episode_runtime_hours',
+                  decimals: 0
+                }}
                 icon={<Tv />}
               />
             </KPICardsPanel>
@@ -298,8 +306,8 @@ const ShowsPage = () => {
                   data={episodes}
                   dateColumnName="watched_at"
                   metricOptions={[
-                    { value: 'episodes', label: 'Episodes', column: 'watch_id', aggregation: 'count_distinct', unit: 'episodes' },
-                    { value: 'episode_runtime_hours', label: 'Watch Time', column: 'episode_runtime_hours', aggregation: 'sum', unit: 'hour', decimals: 1 }
+                    { value: 'episodes', label: 'Episodes', field: 'watch_id', aggregation: 'count_distinct', suffix: ' episodes' },
+                    { value: 'episode_runtime_hours', label: 'Watch Time', field: 'episode_runtime_hours', aggregation: 'sum', suffix: ' hours', decimals: 1 }
                   ]}
                   rowAxis="time_period"    // Time periods as rows
                   columnAxis="weekday"     // Days as columns
@@ -317,8 +325,8 @@ const ShowsPage = () => {
                     { value: 'episode_writer', label: 'Writer', field: 'episode_writer', labelFields: ['episode_writer'], delimiter: ',' }
                   ]}
                   metricOptions={[
-                    { value: 'watch_id', label: 'Episodes', aggregation: 'count_distinct', field: 'watch_id', countLabel: 'episodes', decimals: 0 },
-                    { value: 'episode_runtime_hours', label: 'Runtime', aggregation: 'sum', field: 'episode_runtime_hours', countLabel: 'hours', decimals: 1 },
+                    { value: 'watch_id', label: 'Episodes', aggregation: 'count_distinct', field: 'watch_id', suffix: ' episodes', decimals: 0 },
+                    { value: 'episode_runtime_hours', label: 'Runtime', aggregation: 'sum', field: 'episode_runtime_hours', suffix: ' hours', decimals: 1 },
                     { value: 'episode_rating', label: 'Rating', aggregation: 'average', field: 'episode_rating', suffix: '★', decimals: 1 }
                   ]}
                   defaultDimension="show_title"

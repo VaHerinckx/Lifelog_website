@@ -228,51 +228,52 @@ const MoviesPage = () => {
           >
             <KpiCard
               dataSource="movies"
-              computation="count"
-              label="Movies Watched"
+              metricOptions={{
+                label: 'Movies Watched',
+                aggregation: 'count'
+              }}
               icon={<Film />}
             />
             <KpiCard
               dataSource="movies"
-              field="rating"
-              computation="average"
-              computationOptions={{ decimals: 1, filterZeros: true }}
-              label="Average Rating"
+              metricOptions={{
+                label: 'Average Rating',
+                aggregation: 'average',
+                field: 'rating',
+                decimals: 1
+              }}
               icon={<Star />}
             />
             <KpiCard
               dataSource="movies"
-              computation="custom"
-              customValue={() => {
-                const now = new Date();
-                const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-                return filteredMovies.filter(m => m.date >= thirtyDaysAgo).length;
+              metricOptions={{
+                label: 'Avg Runtime (min)',
+                aggregation: 'average',
+                field: 'runtime',
+                decimals: 0,
+                suffix: ' min'
               }}
-              label="Movies This Month"
-              icon={<Calendar />}
-            />
-            <KpiCard
-              dataSource="movies"
-              field="runtime"
-              computation="average"
-              computationOptions={{ decimals: 0, filterZeros: true, suffix: ' min' }}
-              label="Avg Runtime (min)"
               icon={<Clock />}
             />
             <KpiCard
               dataSource="movies"
-              field="runtime"
-              computation="sum"
-              computationOptions={{ decimals: 1}}
-              label="Total Runtime (h)"
+              metricOptions={{
+                label: 'Total Runtime (h)',
+                aggregation: 'sum',
+                field: 'runtime_hour',
+                decimals: 1,
+                suffix: ' h'
+              }}
               icon={<Clock />}
             />
             <KpiCard
               dataSource="movies"
-              field="director"
-              computation="count_distinct"
-              computationOptions={{ decimals: 0}}
-              label="Directors"
+              metricOptions={{
+                label: 'Directors',
+                aggregation: 'count_distinct',
+                field: 'director',
+                decimals: 0
+              }}
               icon={<Star />}
             />
           </KPICardsPanel>
@@ -382,10 +383,9 @@ const MoviesPage = () => {
                   { value: 'cast', label: 'Cast', field: 'cast', labelFields: ['cast'], delimiter: ',' },
                 ]}
                 metricOptions={[
-                  { value: 'movies', label: 'Movies', aggregation: 'count_distinct', field: 'movie_id', countLabel: 'movies', decimals: 0 },
-                  { value: 'runtime', label: 'Runtime', aggregation: 'sum', field: 'runtime_hour', countLabel: 'hour(s)', decimals: 0},
+                  { value: 'movies', label: 'Movies', aggregation: 'count_distinct', field: 'movie_id', suffix: ' movies', decimals: 0 },
+                  { value: 'runtime', label: 'Runtime', aggregation: 'sum', field: 'runtime_hour', suffix: ' hours', decimals: 0},
                   { value: 'avgRating', label: 'Avg Rating', aggregation: 'average', field: 'rating', suffix: '★', decimals: 1 },
-
                 ]}
                 defaultDimension="genre"
                 defaultMetric="movies"

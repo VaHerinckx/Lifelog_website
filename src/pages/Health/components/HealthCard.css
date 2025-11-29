@@ -30,9 +30,8 @@
 .health-card--grid {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  min-height: 220px;
   padding: var(--spacing-md);
-  min-height: 200px;
 }
 
 .health-card--grid .health-info {

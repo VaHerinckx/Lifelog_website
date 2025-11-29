@@ -102,7 +102,7 @@ const HealthPage = () => {
             >
               <Filter
                 type="daterange"
-                label="Date Range"
+                label="Date"
                 field="date"
                 icon={<Calendar />}
                 dataSources={['health']}
@@ -134,56 +134,76 @@ const HealthPage = () => {
             >
               <KpiCard
                 dataSource="health"
-                computation="count"
-                label="Days Tracked"
+                metricOptions={{
+                  label: 'Days Tracked',
+                  aggregation: 'count'
+                }}
                 icon={<Calendar />}
               />
               <KpiCard
                 dataSource="health"
-                field="daily_steps"
-                computation="average"
-                computationOptions={{ decimals: 0, filterZeros: true }}
-                label="Avg. Daily Steps"
+                metricOptions={{
+                  label: 'Avg. Daily Steps',
+                  aggregation: 'average',
+                  field: 'daily_steps',
+                  decimals: 0,
+                  filterConditions: [{ field: 'daily_steps', operator: '>', value: 0 }]
+                }}
                 icon={<Activity />}
               />
               <KpiCard
                 dataSource="health"
-                field="daily_active_energy"
-                computation="average"
-                computationOptions={{ decimals: 0, filterZeros: true }}
-                label="Avg. Active Energy (kcal)"
+                metricOptions={{
+                  label: 'Avg. Active Energy (kcal)',
+                  aggregation: 'average',
+                  field: 'daily_active_energy',
+                  decimals: 0,
+                  filterConditions: [{ field: 'daily_active_energy', operator: '>', value: 0 }]
+                }}
                 icon={<Heart />}
               />
               <KpiCard
                 dataSource="health"
-                field="sleep_minutes"
-                computation="average"
-                computationOptions={{ decimals: 0, filterZeros: true }}
-                label="Avg. Sleep (min)"
+                metricOptions={{
+                  label: 'Avg. Sleep (min)',
+                  aggregation: 'average',
+                  field: 'sleep_minutes',
+                  decimals: 0,
+                  filterConditions: [{ field: 'sleep_minutes', operator: '>', value: 0 }]
+                }}
                 icon={<Moon />}
               />
               <KpiCard
                 dataSource="health"
-                field="overall_evaluation"
-                computation="average"
-                computationOptions={{ decimals: 1, filterZeros: true }}
-                label="Avg. Overall Feeling"
+                metricOptions={{
+                  label: 'Avg. Overall Feeling',
+                  aggregation: 'average',
+                  field: 'overall_evaluation',
+                  decimals: 1,
+                  filterConditions: [{ field: 'overall_evaluation', operator: '>', value: 0 }]
+                }}
                 icon={<Heart />}
               />
               <KpiCard
                 dataSource="health"
-                field="sleep_quality"
-                computation="average"
-                computationOptions={{ decimals: 1, filterZeros: true }}
-                label="Avg. Sleep Quality"
+                metricOptions={{
+                  label: 'Avg. Sleep Quality',
+                  aggregation: 'average',
+                  field: 'sleep_quality',
+                  decimals: 1,
+                  filterConditions: [{ field: 'sleep_quality', operator: '>', value: 0 }]
+                }}
                 icon={<Moon />}
               />
               <KpiCard
                 dataSource="health"
-                field="fitness_feeling"
-                computation="average"
-                computationOptions={{ decimals: 1, filterZeros: true }}
-                label="Avg. Fitness Feeling"
+                metricOptions={{
+                  label: 'Avg. Fitness Feeling',
+                  aggregation: 'average',
+                  field: 'fitness_feeling',
+                  decimals: 1,
+                  filterConditions: [{ field: 'fitness_feeling', operator: '>', value: 0 }]
+                }}
                 icon={<Activity />}
               />
             </KPICardsPanel>
@@ -217,10 +237,9 @@ const HealthPage = () => {
             }}
             sortOptions={[
               { value: 'date', label: 'Date', type: 'date' },
-              { value: 'steps', label: 'Steps', type: 'number' },
-              { value: 'sleep_score', label: 'Sleep Score', type: 'number' },
-              { value: 'sleep_duration', label: 'Sleep Duration', type: 'number' },
-              { value: 'active_minutes', label: 'Active Minutes', type: 'number' },
+              { value: 'daily_steps', label: 'Steps', type: 'number' },
+              { value: 'sleep_quality', label: 'Sleep Quality', type: 'number' },
+              { value: 'sleep_minutes', label: 'Sleep Duration', type: 'number' },
               { value: 'fitness_feeling', label: 'Fitness Feeling', type: 'number' }
             ]}
             defaultSortField="date"

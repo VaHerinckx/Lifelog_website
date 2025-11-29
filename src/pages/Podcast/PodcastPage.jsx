@@ -169,47 +169,60 @@ const PodcastPage = () => {
             >
               <KpiCard
                 dataSource="podcasts"
-                field="podcast_id"
-                computation="count_distinct"
-                label="Podcasts"
+                metricOptions={{
+                  label: 'Podcasts',
+                  aggregation: 'count_distinct',
+                  field: 'podcast_id'
+                }}
                 icon={<Mic />}
               />
               <KpiCard
                 dataSource="podcasts"
-                computation="count"
-                label="Episodes"
+                metricOptions={{
+                  label: 'Episodes',
+                  aggregation: 'count'
+                }}
                 icon={<Headphones />}
               />
               <KpiCard
                 dataSource="podcasts"
-                field="listened_hours"
-                computation="sum"
-                label="Hours Listened"
+                metricOptions={{
+                  label: 'Hours Listened',
+                  aggregation: 'sum',
+                  field: 'listened_hours',
+                  decimals: 0
+                }}
                 icon={<Clock />}
               />
               <KpiCard
                 dataSource="podcasts"
-                field="completion_percent"
-                computation="average"
-                computationOptions={{ decimals: 0, filterZeros: false }}
-                label="Avg Completion"
+                metricOptions={{
+                  label: 'Avg Completion',
+                  aggregation: 'average',
+                  field: 'completion_percent',
+                  decimals: 0,
+                  suffix: '%'
+                }}
                 icon={<TrendingUp />}
-                suffix="%"
               />
               <KpiCard
                 dataSource="podcasts"
-                field="podcast_id"
-                computation="count_distinct"
-                filterCondition={(item) => item.is_recurring_podcast === "Yes"}
-                label="Recurring Podcasts"
+                metricOptions={{
+                  label: 'Recurring Podcasts',
+                  aggregation: 'count_distinct',
+                  field: 'podcast_id',
+                  filterConditions: [{ field: 'is_recurring_podcast', value: 'Yes' }]
+                }}
                 icon={<Repeat />}
               />
               <KpiCard
                 dataSource="podcasts"
-                field="podcast_id"
-                computation="count_distinct"
-                filterCondition={(item) => item.is_new_recurring_podcast === "Yes"}
-                label="New Recurring Podcasts"
+                metricOptions={{
+                  label: 'New Recurring Podcasts',
+                  aggregation: 'count_distinct',
+                  field: 'podcast_id',
+                  filterConditions: [{ field: 'is_new_recurring_podcast', value: 'Yes' }]
+                }}
                 icon={<Sparkles />}
               />
             </KPICardsPanel>
@@ -320,8 +333,8 @@ const PodcastPage = () => {
                     { value: 'recurring', label: 'Recurring Podcasts', field: 'is_recurring_podcast', labelFields: ['is_recurring_podcast'] }
                   ]}
                   metricOptions={[
-                    { value: 'listened_hours', label: 'Hours', aggregation: 'sum', field: 'listened_hours', countLabel: 'hours', decimals: 0 },
-                    { value: 'episodes', label: 'Episodes', aggregation: 'count_distinct', field: 'episode_uuid', countLabel: 'episodes', decimals: 0 },
+                    { value: 'listened_hours', label: 'Hours', aggregation: 'sum', field: 'listened_hours', suffix: ' hours', decimals: 0 },
+                    { value: 'episodes', label: 'Episodes', aggregation: 'count_distinct', field: 'episode_uuid', suffix: ' episodes', decimals: 0 },
                   ]}
                   defaultDimension="podcast_name"
                   defaultMetric="listened_hours"
