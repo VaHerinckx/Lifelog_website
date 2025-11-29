@@ -348,14 +348,10 @@ const MoviesPage = () => {
       {/* Analysis Tab Content */}
       {activeTab === 'analysis' && (
         <AnalysisTab
-          data={filteredMovies}
-          emptyState={{
-            message: "No movie data available with current filters. Try adjusting your criteria."
-          }}
-          renderCharts={(data) => (
+          renderCharts={() => (
             <>
               <TimeSeriesBarChart
-                data={data}
+                data={filteredMovies}
                 dateColumnName="date"
                 metricOptions={[
                   { value: 'movies', label: 'Movies', aggregation: 'count_distinct', field: 'movie_id', decimals: 0 },
@@ -366,14 +362,14 @@ const MoviesPage = () => {
                 title="Movies Over Time"
               />
               <IntensityHeatmap
-                  data={data}
+                  data={filteredMovies}
                   dateColumnName="date"
                   valueColumnName="runtime"
                   title="Reading Activity by Day and Time"
                   treatMidnightAsUnknown={true}
                 />
               <TopChart
-                data={data}
+                data={filteredMovies}
                 dimensionOptions={[
                   { value: 'genre', label: 'Genre', field: 'genre', labelFields: ['genre'] },
                   { value: 'release_year', label: 'Release Year', field: 'year', labelFields: ['year'] },

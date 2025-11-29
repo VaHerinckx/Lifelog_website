@@ -297,14 +297,10 @@ const PodcastPage = () => {
         {/* Analysis Tab Content */}
         {activeTab === 'analysis' && (
           <AnalysisTab
-            data={filteredPodcasts}
-            emptyState={{
-              message: "No podcast data available with current filters. Try adjusting your criteria."
-            }}
-            renderCharts={(episodes) => (
+            renderCharts={() => (
               <>
                 <TimeSeriesBarChart
-                  data={episodes}
+                  data={filteredPodcasts}
                   dateColumnName="listened_date"
                   metricOptions={[
                     { value: 'podcast_count', label: 'Podcasts', aggregation: 'count_distinct', field: 'podcast_id', decimals: 0 },
@@ -316,14 +312,14 @@ const PodcastPage = () => {
                   title="Podcast Listening Activity"
                 />
                 <IntensityHeatmap
-                  data={episodes}
+                  data={filteredPodcasts}
                   dateColumnName="listened_date"
                   valueColumnName="listened_hours"
                   title="Podcast Activity by Day and Time"
                   treatMidnightAsUnknown={true}
                 />
                 <TopChart
-                  data={episodes}
+                  data={filteredPodcasts}
                   dimensionOptions={[
                     { value: 'podcast_name', label: 'Podcast', field: 'podcast_name', labelFields: ['podcast'] },
                     { value: 'genre', label: 'Genre', field: 'genre', labelFields: ['genre'] },

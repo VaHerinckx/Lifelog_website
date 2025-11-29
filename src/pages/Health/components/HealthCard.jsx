@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { Activity, Moon, Heart, StickyNote, Brain } from 'lucide-react';
+import { Activity, Moon, Clock, StickyNote, Brain } from 'lucide-react';
 import { StarRating } from '../../../components/ui';
 import { formatDate } from '../../../utils';
 import './HealthCard.css';
@@ -21,6 +21,14 @@ const getEvaluationEmoji = (rating) => {
     1: '😞',  // Very unhappy
   };
   return emojiMap[score] || '💪';
+};
+
+/**
+ * Format time string (HH:MM) to readable format
+ */
+const formatTime = (timeStr) => {
+  if (!timeStr) return null;
+  return timeStr;
 };
 
 /**
@@ -53,16 +61,6 @@ const HealthCard = ({ day, viewMode = 'grid', onClick }) => {
     return `${hours}h ${mins}m`;
   };
 
-  const formatHeartRate = (hr) => {
-    if (!hr || hr === 0) return null;
-    return `${Math.round(hr)} bpm`;
-  };
-
-  const formatWeight = (weight) => {
-    if (!weight || weight === 0) return null;
-    return `${weight.toFixed(1)} kg`;
-  };
-
   // List view - horizontal layout
   if (viewMode === 'list') {
     return (
@@ -75,24 +73,18 @@ const HealthCard = ({ day, viewMode = 'grid', onClick }) => {
           <div className="health-meta">
             <div className="health-metric">
               <Activity size={16} />
-              <span>{formatSteps(day.daily_steps)}</span>
+              <span>{formatSteps(day.total_steps)}</span>
             </div>
 
             <div className="health-metric">
               <Moon size={16} />
-              <span>{formatSleepMinutes(day.sleep_minutes)}</span>
+              <span>{formatSleepMinutes(day.total_sleep_minutes)}</span>
             </div>
 
-            {formatHeartRate(day.avg_heart_rate) && (
+            {formatTime(day.sleep_start_time) && formatTime(day.wake_up_time) && (
               <div className="health-metric">
-                <Heart size={16} />
-                <span>{formatHeartRate(day.avg_heart_rate)}</span>
-              </div>
-            )}
-
-            {formatWeight(day.avg_body_weight) && (
-              <div className="health-metric">
-                <span>{formatWeight(day.avg_body_weight)}</span>
+                <Clock size={16} />
+                <span>{day.sleep_start_time} - {day.wake_up_time}</span>
               </div>
             )}
           </div>
@@ -106,10 +98,7 @@ const HealthCard = ({ day, viewMode = 'grid', onClick }) => {
         </div>
 
         <div className="health-indicators">
-          {day.dominant_city && (
-            <span className="health-location">{day.dominant_city}</span>
-          )}
-          {day.dreams && (
+          {day.dreams > 0 && (
             <span className="health-indicator" title="Dream recorded">
               <Brain size={14} />
             </span>
@@ -144,30 +133,24 @@ const HealthCard = ({ day, viewMode = 'grid', onClick }) => {
         <div className="health-meta">
           <div className="health-metric">
             <Activity size={16} />
-            <span>{formatSteps(day.daily_steps)}</span>
+            <span>{formatSteps(day.total_steps)}</span>
           </div>
 
           <div className="health-metric">
             <Moon size={16} />
-            <span>{formatSleepMinutes(day.sleep_minutes)}</span>
+            <span>{formatSleepMinutes(day.total_sleep_minutes)}</span>
           </div>
 
-          {formatHeartRate(day.avg_heart_rate) && (
+          {formatTime(day.sleep_start_time) && formatTime(day.wake_up_time) && (
             <div className="health-metric">
-              <Heart size={16} />
-              <span>{formatHeartRate(day.avg_heart_rate)}</span>
+              <Clock size={16} />
+              <span>{day.sleep_start_time} - {day.wake_up_time}</span>
             </div>
           )}
         </div>
 
-        {day.dominant_city && (
-          <div className="health-location-tag">
-            <span>{day.dominant_city}</span>
-          </div>
-        )}
-
         <div className="health-indicators-grid">
-          {day.dreams && (
+          {day.dreams > 0 && (
             <span className="health-indicator" title="Dream recorded">
               <Brain size={14} /> Dream
             </span>
@@ -186,13 +169,12 @@ const HealthCard = ({ day, viewMode = 'grid', onClick }) => {
 HealthCard.propTypes = {
   day: PropTypes.shape({
     date: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]).isRequired,
-    daily_steps: PropTypes.number,
-    sleep_minutes: PropTypes.number,
+    total_steps: PropTypes.number,
+    total_sleep_minutes: PropTypes.number,
     overall_evaluation: PropTypes.number,
-    avg_heart_rate: PropTypes.number,
-    avg_body_weight: PropTypes.number,
-    dominant_city: PropTypes.string,
-    dreams: PropTypes.string,
+    sleep_start_time: PropTypes.string,
+    wake_up_time: PropTypes.string,
+    dreams: PropTypes.number,
     notes_summary: PropTypes.string,
   }).isRequired,
   viewMode: PropTypes.oneOf(['grid', 'list']),

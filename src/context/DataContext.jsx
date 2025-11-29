@@ -79,9 +79,8 @@ export const DataProvider = ({ children }) => {
     podcasts: null,
     music: null,
     finance: null,
-    health: null,
+    healthDaily: null,
     healthHourly: null,
-    healthLocations: null,
     tracking: null
   });
   const [loading, setLoading] = useState({});
@@ -131,14 +130,11 @@ export const DataProvider = ({ children }) => {
         case 'finance':
           fileId = DRIVE_FILES.FINANCES.FILE_ID;
           break;
-        case 'health':
-          fileId = DRIVE_FILES.HEALTH.FILE_ID;
+        case 'healthDaily':
+          fileId = DRIVE_FILES.HEALTH_DAILY.FILE_ID;
           break;
         case 'healthHourly':
           fileId = DRIVE_FILES.HEALTH_HOURLY.FILE_ID;
-          break;
-        case 'healthLocations':
-          fileId = DRIVE_FILES.HEALTH_LOCATIONS.FILE_ID;
           break;
         case 'tracking':
           fileId = DRIVE_FILES.TRACKING.FILE_ID;
@@ -293,79 +289,69 @@ export const DataProvider = ({ children }) => {
               }));
             }
 
-            // Type conversion for health
-            if (dataType === 'health') {
+            // Type conversion for healthDaily (daily summary data)
+            if (dataType === 'healthDaily') {
               cleanedData = cleanedData.map(day => ({
                 ...day,
-                daily_steps: day.daily_steps ? parseFloat(day.daily_steps) : 0,
-                daily_walking_dist: day.daily_walking_dist ? parseFloat(day.daily_walking_dist) : 0,
-                daily_flights_climbed: day.daily_flights_climbed ? parseFloat(day.daily_flights_climbed) : 0,
-                daily_resting_energy: day.daily_resting_energy ? parseFloat(day.daily_resting_energy) : 0,
-                daily_active_energy: day.daily_active_energy ? parseFloat(day.daily_active_energy) : 0,
-                avg_step_length: day.avg_step_length ? parseFloat(day.avg_step_length) : 0,
-                avg_walking_speed: day.avg_walking_speed ? parseFloat(day.avg_walking_speed) : 0,
-                avg_heart_rate: day.avg_heart_rate ? parseFloat(day.avg_heart_rate) : 0,
-                avg_body_weight: day.avg_body_weight ? parseFloat(day.avg_body_weight) : null,
-                avg_body_fat_percent: day.avg_body_fat_percent ? parseFloat(day.avg_body_fat_percent) : null,
-                avg_audio_exposure: day.avg_audio_exposure ? parseFloat(day.avg_audio_exposure) : 0,
-                sleep_awake_minutes: day.sleep_awake_minutes ? parseFloat(day.sleep_awake_minutes) : 0,
-                sleep_core_sleep_minutes: day.sleep_core_sleep_minutes ? parseFloat(day.sleep_core_sleep_minutes) : 0,
-                sleep_deep_sleep_minutes: day.sleep_deep_sleep_minutes ? parseFloat(day.sleep_deep_sleep_minutes) : 0,
-                sleep_in_bed_minutes: day.sleep_in_bed_minutes ? parseFloat(day.sleep_in_bed_minutes) : 0,
-                sleep_rem_sleep_minutes: day.sleep_rem_sleep_minutes ? parseFloat(day.sleep_rem_sleep_minutes) : 0,
-                sleep_unspecified_minutes: day.sleep_unspecified_minutes ? parseFloat(day.sleep_unspecified_minutes) : 0,
-                sleep_minutes: day.sleep_minutes ? parseFloat(day.sleep_minutes) : 0,
-                cities_visited: day.cities_visited ? parseInt(day.cities_visited) : 0,
-                countries_visited: day.countries_visited ? parseInt(day.countries_visited) : 0,
-                timezone_changes: day.timezone_changes ? parseInt(day.timezone_changes) : 0,
-                percent_time_home: day.percent_time_home ? parseFloat(day.percent_time_home) : 0,
-                percent_time_other: day.percent_time_other ? parseFloat(day.percent_time_other) : 0,
-                total_screen_minutes: day.total_screen_minutes ? parseInt(day.total_screen_minutes) : 0,
-                total_pickups: day.total_pickups ? parseInt(day.total_pickups) : 0,
-                screen_before_sleep_minutes: day.screen_before_sleep_minutes ? parseInt(day.screen_before_sleep_minutes) : 0,
-                sleep_quality: day.sleep_quality ? parseFloat(day.sleep_quality) : 0,
-                overall_evaluation: day.overall_evaluation ? parseFloat(day.overall_evaluation) : 0,
-                fitness_feeling: day.fitness_feeling ? parseFloat(day.fitness_feeling) : 0,
-                sleep_rest_feeling: day.sleep_rest_feeling ? parseFloat(day.sleep_rest_feeling) : 0
+                // Subjective metrics
+                sleep_quality: day.sleep_quality ? parseFloat(day.sleep_quality) : null,
+                dreams: day.dreams ? parseInt(day.dreams) : null,
+                sleep_rest_feeling: day.sleep_rest_feeling ? parseFloat(day.sleep_rest_feeling) : null,
+                fitness_feeling: day.fitness_feeling ? parseFloat(day.fitness_feeling) : null,
+                overall_evaluation: day.overall_evaluation ? parseFloat(day.overall_evaluation) : null,
+                // Daily totals
+                total_steps: day.total_steps ? parseInt(day.total_steps) : 0,
+                total_apple_distance_meters: day.total_apple_distance_meters ? parseFloat(day.total_apple_distance_meters) : 0,
+                total_flights_climbed: day.total_flights_climbed ? parseInt(day.total_flights_climbed) : 0,
+                total_active_energy_kcal: day.total_active_energy_kcal ? parseFloat(day.total_active_energy_kcal) : 0,
+                total_resting_energy_kcal: day.total_resting_energy_kcal ? parseFloat(day.total_resting_energy_kcal) : 0,
+                total_sleep_minutes: day.total_sleep_minutes ? parseFloat(day.total_sleep_minutes) : 0,
+                total_deep_sleep_minutes: day.total_deep_sleep_minutes ? parseFloat(day.total_deep_sleep_minutes) : 0,
+                total_rem_sleep_minutes: day.total_rem_sleep_minutes ? parseFloat(day.total_rem_sleep_minutes) : 0,
+                total_core_sleep_minutes: day.total_core_sleep_minutes ? parseFloat(day.total_core_sleep_minutes) : 0,
+                total_awake_minutes: day.total_awake_minutes ? parseFloat(day.total_awake_minutes) : 0,
+                total_screen_time_minutes: day.total_screen_time_minutes ? parseFloat(day.total_screen_time_minutes) : 0,
+                total_phone_pickups: day.total_phone_pickups ? parseInt(day.total_phone_pickups) : 0,
+                total_screen_before_sleep_minutes: day.total_screen_before_sleep_minutes ? parseFloat(day.total_screen_before_sleep_minutes) : 0
               }));
             }
 
-            // Type conversion for healthHourly (hourly aggregated data with JSON columns)
+            // Type conversion for healthHourly (hourly segment data)
             if (dataType === 'healthHourly') {
-              cleanedData = cleanedData.map(hour => ({
-                ...hour,
-                // Flat numeric columns
-                hour: hour.hour ? parseInt(hour.hour) : 0,
-                weekday: hour.weekday ? parseInt(hour.weekday) : 0,
-                total_steps: hour.total_steps ? parseFloat(hour.total_steps) : 0,
-                total_distance_m: hour.total_distance_m ? parseFloat(hour.total_distance_m) : 0,
-                total_flights_climbed: hour.total_flights_climbed ? parseFloat(hour.total_flights_climbed) : 0,
-                total_active_energy: hour.total_active_energy ? parseFloat(hour.total_active_energy) : 0,
-                total_resting_energy: hour.total_resting_energy ? parseFloat(hour.total_resting_energy) : 0,
-                avg_heart_rate: hour.avg_heart_rate ? parseFloat(hour.avg_heart_rate) : null,
-                avg_walking_speed: hour.avg_walking_speed ? parseFloat(hour.avg_walking_speed) : null,
-                avg_step_length: hour.avg_step_length ? parseFloat(hour.avg_step_length) : null,
-                avg_body_weight: hour.avg_body_weight ? parseFloat(hour.avg_body_weight) : null,
-                avg_body_fat_percent: hour.avg_body_fat_percent ? parseFloat(hour.avg_body_fat_percent) : null,
-                avg_audio_exposure: hour.avg_audio_exposure ? parseFloat(hour.avg_audio_exposure) : null,
-                total_sleep_minutes: hour.total_sleep_minutes ? parseFloat(hour.total_sleep_minutes) : 0,
-                total_screen_minutes: hour.total_screen_minutes ? parseFloat(hour.total_screen_minutes) : 0,
-                total_pickups: hour.total_pickups ? parseInt(hour.total_pickups) : 0,
-                screen_before_sleep_minutes: hour.screen_before_sleep_minutes ? parseFloat(hour.screen_before_sleep_minutes) : 0,
-                // Boolean columns
-                is_home_hour: hour.is_home_hour === 'True' || hour.is_home_hour === true,
-                is_sleeping_hour: hour.is_sleeping_hour === 'True' || hour.is_sleeping_hour === true,
-                is_moving_hour: hour.is_moving_hour === 'True' || hour.is_moving_hour === true,
-                // JSON columns - parse from string to object
-                locations_json: hour.locations_json ? JSON.parse(hour.locations_json) : [],
-                activities_json: hour.activities_json ? JSON.parse(hour.activities_json) : {},
-                sleep_json: hour.sleep_json ? JSON.parse(hour.sleep_json) : {},
-                screen_json: hour.screen_json ? JSON.parse(hour.screen_json) : {},
-                body_metrics_json: hour.body_metrics_json ? JSON.parse(hour.body_metrics_json) : {},
-                movement_metrics_json: hour.movement_metrics_json ? JSON.parse(hour.movement_metrics_json) : {},
-                countries_visited_json: hour.countries_visited_json ? JSON.parse(hour.countries_visited_json) : [],
-                cities_visited_json: hour.cities_visited_json ? JSON.parse(hour.cities_visited_json) : [],
-                timezones_json: hour.timezones_json ? JSON.parse(hour.timezones_json) : []
+              cleanedData = cleanedData.map(segment => ({
+                ...segment,
+                // Time identifiers
+                hour: segment.hour ? parseInt(segment.hour) : 0,
+                weekday: segment.weekday ? parseInt(segment.weekday) : 0,
+                segment_duration_minutes: segment.segment_duration_minutes ? parseFloat(segment.segment_duration_minutes) : 0,
+                // Movement metrics
+                steps: segment.steps ? parseInt(segment.steps) : 0,
+                apple_distance_meters: segment.apple_distance_meters ? parseFloat(segment.apple_distance_meters) : 0,
+                distance_meters: segment.distance_meters ? parseFloat(segment.distance_meters) : 0,
+                flights_climbed: segment.flights_climbed ? parseInt(segment.flights_climbed) : 0,
+                // Energy metrics
+                active_energy_kcal: segment.active_energy_kcal ? parseFloat(segment.active_energy_kcal) : 0,
+                resting_energy_kcal: segment.resting_energy_kcal ? parseFloat(segment.resting_energy_kcal) : 0,
+                // Averages
+                avg_step_length_cm: segment.avg_step_length_cm ? parseFloat(segment.avg_step_length_cm) : null,
+                avg_walking_speed_kmh: segment.avg_walking_speed_kmh ? parseFloat(segment.avg_walking_speed_kmh) : null,
+                avg_heart_rate: segment.avg_heart_rate ? parseFloat(segment.avg_heart_rate) : null,
+                avg_audio_exposure: segment.avg_audio_exposure ? parseFloat(segment.avg_audio_exposure) : null,
+                // Body metrics
+                body_weight_kg: segment.body_weight_kg ? parseFloat(segment.body_weight_kg) : null,
+                body_fat_percent: segment.body_fat_percent ? parseFloat(segment.body_fat_percent) : null,
+                // Screen time
+                screen_time_minutes: segment.screen_time_minutes ? parseFloat(segment.screen_time_minutes) : 0,
+                phone_pickups: segment.phone_pickups ? parseInt(segment.phone_pickups) : 0,
+                screen_time_minutes_before_sleep: segment.screen_time_minutes_before_sleep ? parseFloat(segment.screen_time_minutes_before_sleep) : 0,
+                // Sleep metrics
+                sleep_minutes: segment.sleep_minutes ? parseFloat(segment.sleep_minutes) : 0,
+                deep_sleep_minutes: segment.deep_sleep_minutes ? parseFloat(segment.deep_sleep_minutes) : 0,
+                rem_sleep_minutes: segment.rem_sleep_minutes ? parseFloat(segment.rem_sleep_minutes) : 0,
+                core_sleep_minutes: segment.core_sleep_minutes ? parseFloat(segment.core_sleep_minutes) : 0,
+                awake_minutes: segment.awake_minutes ? parseFloat(segment.awake_minutes) : 0,
+                // Boolean conversion
+                is_home: segment.is_home === 'True' || segment.is_home === true || segment.is_home === 'true'
               }));
             }
 

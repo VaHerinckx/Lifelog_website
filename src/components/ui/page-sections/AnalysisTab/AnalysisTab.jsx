@@ -1,6 +1,6 @@
 // AnalysisTab.jsx - Reusable analysis tab component
 // Eliminates boilerplate for displaying charts with standardized structure
-// Mirrors ContentTab API design for consistency
+// Each chart specifies its own data source directly
 
 import React from 'react';
 import PropTypes from 'prop-types';
@@ -9,58 +9,27 @@ import './AnalysisTab.css';
 /**
  * AnalysisTab - Standardized component for analysis views
  *
- * @param {Array} data - Pre-filtered data array (required)
- * @param {Object} emptyState - Empty state configuration
- * @param {string} emptyState.message - Message to display when no data
- * @param {Function} renderCharts - Function that returns chart JSX elements
+ * @param {Function} renderCharts - Function that returns chart JSX elements (no parameters)
  *
  * @example
  * <AnalysisTab
- *   data={filteredData}
- *   emptyState={{ message: "No data available with current filters." }}
- *   renderCharts={(data) => (
+ *   renderCharts={() => (
  *     <>
- *       <TimeSeriesBarChart data={data} ... />
- *       <IntensityHeatmap data={data} ... />
+ *       <TimeSeriesBarChart data={filteredData} ... />
+ *       <IntensityHeatmap data={filteredHourlyData} ... />
  *     </>
  *   )}
  * />
  */
-const AnalysisTab = ({
-  data = [],
-  emptyState = {},
-  renderCharts
-}) => {
-  // Default empty state message
-  const defaultEmptyMessage = "No data available with current filters. Try adjusting your criteria.";
-  const emptyMessage = emptyState.message || defaultEmptyMessage;
-
+const AnalysisTab = ({ renderCharts }) => {
   // Validate required props
   if (!renderCharts || typeof renderCharts !== 'function') {
-    console.error('AnalysisTab: renderCharts prop is required and must be a function');
-    return (
-      <div className="analysis-tab-container">
-        <div className="empty-state">
-          <p>Configuration error: renderCharts function not provided.</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Handle empty data state
-  if (!data || data.length === 0) {
-    return (
-      <div className="analysis-tab-container">
-        <div className="empty-state">
-          <p>{emptyMessage}</p>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // Render charts and wrap each child in analysis-chart-section
   const renderWrappedCharts = () => {
-    const charts = renderCharts(data);
+    const charts = renderCharts();
 
     // Handle single element
     if (!charts) return null;
@@ -95,10 +64,6 @@ const AnalysisTab = ({
 };
 
 AnalysisTab.propTypes = {
-  data: PropTypes.array,
-  emptyState: PropTypes.shape({
-    message: PropTypes.string
-  }),
   renderCharts: PropTypes.func.isRequired
 };
 

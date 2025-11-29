@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Activity, List, Grid, Calendar, Moon, Heart, MapPin } from 'lucide-react';
+import { Activity, List, Grid, Calendar, Moon, Heart } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -32,8 +32,6 @@ const HealthPage = () => {
   const [filteredHealthDays, setFilteredHealthDays] = useState([]);
   const [healthHourly, setHealthHourly] = useState([]);
   const [filteredHealthHourly, setFilteredHealthHourly] = useState([]);
-  const [healthLocations, setHealthLocations] = useState([]);
-  const [filteredHealthLocations, setFilteredHealthLocations] = useState([]);
   const [isProcessing, setIsProcessing] = useState(true);
 
   const [viewMode, setViewMode] = useState('grid');
@@ -43,20 +41,19 @@ const HealthPage = () => {
   // Fetch health data when component mounts
   useEffect(() => {
     if (typeof fetchData === 'function') {
-      fetchData('health');
+      fetchData('healthDaily');
       fetchData('healthHourly');
-      fetchData('healthLocations');
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Process health data when it's loaded
+  // Process health daily data when it's loaded
   useEffect(() => {
-    if (data?.health) {
+    if (data?.healthDaily) {
       setIsProcessing(true);
 
       // Convert date strings to Date objects for JavaScript date operations
       // Filter out entries with invalid dates
-      const processedDays = data.health
+      const processedDays = data.healthDaily
         .map(day => ({
           ...day,
           date: day.date ? new Date(day.date) : null
@@ -68,45 +65,39 @@ const HealthPage = () => {
       setFilteredHealthDays(processedDays);
       setIsProcessing(false);
       }
-  }, [data?.health]);
+  }, [data?.healthDaily]);
 
   // Process hourly health data when it's loaded
   useEffect(() => {
     if (data?.healthHourly) {
-      // Convert datetime strings to Date objects
+      // Convert date strings to Date objects and create datetime for heatmap compatibility
       const processedHours = data.healthHourly
-        .map(hour => ({
-          ...hour,
-          datetime: hour.datetime ? new Date(hour.datetime) : null
-        }))
-        .filter(hour => hour.datetime !== null && !isNaN(hour.datetime.getTime()));
+        .map(segment => {
+          const dateObj = segment.date ? new Date(segment.date) : null;
+          // Create datetime by combining date and hour
+          let datetime = null;
+          if (dateObj && !isNaN(dateObj.getTime())) {
+            datetime = new Date(dateObj);
+            datetime.setHours(segment.hour || 0, 0, 0, 0);
+          }
+          return {
+            ...segment,
+            date: dateObj,
+            datetime: datetime
+          };
+        })
+        .filter(segment => segment.date !== null && !isNaN(segment.date.getTime()));
 
       setHealthHourly(processedHours);
+      setFilteredHealthHourly(processedHours);
     }
   }, [data?.healthHourly]);
-
-  // Process locations data when it's loaded
-  useEffect(() => {
-    if (data?.healthLocations) {
-      // Convert datetime strings to Date objects
-      const processedLocations = data.healthLocations
-        .map(loc => ({
-          ...loc,
-          datetime: loc.datetime ? new Date(loc.datetime) : null,
-          date: loc.date ? new Date(loc.date) : null
-        }))
-        .filter(loc => loc.datetime !== null && !isNaN(loc.datetime.getTime()));
-
-      setHealthLocations(processedLocations);
-    }
-  }, [data?.healthLocations]);
 
   // Apply filters when FilteringPanel filters change
   const handleFiltersChange = (filteredDataSources) => {
     // ContentTab now handles sorting internally
-    setFilteredHealthDays(filteredDataSources.health || []);
+    setFilteredHealthDays(filteredDataSources.healthDaily || []);
     setFilteredHealthHourly(filteredDataSources.healthHourly || []);
-    setFilteredHealthLocations(filteredDataSources.healthLocations || []);
   };
 
   const handleCardClick = (day) => {
@@ -120,14 +111,13 @@ const HealthPage = () => {
   // Memoize data object to prevent FilteringPanel re-renders
   // Include all data sources so they can all be filtered consistently
   const filterPanelData = useMemo(() => ({
-    health: healthDays,
-    healthHourly: healthHourly,
-    healthLocations: healthLocations
-  }), [healthDays, healthHourly, healthLocations]);
+    healthDaily: healthDays,
+    healthHourly: healthHourly
+  }), [healthDays, healthHourly]);
 
   return (
     <PageWrapper
-      error={error?.health}
+      error={error?.healthDaily}
       errorTitle="Health Tracker"
     >
       {/* Page Header */}
@@ -136,7 +126,7 @@ const HealthPage = () => {
         description="Track your daily activity, sleep patterns, and overall wellness"
       />
 
-        {!loading?.health && !isProcessing && (
+        {!loading?.healthDaily && !isProcessing && (
           <>
             {/* FilteringPanel with Filter children */}
             <FilteringPanel
@@ -148,12 +138,11 @@ const HealthPage = () => {
                 label="Date"
                 field="date"
                 fieldMap={{
-                  health: 'date',
-                  healthHourly: 'datetime',
-                  healthLocations: 'datetime'
+                  healthDaily: 'date',
+                  healthHourly: 'datetime'
                 }}
                 icon={<Calendar />}
-                dataSources={['health', 'healthHourly', 'healthLocations']}
+                dataSources={['healthDaily', 'healthHourly']}
               />
               <Filter
                 type="multiselect"
@@ -161,7 +150,7 @@ const HealthPage = () => {
                 field="sleep_quality_text"
                 icon={<Moon />}
                 placeholder="Select quality"
-                dataSources={['health']}
+                dataSources={['healthDaily']}
               />
               <Filter
                 type="multiselect"
@@ -169,27 +158,19 @@ const HealthPage = () => {
                 field="overall_evaluation"
                 icon={<Heart />}
                 placeholder="Select rating"
-                dataSources={['health']}
-              />
-              <Filter
-                type="multiselect"
-                label="Location"
-                field="dominant_city"
-                icon={<MapPin />}
-                placeholder="Select location"
-                dataSources={['health']}
+                dataSources={['healthDaily']}
               />
             </FilteringPanel>
 
             {/* Statistics Cards with KpiCard children */}
             <KPICardsPanel
               dataSources={{
-                health: filteredHealthDays
+                healthDaily: filteredHealthDays
               }}
-              loading={loading?.health}
+              loading={loading?.healthDaily}
             >
               <KpiCard
-                dataSource="health"
+                dataSource="healthDaily"
                 metricOptions={{
                   label: 'Days Tracked',
                   aggregation: 'count'
@@ -197,40 +178,40 @@ const HealthPage = () => {
                 icon={<Calendar />}
               />
               <KpiCard
-                dataSource="health"
+                dataSource="healthDaily"
                 metricOptions={{
                   label: 'Avg. Daily Steps',
                   aggregation: 'average',
-                  field: 'daily_steps',
+                  field: 'total_steps',
                   decimals: 0,
-                  filterConditions: [{ field: 'daily_steps', operator: '>', value: 0 }]
+                  filterConditions: [{ field: 'total_steps', operator: '>', value: 0 }]
                 }}
                 icon={<Activity />}
               />
               <KpiCard
-                dataSource="health"
+                dataSource="healthDaily"
                 metricOptions={{
                   label: 'Avg. Active Energy (kcal)',
                   aggregation: 'average',
-                  field: 'daily_active_energy',
+                  field: 'total_active_energy_kcal',
                   decimals: 0,
-                  filterConditions: [{ field: 'daily_active_energy', operator: '>', value: 0 }]
+                  filterConditions: [{ field: 'total_active_energy_kcal', operator: '>', value: 0 }]
                 }}
                 icon={<Heart />}
               />
               <KpiCard
-                dataSource="health"
+                dataSource="healthDaily"
                 metricOptions={{
                   label: 'Avg. Sleep (min)',
                   aggregation: 'average',
-                  field: 'sleep_minutes',
+                  field: 'total_sleep_minutes',
                   decimals: 0,
-                  filterConditions: [{ field: 'sleep_minutes', operator: '>', value: 0 }]
+                  filterConditions: [{ field: 'total_sleep_minutes', operator: '>', value: 0 }]
                 }}
                 icon={<Moon />}
               />
               <KpiCard
-                dataSource="health"
+                dataSource="healthDaily"
                 metricOptions={{
                   label: 'Avg. Overall Feeling',
                   aggregation: 'average',
@@ -241,7 +222,7 @@ const HealthPage = () => {
                 icon={<Heart />}
               />
               <KpiCard
-                dataSource="health"
+                dataSource="healthDaily"
                 metricOptions={{
                   label: 'Avg. Sleep Quality',
                   aggregation: 'average',
@@ -252,7 +233,7 @@ const HealthPage = () => {
                 icon={<Moon />}
               />
               <KpiCard
-                dataSource="health"
+                dataSource="healthDaily"
                 metricOptions={{
                   label: 'Avg. Fitness Feeling',
                   aggregation: 'average',
@@ -277,7 +258,7 @@ const HealthPage = () => {
         {/* Daily Logs Tab Content */}
         {activeTab === 'content' && (
           <ContentTab
-            loading={loading?.health || isProcessing}
+            loading={loading?.healthDaily || isProcessing}
             viewMode={viewMode}
             onViewModeChange={setViewMode}
             viewModes={[
@@ -293,9 +274,9 @@ const HealthPage = () => {
             }}
             sortOptions={[
               { value: 'date', label: 'Date', type: 'date' },
-              { value: 'daily_steps', label: 'Steps', type: 'number' },
+              { value: 'total_steps', label: 'Steps', type: 'number' },
               { value: 'sleep_quality', label: 'Sleep Quality', type: 'number' },
-              { value: 'sleep_minutes', label: 'Sleep Duration', type: 'number' },
+              { value: 'total_sleep_minutes', label: 'Sleep Duration', type: 'number' },
               { value: 'fitness_feeling', label: 'Fitness Feeling', type: 'number' }
             ]}
             defaultSortField="date"
@@ -334,28 +315,22 @@ const HealthPage = () => {
         {/* Analysis Tab Content */}
         {activeTab === 'analysis' && (
           <AnalysisTab
-            data={filteredHealthDays}
-            emptyState={{
-              message: "No health data available with current filters. Try adjusting your criteria."
-            }}
-            renderCharts={(healthData) => (
+            renderCharts={() => (
               <>
                 <TimeSeriesBarChart
-                  data={healthData}
+                  data={filteredHealthDays}
                   dateColumnName="date"
                   metricOptions={[
-                    { value: 'steps', label: 'Daily Steps', aggregation: 'average', field: 'daily_steps', decimals: 0 },
-                    { value: 'sleep', label: 'Sleep Duration (min)', aggregation: 'average', field: 'sleep_minutes', decimals: 0 },
+                    { value: 'steps', label: 'Daily Steps', aggregation: 'average', field: 'total_steps', decimals: 0 },
+                    { value: 'sleep', label: 'Sleep Duration (min)', aggregation: 'average', field: 'total_sleep_minutes', decimals: 0 },
                     { value: 'sleep quality', label: 'Sleep Quality (1-5)', aggregation: 'average', field: 'sleep_quality', decimals: 1 },
                     { value: 'sleep rest feeling', label: 'Rest Feeling (1-5)', aggregation: 'average', field: 'sleep_rest_feeling', decimals: 1 },
-                    { value: 'screentime', label: 'Avg Screen Time (h)', aggregation: 'average', field: 'total_screen_hours', decimals: 1 },
-                    { value: 'screentime_before_sleep', label: 'Avg Screen Time before sleep (min)', aggregation: 'average', field: 'screen_before_sleep_minutes', decimals: 1 },
-                    { value: 'energy', label: 'Active Energy (kcal)', aggregation: 'average', field: 'daily_active_energy', decimals: 0 },
-                    { value: 'heart', label: 'Heart Rate (bpm)', aggregation: 'average', field: 'avg_heart_rate', decimals: 0 },
-                    { value: 'weight', label: 'Body Weight (kg)', aggregation: 'average', field: 'avg_body_weight', decimals: 1 },
+                    { value: 'screentime', label: 'Screen Time (min)', aggregation: 'average', field: 'total_screen_time_minutes', decimals: 0 },
+                    { value: 'screentime_before_sleep', label: 'Screen Time before sleep (min)', aggregation: 'average', field: 'total_screen_before_sleep_minutes', decimals: 0 },
+                    { value: 'energy', label: 'Active Energy (kcal)', aggregation: 'average', field: 'total_active_energy_kcal', decimals: 0 },
                     { value: 'fitness', label: 'Fitness Feeling (1-5)', aggregation: 'average', field: 'fitness_feeling', decimals: 1 },
                     { value: 'evaluation', label: 'Day Score (1-5)', aggregation: 'average', field: 'overall_evaluation', decimals: 1 },
-                    { value: 'visits', label: 'Unique Visits', aggregation: 'count_distinct', field: 'visit_id', decimals: 1, data: filteredHealthLocations, dateColumnName: 'datetime' },
+                    { value: 'visits', label: 'Unique Places Visited', aggregation: 'count_distinct', field: 'place_name', decimals: 0, data: filteredHealthHourly, dateColumnName: 'datetime' },
                   ]}
                   defaultMetric="steps"
                   title="Health Metrics by Period"
@@ -365,13 +340,13 @@ const HealthPage = () => {
                   dateColumnName="datetime"
                   treatMidnightAsUnknown={false}
                   metricOptions={[
-                    { value: 'steps', label: 'Steps', field: 'total_steps', aggregation: 'sum', decimals: 0, compactNumbers: false },
-                    { value: 'active_energy', label: 'Active Energy (kcal)', field: 'total_active_energy', aggregation: 'sum', decimals: 0, compactNumbers: true },
-                    { value: 'screen_time', label: 'Screen Time (min)', field: 'total_screen_minutes', aggregation: 'sum', decimals: 0 },
+                    { value: 'steps', label: 'Steps', field: 'steps', aggregation: 'sum', decimals: 0, compactNumbers: false },
+                    { value: 'active_energy', label: 'Active Energy (kcal)', field: 'active_energy_kcal', aggregation: 'sum', decimals: 0, compactNumbers: true },
+                    { value: 'screen_time', label: 'Screen Time (min)', field: 'screen_time_minutes', aggregation: 'sum', decimals: 0 },
                     { value: 'heart_rate', label: 'Avg Heart Rate (bpm)', field: 'avg_heart_rate', aggregation: 'average', decimals: 0 },
-                    { value: 'sleep', label: 'Sleep (min)', field: 'total_sleep_minutes', aggregation: 'sum', decimals: 0, compactNumbers: true },
-                    { value: 'distance', label: 'Distance (m)', field: 'total_distance_m', aggregation: 'sum', decimals: 0, compactNumbers: true },
-                    { value: 'pickups', label: 'Phone Pickups', field: 'total_pickups', aggregation: 'sum', decimals: 0 }
+                    { value: 'sleep', label: 'Sleep (min)', field: 'sleep_minutes', aggregation: 'sum', decimals: 0, compactNumbers: true },
+                    { value: 'distance', label: 'Distance (m)', field: 'distance_meters', aggregation: 'sum', decimals: 0, compactNumbers: true },
+                    { value: 'pickups', label: 'Phone Pickups', field: 'phone_pickups', aggregation: 'sum', decimals: 0 }
                   ]}
                   defaultMetric="steps"
                   rowAxis="time_period"

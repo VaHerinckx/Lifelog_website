@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { X, Activity, Moon, Heart, MapPin, Smartphone, Brain, StickyNote, Dumbbell, Home } from 'lucide-react';
+import { X, Activity, Moon, Heart, MapPin, Smartphone, Brain, StickyNote, Dumbbell, Home, Clock } from 'lucide-react';
 import './HealthDetails.css';
 import { StarRating } from '../../../components/ui';
 import { formatDate } from '../../../utils';
@@ -24,67 +24,95 @@ const getEvaluationEmoji = (rating) => {
 };
 
 /**
- * Aggregate location data from hourly records
- * Groups by unique location (address/coordinates/city), sums minutes, counts unique visits
+ * Aggregate location data from hourly segment records
+ * Groups by unique location (place_name/city), sums duration, and tracks time ranges
  */
 const aggregateLocations = (hourlyData) => {
   if (!hourlyData || hourlyData.length === 0) return [];
 
-  const locationMap = new Map(); // key -> { ...data, totalMinutes, visitIds }
+  const locationMap = new Map(); // key -> { ...data, totalMinutes, segmentIds, hours }
 
-  hourlyData.forEach(hour => {
-    // Parse locations_json - handle both string and already-parsed object
-    let locations = [];
-    try {
-      if (typeof hour.locations_json === 'string') {
-        locations = JSON.parse(hour.locations_json);
-      } else if (Array.isArray(hour.locations_json)) {
-        locations = hour.locations_json;
-      }
-    } catch {
-      return;
+  hourlyData.forEach(segment => {
+    // Only include stationary segments with location data
+    if (segment.segment_type !== 'stationary') return;
+
+    // Generate unique key (prefer place_name > address > city)
+    const key = segment.place_name || segment.address || segment.city;
+    if (!key) return;
+
+    if (!locationMap.has(key)) {
+      locationMap.set(key, {
+        city: segment.city,
+        country: segment.country,
+        address: segment.address,
+        place_name: segment.place_name,
+        coordinates: segment.coordinates,
+        is_home: segment.is_home,
+        location_type: segment.location_type,
+        totalMinutes: 0,
+        segmentIds: new Set(),
+        hours: new Set()
+      });
     }
 
-    if (!Array.isArray(locations)) return;
-
-    locations.forEach(loc => {
-      // Generate unique key (prefer address > coordinates > city)
-      const key = loc.address || loc.coordinates || loc.city;
-      if (!key) return;
-
-      if (!locationMap.has(key)) {
-        locationMap.set(key, {
-          city: loc.city,
-          country: loc.country,
-          address: loc.address,
-          place_name: loc.place_name,
-          coordinates: loc.coordinates,
-          is_home: loc.is_home,
-          location_type: loc.location_type,
-          totalMinutes: 0,
-          visitIds: new Set()
-        });
-      }
-
-      const entry = locationMap.get(key);
-      entry.totalMinutes += loc.minutes || 0;
-      if (loc.visit_id) {
-        entry.visitIds.add(loc.visit_id);
-      }
-    });
+    const entry = locationMap.get(key);
+    entry.totalMinutes += segment.segment_duration_minutes || 0;
+    if (segment.segment_id) {
+      entry.segmentIds.add(segment.segment_id);
+    }
+    if (segment.hour !== undefined) {
+      entry.hours.add(segment.hour);
+    }
   });
 
-  // Convert to array, calculate visit counts, and sort by time (most to least)
+  // Convert to array, calculate visit counts, format time ranges, and sort by time (most to least)
   return Array.from(locationMap.values())
     .map(loc => ({
       ...loc,
-      visitCount: loc.visitIds.size || 1
+      visitCount: loc.segmentIds.size || 1,
+      timeRanges: formatHoursAsRanges(Array.from(loc.hours).sort((a, b) => a - b))
     }))
     .sort((a, b) => b.totalMinutes - a.totalMinutes);
 };
 
 /**
- * Aggregate activity data from hourly records
+ * Format a sorted array of hours into readable time ranges
+ * e.g., [0,1,2,8,9,10,11,22,23] -> "00:00-02:59, 08:00-11:59, 22:00-23:59"
+ */
+const formatHoursAsRanges = (hours) => {
+  if (!hours || hours.length === 0) return '';
+
+  const ranges = [];
+  let rangeStart = hours[0];
+  let rangeEnd = hours[0];
+
+  for (let i = 1; i < hours.length; i++) {
+    if (hours[i] === rangeEnd + 1) {
+      // Continue the range
+      rangeEnd = hours[i];
+    } else {
+      // Close current range and start new one
+      ranges.push({ start: rangeStart, end: rangeEnd });
+      rangeStart = hours[i];
+      rangeEnd = hours[i];
+    }
+  }
+  // Don't forget the last range
+  ranges.push({ start: rangeStart, end: rangeEnd });
+
+  // Format each range
+  return ranges.map(r => {
+    const startStr = `${String(r.start).padStart(2, '0')}:00`;
+    const endStr = `${String(r.end).padStart(2, '0')}:59`;
+    if (r.start === r.end) {
+      return startStr;
+    }
+    return `${startStr}-${endStr}`;
+  }).join(', ');
+};
+
+/**
+ * Aggregate activity data from hourly segment records
  * Groups by activity type, sums minutes and distance
  */
 const aggregateActivities = (hourlyData) => {
@@ -92,30 +120,17 @@ const aggregateActivities = (hourlyData) => {
 
   const activityMap = new Map(); // activity_type -> { minutes, distance_m }
 
-  hourlyData.forEach(hour => {
-    // Parse activities_json - handle both string and already-parsed object
-    let activities = {};
-    try {
-      if (typeof hour.activities_json === 'string') {
-        activities = JSON.parse(hour.activities_json);
-      } else if (typeof hour.activities_json === 'object' && hour.activities_json !== null) {
-        activities = hour.activities_json;
-      }
-    } catch {
-      return;
+  hourlyData.forEach(segment => {
+    const activityType = segment.activity_type;
+    if (!activityType || activityType === 'idle') return; // Skip idle/stationary
+
+    if (!activityMap.has(activityType)) {
+      activityMap.set(activityType, { minutes: 0, distance_m: 0 });
     }
 
-    if (typeof activities !== 'object' || activities === null) return;
-
-    Object.entries(activities).forEach(([activityType, data]) => {
-      if (!activityMap.has(activityType)) {
-        activityMap.set(activityType, { minutes: 0, distance_m: 0 });
-      }
-
-      const entry = activityMap.get(activityType);
-      entry.minutes += data.minutes || 0;
-      entry.distance_m += data.distance_m || 0;
-    });
+    const entry = activityMap.get(activityType);
+    entry.minutes += segment.segment_duration_minutes || 0;
+    entry.distance_m += segment.distance_meters || 0;
   });
 
   // Convert to array and sort by time (most to least)
@@ -129,11 +144,65 @@ const aggregateActivities = (hourlyData) => {
     .sort((a, b) => b.minutes - a.minutes);
 };
 
+/**
+ * Aggregate hourly metrics into daily totals
+ */
+const aggregateHourlyMetrics = (hourlyData) => {
+  if (!hourlyData || hourlyData.length === 0) return null;
+
+  const totals = {
+    steps: 0,
+    active_energy_kcal: 0,
+    resting_energy_kcal: 0,
+    screen_time_minutes: 0,
+    phone_pickups: 0,
+    distance_meters: 0,
+    apple_distance_meters: 0,
+    flights_climbed: 0,
+    avg_heart_rate: 0,
+    avg_heart_rate_count: 0,
+    body_weight_kg: null,
+    body_fat_percent: null
+  };
+
+  hourlyData.forEach(segment => {
+    totals.steps += segment.steps || 0;
+    totals.active_energy_kcal += segment.active_energy_kcal || 0;
+    totals.resting_energy_kcal += segment.resting_energy_kcal || 0;
+    totals.screen_time_minutes += segment.screen_time_minutes || 0;
+    totals.phone_pickups += segment.phone_pickups || 0;
+    totals.distance_meters += segment.distance_meters || 0;
+    totals.apple_distance_meters += segment.apple_distance_meters || 0;
+    totals.flights_climbed += segment.flights_climbed || 0;
+
+    if (segment.avg_heart_rate && segment.avg_heart_rate > 0) {
+      totals.avg_heart_rate += segment.avg_heart_rate;
+      totals.avg_heart_rate_count++;
+    }
+
+    // Take most recent body metrics
+    if (segment.body_weight_kg && segment.body_weight_kg > 0) {
+      totals.body_weight_kg = segment.body_weight_kg;
+    }
+    if (segment.body_fat_percent && segment.body_fat_percent > 0) {
+      totals.body_fat_percent = segment.body_fat_percent;
+    }
+  });
+
+  // Calculate average heart rate
+  if (totals.avg_heart_rate_count > 0) {
+    totals.avg_heart_rate = totals.avg_heart_rate / totals.avg_heart_rate_count;
+  }
+
+  return totals;
+};
+
 const HealthDetails = ({ day, hourlyData = [], onClose }) => {
   // Aggregate location and activity data from hourly records
   // These must be called before any conditional returns (React hooks rules)
   const aggregatedLocations = useMemo(() => aggregateLocations(hourlyData), [hourlyData]);
   const aggregatedActivities = useMemo(() => aggregateActivities(hourlyData), [hourlyData]);
+  const hourlyMetrics = useMemo(() => aggregateHourlyMetrics(hourlyData), [hourlyData]);
 
   if (!day) return null;
 
@@ -145,9 +214,9 @@ const HealthDetails = ({ day, hourlyData = [], onClose }) => {
     return `${Math.round(steps).toLocaleString()} steps`;
   };
 
-  const formatDistance = (km) => {
-    if (!km || km === 0) return 'No data';
-    return `${km.toFixed(2)} km`;
+  const formatDistance = (meters) => {
+    if (!meters || meters === 0) return 'No data';
+    return `${(meters / 1000).toFixed(2)} km`;
   };
 
   const formatEnergy = (kcal) => {
@@ -179,11 +248,6 @@ const HealthDetails = ({ day, hourlyData = [], onClose }) => {
     return `${(fat * 100).toFixed(1)}%`;
   };
 
-  const formatAudio = (db) => {
-    if (!db || db === 0) return 'No data';
-    return `${Math.round(db)} dB`;
-  };
-
   const formatScreenTime = (minutes) => {
     if (!minutes || minutes === 0) return 'No data';
     const hours = Math.floor(minutes / 60);
@@ -205,8 +269,10 @@ const HealthDetails = ({ day, hourlyData = [], onClose }) => {
             </div>
             <div className="health-header-info">
               <h2>{formatDate(day.date)}</h2>
-              {day.dominant_city && (
-                <p className="health-location">{day.dominant_city}</p>
+              {day.sleep_start_time && day.wake_up_time && (
+                <p className="health-sleep-times">
+                  <Clock size={16} /> Sleep: {day.sleep_start_time} - {day.wake_up_time}
+                </p>
               )}
             </div>
           </div>
@@ -271,7 +337,7 @@ const HealthDetails = ({ day, hourlyData = [], onClose }) => {
                     <div className="note-item">
                       <div className="note-header">
                         <Brain size={16} />
-                        <label>Dream:</label>
+                        <label>Dream ({day.dreams || 1} recorded):</label>
                       </div>
                       <p className="note-text">{day.dream_description}</p>
                     </div>
@@ -289,7 +355,7 @@ const HealthDetails = ({ day, hourlyData = [], onClose }) => {
               </div>
             )}
 
-            {/* Activity Metrics Section */}
+            {/* Activity Metrics Section - from hourly aggregation */}
             <div className="health-section">
               <h3 className="section-title">
                 <Activity size={20} />
@@ -298,36 +364,24 @@ const HealthDetails = ({ day, hourlyData = [], onClose }) => {
               <div className="section-content">
                 <div className="detail-item">
                   <label>Steps:</label>
-                  <span>{formatSteps(day.daily_steps)}</span>
+                  <span>{formatSteps(day.total_steps || hourlyMetrics?.steps)}</span>
                 </div>
                 <div className="detail-item">
                   <label>Walking Distance:</label>
-                  <span>{formatDistance(day.daily_walking_dist)}</span>
+                  <span>{formatDistance(day.total_apple_distance_meters || hourlyMetrics?.apple_distance_meters)}</span>
                 </div>
                 <div className="detail-item">
                   <label>Flights Climbed:</label>
-                  <span>{day.daily_flights_climbed || 'No data'}</span>
+                  <span>{(day.total_flights_climbed || hourlyMetrics?.flights_climbed) || 'No data'}</span>
                 </div>
                 <div className="detail-item">
                   <label>Resting Energy:</label>
-                  <span>{formatEnergy(day.daily_resting_energy)}</span>
+                  <span>{formatEnergy(day.total_resting_energy_kcal || hourlyMetrics?.resting_energy_kcal)}</span>
                 </div>
                 <div className="detail-item">
                   <label>Active Energy:</label>
-                  <span>{formatEnergy(day.daily_active_energy)}</span>
+                  <span>{formatEnergy(day.total_active_energy_kcal || hourlyMetrics?.active_energy_kcal)}</span>
                 </div>
-                {day.avg_step_length && day.avg_step_length > 0 && (
-                  <div className="detail-item">
-                    <label>Avg Step Length:</label>
-                    <span>{day.avg_step_length.toFixed(1)} cm</span>
-                  </div>
-                )}
-                {day.avg_walking_speed && day.avg_walking_speed > 0 && (
-                  <div className="detail-item">
-                    <label>Avg Walking Speed:</label>
-                    <span>{day.avg_walking_speed.toFixed(2)} km/h</span>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -340,32 +394,34 @@ const HealthDetails = ({ day, hourlyData = [], onClose }) => {
               <div className="section-content">
                 <div className="detail-item">
                   <label>Total Sleep:</label>
-                  <span>{formatMinutes(day.sleep_minutes)}</span>
+                  <span>{formatMinutes(day.total_sleep_minutes)}</span>
                 </div>
                 <div className="detail-item">
                   <label>Core Sleep:</label>
-                  <span>{formatMinutes(day.sleep_core_sleep_minutes)}</span>
+                  <span>{formatMinutes(day.total_core_sleep_minutes)}</span>
                 </div>
                 <div className="detail-item">
                   <label>Deep Sleep:</label>
-                  <span>{formatMinutes(day.sleep_deep_sleep_minutes)}</span>
+                  <span>{formatMinutes(day.total_deep_sleep_minutes)}</span>
                 </div>
                 <div className="detail-item">
                   <label>REM Sleep:</label>
-                  <span>{formatMinutes(day.sleep_rem_sleep_minutes)}</span>
+                  <span>{formatMinutes(day.total_rem_sleep_minutes)}</span>
                 </div>
                 <div className="detail-item">
                   <label>Time Awake:</label>
-                  <span>{formatMinutes(day.sleep_awake_minutes)}</span>
+                  <span>{formatMinutes(day.total_awake_minutes)}</span>
                 </div>
-                <div className="detail-item">
-                  <label>Time in Bed:</label>
-                  <span>{formatMinutes(day.sleep_in_bed_minutes)}</span>
-                </div>
+                {day.sleep_start_time && day.wake_up_time && (
+                  <div className="detail-item">
+                    <label>Sleep Schedule:</label>
+                    <span>{day.sleep_start_time} - {day.wake_up_time}</span>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Body Metrics Section */}
+            {/* Body Metrics Section - from hourly aggregation */}
             <div className="health-section">
               <h3 className="section-title">
                 <Heart size={20} />
@@ -374,31 +430,27 @@ const HealthDetails = ({ day, hourlyData = [], onClose }) => {
               <div className="section-content">
                 <div className="detail-item">
                   <label>Avg Heart Rate:</label>
-                  <span>{formatHeartRate(day.avg_heart_rate)}</span>
+                  <span>{formatHeartRate(hourlyMetrics?.avg_heart_rate)}</span>
                 </div>
                 <div className="detail-item">
                   <label>Body Weight:</label>
-                  <span>{formatWeight(day.avg_body_weight)}</span>
+                  <span>{formatWeight(hourlyMetrics?.body_weight_kg)}</span>
                 </div>
                 <div className="detail-item">
                   <label>Body Fat:</label>
-                  <span>{formatBodyFat(day.avg_body_fat_percent)}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Audio Exposure:</label>
-                  <span>{formatAudio(day.avg_audio_exposure)}</span>
+                  <span>{formatBodyFat(hourlyMetrics?.body_fat_percent)}</span>
                 </div>
               </div>
             </div>
 
             {/* Location Breakdown Section */}
-            <div className="health-section">
-              <h3 className="section-title">
-                <MapPin size={20} />
-                Location Breakdown
-              </h3>
-              <div className="section-content">
-                {aggregatedLocations.length > 0 ? (
+            {aggregatedLocations.length > 0 && (
+              <div className="health-section">
+                <h3 className="section-title">
+                  <MapPin size={20} />
+                  Location Breakdown
+                </h3>
+                <div className="section-content">
                   <div className="breakdown-list">
                     {aggregatedLocations.map((loc, index) => (
                       <div key={index} className="breakdown-item">
@@ -420,30 +472,18 @@ const HealthDetails = ({ day, hourlyData = [], onClose }) => {
                             <span className="breakdown-visits">{loc.visitCount} visits</span>
                           )}
                         </div>
+                        {loc.timeRanges && (
+                          <div className="breakdown-item-time">
+                            <Clock size={12} />
+                            <span>{loc.timeRanges}</span>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
-                ) : (
-                  <div className="detail-item">
-                    <label>Dominant City:</label>
-                    <span>{day.dominant_city || 'Unknown'}</span>
-                  </div>
-                )}
-                {/* Summary stats */}
-                <div className="breakdown-summary">
-                  <div className="detail-item">
-                    <label>Cities Visited:</label>
-                    <span>{day.cities_visited || 0}</span>
-                  </div>
-                  {day.percent_time_home != null && (
-                    <div className="detail-item">
-                      <label>Time at Home:</label>
-                      <span>{day.percent_time_home.toFixed(0)}%</span>
-                    </div>
-                  )}
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Activity Breakdown Section */}
             {aggregatedActivities.length > 0 && (
@@ -483,15 +523,15 @@ const HealthDetails = ({ day, hourlyData = [], onClose }) => {
               <div className="section-content">
                 <div className="detail-item">
                   <label>Total Screen Time:</label>
-                  <span>{formatScreenTime(day.total_screen_minutes)}</span>
+                  <span>{formatScreenTime(day.total_screen_time_minutes || hourlyMetrics?.screen_time_minutes)}</span>
                 </div>
                 <div className="detail-item">
                   <label>Pickups:</label>
-                  <span>{day.total_pickups || 'No data'}</span>
+                  <span>{(day.total_phone_pickups || hourlyMetrics?.phone_pickups) || 'No data'}</span>
                 </div>
                 <div className="detail-item">
                   <label>Before Sleep:</label>
-                  <span>{formatScreenTime(day.screen_before_sleep_minutes)}</span>
+                  <span>{formatScreenTime(day.total_screen_before_sleep_minutes)}</span>
                 </div>
               </div>
             </div>

@@ -319,15 +319,10 @@ const MusicPage = () => {
         {/* Analysis Tab Content */}
         {activeTab === 'analysis' && (
           <AnalysisTab
-            data={filteredToggles}
-            chartLayout="single"
-            emptyState={{
-              message: "No music data available with current filters. Try adjusting your criteria."
-            }}
-            renderCharts={(toggles) => (
+            renderCharts={() => (
             <>
               <TimeSeriesBarChart
-                data={toggles}
+                data={filteredToggles}
                 dateColumnName="timestamp"
                 metricOptions={[
                   { value: 'toggle', label: 'Toggles', aggregation: 'count_distinct', field: 'toggle_id', decimals: 0 },
@@ -338,14 +333,14 @@ const MusicPage = () => {
                 title="Listening Activity Over Time"
               />
               <IntensityHeatmap
-                  data={toggles}
+                  data={filteredToggles}
                   dateColumnName="timestamp"
                   valueColumnName="listening_seconds"
                   title="Listening Activity by Day and Time"
                   treatMidnightAsUnknown={true}
               />
               <TopChart
-               data={toggles}
+               data={filteredToggles}
                dimensionOptions={[
                  { value: 'track', label: 'Track', field: 'track_name', labelFields: ['track_name'] },
                  { value: 'artist', label: 'Artist', field: 'artist_name', labelFields: ['artist_name'] },

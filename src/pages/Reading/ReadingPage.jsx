@@ -293,14 +293,10 @@ const ReadingPage = () => {
         {/* Analysis Tab Content */}
         {activeTab === 'analysis' && (
           <AnalysisTab
-            data={filteredReadingEntries}
-            emptyState={{
-              message: "No reading data available with current filters. Try adjusting your criteria."
-            }}
-            renderCharts={(readingSessions) => (
+            renderCharts={() => (
               <>
                 <TimeSeriesBarChart
-                  data={readingSessions}
+                  data={filteredReadingEntries}
                   dateColumnName="timestamp"
                   metricOptions={[
                     { value: 'books', label: 'Books', aggregation: 'count_distinct', field: 'book_id', decimals: 0 },
@@ -312,7 +308,7 @@ const ReadingPage = () => {
                   title="Reading Activity by Period"
                 />
                 <IntensityHeatmap
-                  data={readingSessions}
+                  data={filteredReadingEntries}
                   dateColumnName="timestamp"
                   valueColumnName="page_split"
                   title="Reading Activity by Day and Time"

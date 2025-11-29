@@ -371,14 +371,10 @@ const NutritionPage = () => {
         {/* Analysis Tab Content */}
         {activeTab === 'analysis' && (
           <AnalysisTab
-            data={filteredItems}
-            emptyState={{
-              message: "No nutrition data available with current filters. Try adjusting your criteria."
-            }}
-            renderCharts={(items) => (
+            renderCharts={() => (
               <>
                 <TimeSeriesBarChart
-                  data={items}
+                  data={filteredItems}
                   dateColumnName="date"
                   metricOptions={[
                     { value: 'meals', label: 'Number of Meals', aggregation: 'count_distinct', field: 'meal_id', decimals: 0 },
@@ -392,7 +388,7 @@ const NutritionPage = () => {
                   title="Meals Over Time"
                 />
                 <TopChart
-                    data={items}
+                    data={filteredItems}
                     dimensionOptions={[
                       { value: 'food_list', label: 'Meal', field: 'food_list', labelFields: ['food_list'] },
                       { value: 'food', label: 'Food', field: 'food', labelFields: ['food'] },

@@ -278,6 +278,20 @@
   font-weight: var(--font-weight-medium);
 }
 
+.breakdown-item-time {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-2xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-gray);
+}
+
+.breakdown-item-time svg {
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
 .home-badge {
   display: inline-flex;
   align-items: center;

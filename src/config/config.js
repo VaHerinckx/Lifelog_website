@@ -21,14 +21,11 @@ export const DRIVE_FILES = {
   TRAKT: {
     FILE_ID: import.meta.env.VITE_TRAKT_FILE_ID
   },
-  HEALTH: {
-    FILE_ID: import.meta.env.VITE_HEALTH_FILE_ID
+  HEALTH_DAILY: {
+    FILE_ID: import.meta.env.VITE_HEALTH_DAILY_FILE_ID
   },
   HEALTH_HOURLY: {
     FILE_ID: import.meta.env.VITE_HEALTH_HOURLY_FILE_ID
-  },
-  HEALTH_LOCATIONS: {
-    FILE_ID: import.meta.env.VITE_HEALTH_LOCATIONS_FILE_ID
   },
   NUTRITION: {
     FILE_ID: import.meta.env.VITE_NUTRITION_FILE_ID

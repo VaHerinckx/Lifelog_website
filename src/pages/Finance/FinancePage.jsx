@@ -315,14 +315,10 @@ const FinancePage = () => {
         {/* Analysis Tab Content */}
         {activeTab === 'analysis' && (
           <AnalysisTab
-            data={filteredTransactions}
-            emptyState={{
-              message: "No transaction data available with current filters. Try adjusting your criteria."
-            }}
-            renderCharts={(transactionsData) => (
+            renderCharts={() => (
               <>
               <TimeSeriesBarChart
-                data={transactionsData}
+                data={filteredTransactions}
                 dateColumnName="date"
                 metricOptions={[
                   { value: 'total_expenses', label: 'Total Expenses', aggregation: 'sum', field: 'corrected_eur', decimals: 0, suffix: '€', filterConditions: [{ field: 'transaction_type', value: 'expense' }] },
@@ -336,7 +332,7 @@ const FinancePage = () => {
                 title="Finances Over Time"
               />
               <IntensityHeatmap
-                data={transactionsData}
+                data={filteredTransactions}
                 dateColumnName="date"
                 metricOptions={[
                   { value: 'total_expenses', label: 'Total Expenses', aggregation: 'sum', field: 'corrected_eur', decimals: 0, suffix: '€', filterConditions: [{ field: 'transaction_type', value: 'expense' }] },
@@ -350,7 +346,7 @@ const FinancePage = () => {
                 title="Transactions Activity"
               />
               <TopChart
-                data={transactionsData}
+                data={filteredTransactions}
                 dimensionOptions={[
                   { value: 'category', label: 'Category', field: 'category', labelFields: ['category'] },
                   { value: 'subcategory', label: 'Subcategory', field: 'subcategory', labelFields: ['subcategory'] },

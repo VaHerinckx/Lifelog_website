@@ -286,14 +286,10 @@ const ShowsPage = () => {
         {/* Analysis Tab Content */}
         {activeTab === 'analysis' && (
           <AnalysisTab
-            data={filteredEpisodes}
-            emptyState={{
-              message: "No episode data available with current filters. Try adjusting your criteria."
-            }}
-            renderCharts={(episodes) => (
+            renderCharts={() => (
               <>
                 <TimeSeriesBarChart
-                  data={episodes}
+                  data={filteredEpisodes}
                   dateColumnName="watched_at"
                   metricOptions={[
                     { value: 'episodes', label: 'Episodes Watched', aggregation: 'count', field: 'watch_id', decimals: 0 },
@@ -303,7 +299,7 @@ const ShowsPage = () => {
                   title="Shows Watch Over Time"
                 />
                 <IntensityHeatmap
-                  data={episodes}
+                  data={filteredEpisodes}
                   dateColumnName="watched_at"
                   metricOptions={[
                     { value: 'episodes', label: 'Episodes', field: 'watch_id', aggregation: 'count_distinct', suffix: ' episodes' },
@@ -316,7 +312,7 @@ const ShowsPage = () => {
                   title="TV Activity"
                 />
                 <TopChart
-                  data={episodes}
+                  data={filteredEpisodes}
                   dimensionOptions={[
                     { value: 'show_title', label: 'Show', field: 'show_title', labelFields: ['show_title'] },
                     { value: 'show_year', label: 'Release Year', field: 'show_year', labelFields: ['show_year'] },
