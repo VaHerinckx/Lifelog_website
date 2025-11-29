@@ -10,17 +10,21 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// HTTP Basic Auth - only in production when credentials are set
-// Supports multiple users: AUTH_USER/AUTH_PASS (admin) and GUEST_USER/GUEST_PASS (guest)
-const validUsers = [];
+// HTTP Basic Auth with role-based access
+// AUTH_USER/AUTH_PASS = full access
+// GUEST_USER/GUEST_PASS = limited access (reading, movies, podcasts, shows only)
+const users = {};
 if (process.env.AUTH_USER && process.env.AUTH_PASS) {
-    validUsers.push({ user: process.env.AUTH_USER, pass: process.env.AUTH_PASS });
+    users[process.env.AUTH_USER] = { pass: process.env.AUTH_PASS, role: 'admin' };
 }
 if (process.env.GUEST_USER && process.env.GUEST_PASS) {
-    validUsers.push({ user: process.env.GUEST_USER, pass: process.env.GUEST_PASS });
+    users[process.env.GUEST_USER] = { pass: process.env.GUEST_PASS, role: 'guest' };
 }
 
-if (process.env.NODE_ENV === 'production' && validUsers.length > 0) {
+// Pages allowed for guest users
+const GUEST_ALLOWED_PAGES = ['/', '/reading', '/movies', '/podcasts', '/shows'];
+
+if (process.env.NODE_ENV === 'production' && Object.keys(users).length > 0) {
     app.use((req, res, next) => {
         const authHeader = req.headers.authorization;
 
@@ -33,13 +37,44 @@ if (process.env.NODE_ENV === 'production' && validUsers.length > 0) {
         const credentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
         const [username, password] = credentials.split(':');
 
-        const isValid = validUsers.some(u => u.user === username && u.pass === password);
-        if (isValid) {
+        const user = users[username];
+        if (user && user.pass === password) {
+            req.userRole = user.role;
             return next();
         }
 
         res.setHeader('WWW-Authenticate', 'Basic realm="LifeLog Dashboard"');
         return res.status(401).send('Invalid credentials');
+    });
+
+    // Role-based page access (check before serving static files)
+    app.use((req, res, next) => {
+        // Skip API routes - they're handled separately
+        if (req.path.startsWith('/api/')) {
+            return next();
+        }
+
+        // Admin has full access
+        if (req.userRole === 'admin') {
+            return next();
+        }
+
+        // Guest: check if page is allowed
+        if (req.userRole === 'guest') {
+            const isAllowed = GUEST_ALLOWED_PAGES.some(page =>
+                req.path === page || req.path.startsWith(page + '/')
+            );
+            // Also allow static assets (js, css, images, fonts)
+            const isStaticAsset = /\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot)$/i.test(req.path);
+
+            if (isAllowed || isStaticAsset) {
+                return next();
+            }
+
+            return res.status(403).send('Access denied - this page is not available for guest accounts');
+        }
+
+        next();
     });
 }
 
