@@ -1,7 +1,7 @@
 // src/components/charts/IntensityHeatmap/index.jsx
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import { applyMetricFilter } from '../../../utils/computationUtils';
+import { applyMetricFilter, resolveMetricDataSource } from '../../../utils/computationUtils';
 import './IntensityHeatmap.css';
 
 // Fixed time periods - ordered from morning to night, with unknown at the end
@@ -177,10 +177,14 @@ const IntensityHeatmap = ({
   }, [treatMidnightAsUnknown]);
 
   // Aggregate data for a single metric configuration
-  const aggregateMetric = useCallback((items, columnName, aggType, metricConfig = null) => {
+  // Accepts optional effectiveDateColumn for per-metric data source overrides
+  const aggregateMetric = useCallback((items, columnName, aggType, metricConfig = null, effectiveDateColumn = null) => {
     const matrix = {};
     const countMatrix = {};
     const distinctSets = {};
+
+    // Use override date column if provided, otherwise fall back to component-level dateColumnName
+    const dateCol = effectiveDateColumn || dateColumnName;
 
     // Initialize matrix based on axis configuration
     rowValues.forEach(row => {
@@ -199,7 +203,7 @@ const IntensityHeatmap = ({
 
     // Process each item
     filteredItems.forEach(item => {
-      const parsed = parseTimestamp(item[dateColumnName]);
+      const parsed = parseTimestamp(item[dateCol]);
       if (!parsed) return;
 
       const { weekdayIndex, timePeriod } = parsed;
@@ -262,9 +266,23 @@ const IntensityHeatmap = ({
         setHeatmapData(matrix);
       } else {
         // Advanced API: compute all metrics, display selected one
+        // Each metric can have its own data source override
         const allMetrics = {};
         metricOptions.forEach(opt => {
-          allMetrics[opt.value] = aggregateMetric(data, opt.field, opt.aggregation, opt);
+          // Resolve data source for this metric (supports per-metric data overrides)
+          const { data: effectiveData, dateColumnName: effectiveDateColumn } = resolveMetricDataSource(
+            opt,
+            data,
+            dateColumnName
+          );
+
+          // Skip metrics with empty data
+          if (!Array.isArray(effectiveData) || effectiveData.length === 0) {
+            allMetrics[opt.value] = {};
+            return;
+          }
+
+          allMetrics[opt.value] = aggregateMetric(effectiveData, opt.field, opt.aggregation, opt, effectiveDateColumn);
         });
         setAllMetricsData(allMetrics);
 
@@ -341,13 +359,13 @@ const IntensityHeatmap = ({
 
     if (useSimpleAPI) {
       if (decimals !== undefined) {
-        formatted = value.toFixed(decimals);
+        formatted = value.toLocaleString(undefined, { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
       } else {
         formatted = Math.round(value).toLocaleString();
       }
     } else {
       if (currentMetricConfig?.decimals !== undefined) {
-        formatted = value.toFixed(currentMetricConfig.decimals);
+        formatted = value.toLocaleString(undefined, { minimumFractionDigits: currentMetricConfig.decimals, maximumFractionDigits: currentMetricConfig.decimals });
       } else {
         formatted = Math.round(value).toLocaleString();
       }
@@ -389,7 +407,7 @@ const IntensityHeatmap = ({
       return metricOptions.map(opt => {
         const value = allMetricsData[opt.value]?.[rowKey]?.[colKey] || 0;
         const formatted = opt.decimals !== undefined
-          ? value.toFixed(opt.decimals)
+          ? value.toLocaleString(undefined, { minimumFractionDigits: opt.decimals, maximumFractionDigits: opt.decimals })
           : Math.round(value).toLocaleString();
         const optPrefix = opt.prefix || '';
         const optSuffix = opt.suffix || '';
@@ -567,7 +585,10 @@ IntensityHeatmap.propTypes = {
     })),
     // Legacy filter API (backward compatible)
     filterField: PropTypes.string,
-    filterValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool, PropTypes.array])
+    filterValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool, PropTypes.array]),
+    // Per-metric data source override
+    data: PropTypes.array,
+    dateColumnName: PropTypes.string
   })),
   defaultMetric: PropTypes.string,
   rowAxis: PropTypes.oneOf(['weekday', 'time_period']),

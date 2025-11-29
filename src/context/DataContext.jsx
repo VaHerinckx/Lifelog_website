@@ -80,6 +80,8 @@ export const DataProvider = ({ children }) => {
     music: null,
     finance: null,
     health: null,
+    healthHourly: null,
+    healthLocations: null,
     tracking: null
   });
   const [loading, setLoading] = useState({});
@@ -104,7 +106,6 @@ export const DataProvider = ({ children }) => {
       switch (dataType) {
         case 'reading':
           fileId = DRIVE_FILES.READING.FILE_ID;
-          console.log('📚 Reading fileId:', fileId);
           break;
         case 'readingBooks':
           fileId = DRIVE_FILES.READING_BOOKS.FILE_ID;
@@ -117,31 +118,30 @@ export const DataProvider = ({ children }) => {
           break;
         case 'shows':
           fileId = DRIVE_FILES.SHOWS.FILE_ID;
-          console.log('📺 Shows fileId:', fileId);
           break;
         case 'nutrition':
           fileId = DRIVE_FILES.NUTRITION.FILE_ID;
-          console.log('🥗 Nutrition fileId:', fileId);
           break;
         case 'podcasts':
           fileId = DRIVE_FILES.PODCASTS.FILE_ID;
-          console.log('🎙️ Podcasts fileId:', fileId);
           break;
         case 'music':
           fileId = DRIVE_FILES.MUSIC.FILE_ID;
-          console.log('🎵 Music fileId:', fileId);
           break;
         case 'finance':
           fileId = DRIVE_FILES.FINANCES.FILE_ID;
-          console.log('💰 Finance fileId:', fileId);
           break;
         case 'health':
           fileId = DRIVE_FILES.HEALTH.FILE_ID;
-          console.log('💪 Health fileId:', fileId);
+          break;
+        case 'healthHourly':
+          fileId = DRIVE_FILES.HEALTH_HOURLY.FILE_ID;
+          break;
+        case 'healthLocations':
+          fileId = DRIVE_FILES.HEALTH_LOCATIONS.FILE_ID;
           break;
         case 'tracking':
           fileId = DRIVE_FILES.TRACKING.FILE_ID;
-          console.log('📊 Tracking fileId:', fileId);
           break;
         default:
           throw new Error(`Unknown data type: ${dataType}`);
@@ -327,6 +327,45 @@ export const DataProvider = ({ children }) => {
                 overall_evaluation: day.overall_evaluation ? parseFloat(day.overall_evaluation) : 0,
                 fitness_feeling: day.fitness_feeling ? parseFloat(day.fitness_feeling) : 0,
                 sleep_rest_feeling: day.sleep_rest_feeling ? parseFloat(day.sleep_rest_feeling) : 0
+              }));
+            }
+
+            // Type conversion for healthHourly (hourly aggregated data with JSON columns)
+            if (dataType === 'healthHourly') {
+              cleanedData = cleanedData.map(hour => ({
+                ...hour,
+                // Flat numeric columns
+                hour: hour.hour ? parseInt(hour.hour) : 0,
+                weekday: hour.weekday ? parseInt(hour.weekday) : 0,
+                total_steps: hour.total_steps ? parseFloat(hour.total_steps) : 0,
+                total_distance_m: hour.total_distance_m ? parseFloat(hour.total_distance_m) : 0,
+                total_flights_climbed: hour.total_flights_climbed ? parseFloat(hour.total_flights_climbed) : 0,
+                total_active_energy: hour.total_active_energy ? parseFloat(hour.total_active_energy) : 0,
+                total_resting_energy: hour.total_resting_energy ? parseFloat(hour.total_resting_energy) : 0,
+                avg_heart_rate: hour.avg_heart_rate ? parseFloat(hour.avg_heart_rate) : null,
+                avg_walking_speed: hour.avg_walking_speed ? parseFloat(hour.avg_walking_speed) : null,
+                avg_step_length: hour.avg_step_length ? parseFloat(hour.avg_step_length) : null,
+                avg_body_weight: hour.avg_body_weight ? parseFloat(hour.avg_body_weight) : null,
+                avg_body_fat_percent: hour.avg_body_fat_percent ? parseFloat(hour.avg_body_fat_percent) : null,
+                avg_audio_exposure: hour.avg_audio_exposure ? parseFloat(hour.avg_audio_exposure) : null,
+                total_sleep_minutes: hour.total_sleep_minutes ? parseFloat(hour.total_sleep_minutes) : 0,
+                total_screen_minutes: hour.total_screen_minutes ? parseFloat(hour.total_screen_minutes) : 0,
+                total_pickups: hour.total_pickups ? parseInt(hour.total_pickups) : 0,
+                screen_before_sleep_minutes: hour.screen_before_sleep_minutes ? parseFloat(hour.screen_before_sleep_minutes) : 0,
+                // Boolean columns
+                is_home_hour: hour.is_home_hour === 'True' || hour.is_home_hour === true,
+                is_sleeping_hour: hour.is_sleeping_hour === 'True' || hour.is_sleeping_hour === true,
+                is_moving_hour: hour.is_moving_hour === 'True' || hour.is_moving_hour === true,
+                // JSON columns - parse from string to object
+                locations_json: hour.locations_json ? JSON.parse(hour.locations_json) : [],
+                activities_json: hour.activities_json ? JSON.parse(hour.activities_json) : {},
+                sleep_json: hour.sleep_json ? JSON.parse(hour.sleep_json) : {},
+                screen_json: hour.screen_json ? JSON.parse(hour.screen_json) : {},
+                body_metrics_json: hour.body_metrics_json ? JSON.parse(hour.body_metrics_json) : {},
+                movement_metrics_json: hour.movement_metrics_json ? JSON.parse(hour.movement_metrics_json) : {},
+                countries_visited_json: hour.countries_visited_json ? JSON.parse(hour.countries_visited_json) : [],
+                cities_visited_json: hour.cities_visited_json ? JSON.parse(hour.cities_visited_json) : [],
+                timezones_json: hour.timezones_json ? JSON.parse(hour.timezones_json) : []
               }));
             }
 

@@ -214,6 +214,90 @@
   border-left: 3px solid var(--color-accent);
 }
 
+/* Breakdown Lists (Location & Activity) */
+.breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.breakdown-item {
+  background-color: var(--overlay-light);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+.breakdown-item-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.breakdown-name {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-on-surface);
+  font-size: var(--font-size-base);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.breakdown-value {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  font-size: var(--font-size-base);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.breakdown-distance {
+  font-weight: var(--font-weight-normal);
+  color: var(--color-text-gray);
+  font-size: var(--font-size-sm);
+}
+
+.breakdown-item-sub {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-2xs);
+}
+
+.breakdown-city {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-gray);
+}
+
+.breakdown-visits {
+  font-size: var(--font-size-sm);
+  color: var(--color-accent);
+  font-weight: var(--font-weight-medium);
+}
+
+.home-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-2xs);
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: var(--spacing-2xs) var(--spacing-xs);
+  border-radius: var(--radius-full);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.breakdown-summary {
+  margin-top: var(--spacing-md);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .health-details-overlay {
@@ -276,5 +360,29 @@
 
   .note-text {
     font-size: var(--font-size-sm);
+  }
+
+  /* Breakdown responsive */
+  .breakdown-item {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  .breakdown-item-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-2xs);
+  }
+
+  .breakdown-name {
+    font-size: var(--font-size-sm);
+  }
+
+  .breakdown-value {
+    font-size: var(--font-size-sm);
+  }
+
+  .home-badge {
+    font-size: 10px;
+    padding: 2px var(--spacing-2xs);
   }
 }

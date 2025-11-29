@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 import _ from 'lodash';
-import { applyMetricFilter } from '../../../utils/computationUtils';
+import { applyMetricFilter, resolveMetricDataSource } from '../../../utils/computationUtils';
 import './TopChart.css';
 
 const formatNumber = (num, decimals = 0) => {
@@ -62,6 +62,18 @@ const TopChart = ({
   useEffect(() => {
     if (!Array.isArray(data) || !currentDimensionConfig || !currentMetricConfig) return;
 
+    // Resolve data source for current metric (supports per-metric data overrides)
+    const { data: effectiveData } = resolveMetricDataSource(
+      currentMetricConfig,
+      data,
+      null // TopChart doesn't use dateColumnName
+    );
+
+    if (!Array.isArray(effectiveData) || effectiveData.length === 0) {
+      setTopItems([]);
+      return;
+    }
+
     const dimensionField = currentDimensionConfig.field;
     const metricField = currentMetricConfig.field;
     const metricAggregation = currentMetricConfig.aggregation;
@@ -69,7 +81,7 @@ const TopChart = ({
     const delimiter = currentDimensionConfig.delimiter;
 
     // Filter out invalid/unknown values
-    let filteredData = data.filter(item => {
+    let filteredData = effectiveData.filter(item => {
       const value = item[dimensionField];
       return value && value !== 'Unknown' && value.toString().trim() !== '';
     });
@@ -442,7 +454,9 @@ TopChart.propTypes = {
       })),
       // Legacy filter API (backward compatible)
       filterField: PropTypes.string,
-      filterValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool, PropTypes.array])
+      filterValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool, PropTypes.array]),
+      // Per-metric data source override
+      data: PropTypes.array
     })
   ).isRequired,
   defaultDimension: PropTypes.string,

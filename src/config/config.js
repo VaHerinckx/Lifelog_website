@@ -16,13 +16,19 @@ export const DRIVE_FILES = {
     FILE_ID: import.meta.env.VITE_MUSIC_FILE_ID
   },
   MOVIES: {
-    FILE_ID: import.meta.env.VITE_MOVIES_FILE_ID || '1CRuCIYgpjFuGHnmi006ollOQrKO_4ewm'
+    FILE_ID: import.meta.env.VITE_MOVIES_FILE_ID
   },
   TRAKT: {
     FILE_ID: import.meta.env.VITE_TRAKT_FILE_ID
   },
   HEALTH: {
     FILE_ID: import.meta.env.VITE_HEALTH_FILE_ID
+  },
+  HEALTH_HOURLY: {
+    FILE_ID: import.meta.env.VITE_HEALTH_HOURLY_FILE_ID
+  },
+  HEALTH_LOCATIONS: {
+    FILE_ID: import.meta.env.VITE_HEALTH_LOCATIONS_FILE_ID
   },
   NUTRITION: {
     FILE_ID: import.meta.env.VITE_NUTRITION_FILE_ID
@@ -38,6 +44,9 @@ export const DRIVE_FILES = {
   }
 };
 
+// API base URL - empty in production (same origin), localhost in development
+const API_BASE = import.meta.env.PROD ? '' : 'http://localhost:3001';
+
 export const getDriveDownloadUrl = (fileId) => {
-  return `http://localhost:3001/api/google-drive/${fileId}`;
+  return `${API_BASE}/api/google-drive/${fileId}`;
 };

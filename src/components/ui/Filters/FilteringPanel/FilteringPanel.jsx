@@ -99,7 +99,7 @@ const FilteringPanel = ({
       if (!React.isValidElement(child)) return;
 
       // Extract props from Filter child to build config
-      const { type, label, icon, placeholder, searchPlaceholder, searchable, allLabel, defaultValue, delimiter, matchMode, sortType, selectionMode, childField, ...rest } = child.props;
+      const { type, label, icon, placeholder, searchPlaceholder, searchable, allLabel, defaultValue, delimiter, matchMode, sortType, selectionMode, childField, fieldMap, ...rest } = child.props;
 
       // Generate a key from the field or label
       const key = rest.field || label?.toLowerCase().replace(/\s+/g, '_') || `filter_${configs.length}`;
@@ -122,7 +122,8 @@ const FilteringPanel = ({
         options: rest.options,
         delimiter: delimiter || null,
         matchMode: matchMode || 'exact',
-        sortType: sortType || 'alpha'
+        sortType: sortType || 'alpha',
+        fieldMap: fieldMap || null  // Per-source field mapping for multi-source filtering
       });
     });
 
@@ -457,10 +458,16 @@ const FilteringPanel = ({
           }
         }
 
+        // Create a source-specific config with resolved field from fieldMap
+        const sourceConfig = { ...config };
+        if (config.fieldMap && config.fieldMap[sourceName]) {
+          sourceConfig.dataField = config.fieldMap[sourceName];
+        }
+
         // Apply filter using utility
         if (filterValue && (Array.isArray(filterValue) ? filterValue.length > 0 : true)) {
           const singleFilterObj = { [filterKey]: filterValue };
-          const singleConfigMap = { [filterKey]: config };
+          const singleConfigMap = { [filterKey]: sourceConfig };
           filtered = applyFilters(filtered, singleFilterObj, singleConfigMap);
         }
       });

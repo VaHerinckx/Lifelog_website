@@ -1,11 +1,35 @@
 /**
- * Computation Utilities for KPI Cards
+ * Computation Utilities for KPI Cards and Charts
  *
  * This module provides standardized computation functions for calculating
- * statistics from data arrays. Used by smart KpiCard components.
+ * statistics from data arrays. Used by smart KpiCard components and chart components.
  */
 
 import _ from 'lodash';
+
+/**
+ * Resolves the data source and date column for a metric configuration.
+ * Supports per-metric data source overrides for charts displaying multiple data sources.
+ *
+ * @param {Object} metricConfig - The metric configuration object
+ * @param {Array} [metricConfig.data] - Optional override data source for this metric
+ * @param {string} [metricConfig.dateColumnName] - Optional override date column for this metric
+ * @param {Array} componentData - The component-level default data source
+ * @param {string} componentDateColumn - The component-level default date column name
+ * @returns {Object} Object with resolved { data, dateColumnName }
+ *
+ * @example
+ * // In a chart component:
+ * const { data: effectiveData, dateColumnName: effectiveDateColumn } = resolveMetricDataSource(
+ *   currentMetricConfig,
+ *   props.data,
+ *   props.dateColumnName
+ * );
+ */
+export const resolveMetricDataSource = (metricConfig, componentData, componentDateColumn) => ({
+  data: metricConfig?.data ?? componentData,
+  dateColumnName: metricConfig?.dateColumnName ?? componentDateColumn
+});
 
 /**
  * Apply metric filter to data before aggregation

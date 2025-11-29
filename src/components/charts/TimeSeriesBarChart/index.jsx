@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { performComputation, formatComputedValue, applyMetricFilter } from '../../../utils/computationUtils';
+import { performComputation, formatComputedValue, applyMetricFilter, resolveMetricDataSource } from '../../../utils/computationUtils';
 import { parseDate } from '../../../utils/dateUtils';
 import './TimeSeriesBarChart.css';
 
@@ -38,8 +38,15 @@ const TimeSeriesBarChart = ({
   const currentMetricConfig = metricOptions.find(m => m.value === selectedMetric);
 
   useEffect(() => {
+    // Resolve data source for current metric (supports per-metric data overrides)
+    const { data: effectiveData, dateColumnName: effectiveDateColumn } = resolveMetricDataSource(
+      currentMetricConfig,
+      data,
+      dateColumnName
+    );
+
     // Basic validation
-    if (!Array.isArray(data) || data.length === 0) {
+    if (!Array.isArray(effectiveData) || effectiveData.length === 0) {
       setChartData([]);
       return;
     }
@@ -103,9 +110,9 @@ const TimeSeriesBarChart = ({
     let minDate = null;
     let maxDate = null;
 
-    data.forEach((entry) => {
-      // Parse date
-      const date = parseDate(entry[dateColumnName]);
+    effectiveData.forEach((entry) => {
+      // Parse date using effective date column (may be overridden per metric)
+      const date = parseDate(entry[effectiveDateColumn]);
       if (!date) return;
 
       // Update min and max dates
@@ -384,7 +391,10 @@ TimeSeriesBarChart.propTypes = {
       })),
       // Legacy filter API (backward compatible)
       filterField: PropTypes.string,
-      filterValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool, PropTypes.array])
+      filterValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number, PropTypes.bool, PropTypes.array]),
+      // Per-metric data source override
+      data: PropTypes.array,
+      dateColumnName: PropTypes.string
     })
   ),
   defaultMetric: PropTypes.string,

@@ -1,5 +1,5 @@
-import React from 'react';
-import { X, Activity, Moon, Heart, MapPin, Smartphone, Brain, StickyNote, Dumbbell, Scale } from 'lucide-react';
+import { useMemo } from 'react';
+import { X, Activity, Moon, Heart, MapPin, Smartphone, Brain, StickyNote, Dumbbell, Home } from 'lucide-react';
 import './HealthDetails.css';
 import { StarRating } from '../../../components/ui';
 import { formatDate } from '../../../utils';
@@ -23,7 +23,118 @@ const getEvaluationEmoji = (rating) => {
   return emojiMap[score] || '💪';
 };
 
-const HealthDetails = ({ day, onClose }) => {
+/**
+ * Aggregate location data from hourly records
+ * Groups by unique location (address/coordinates/city), sums minutes, counts unique visits
+ */
+const aggregateLocations = (hourlyData) => {
+  if (!hourlyData || hourlyData.length === 0) return [];
+
+  const locationMap = new Map(); // key -> { ...data, totalMinutes, visitIds }
+
+  hourlyData.forEach(hour => {
+    // Parse locations_json - handle both string and already-parsed object
+    let locations = [];
+    try {
+      if (typeof hour.locations_json === 'string') {
+        locations = JSON.parse(hour.locations_json);
+      } else if (Array.isArray(hour.locations_json)) {
+        locations = hour.locations_json;
+      }
+    } catch {
+      return;
+    }
+
+    if (!Array.isArray(locations)) return;
+
+    locations.forEach(loc => {
+      // Generate unique key (prefer address > coordinates > city)
+      const key = loc.address || loc.coordinates || loc.city;
+      if (!key) return;
+
+      if (!locationMap.has(key)) {
+        locationMap.set(key, {
+          city: loc.city,
+          country: loc.country,
+          address: loc.address,
+          place_name: loc.place_name,
+          coordinates: loc.coordinates,
+          is_home: loc.is_home,
+          location_type: loc.location_type,
+          totalMinutes: 0,
+          visitIds: new Set()
+        });
+      }
+
+      const entry = locationMap.get(key);
+      entry.totalMinutes += loc.minutes || 0;
+      if (loc.visit_id) {
+        entry.visitIds.add(loc.visit_id);
+      }
+    });
+  });
+
+  // Convert to array, calculate visit counts, and sort by time (most to least)
+  return Array.from(locationMap.values())
+    .map(loc => ({
+      ...loc,
+      visitCount: loc.visitIds.size || 1
+    }))
+    .sort((a, b) => b.totalMinutes - a.totalMinutes);
+};
+
+/**
+ * Aggregate activity data from hourly records
+ * Groups by activity type, sums minutes and distance
+ */
+const aggregateActivities = (hourlyData) => {
+  if (!hourlyData || hourlyData.length === 0) return [];
+
+  const activityMap = new Map(); // activity_type -> { minutes, distance_m }
+
+  hourlyData.forEach(hour => {
+    // Parse activities_json - handle both string and already-parsed object
+    let activities = {};
+    try {
+      if (typeof hour.activities_json === 'string') {
+        activities = JSON.parse(hour.activities_json);
+      } else if (typeof hour.activities_json === 'object' && hour.activities_json !== null) {
+        activities = hour.activities_json;
+      }
+    } catch {
+      return;
+    }
+
+    if (typeof activities !== 'object' || activities === null) return;
+
+    Object.entries(activities).forEach(([activityType, data]) => {
+      if (!activityMap.has(activityType)) {
+        activityMap.set(activityType, { minutes: 0, distance_m: 0 });
+      }
+
+      const entry = activityMap.get(activityType);
+      entry.minutes += data.minutes || 0;
+      entry.distance_m += data.distance_m || 0;
+    });
+  });
+
+  // Convert to array and sort by time (most to least)
+  return Array.from(activityMap.entries())
+    .map(([type, data]) => ({
+      type,
+      displayName: type.charAt(0).toUpperCase() + type.slice(1).replace(/_/g, ' '),
+      minutes: data.minutes,
+      distance_m: data.distance_m
+    }))
+    .sort((a, b) => b.minutes - a.minutes);
+};
+
+const HealthDetails = ({ day, hourlyData = [], onClose }) => {
+  // Aggregate location and activity data from hourly records
+  // These must be called before any conditional returns (React hooks rules)
+  const aggregatedLocations = useMemo(() => aggregateLocations(hourlyData), [hourlyData]);
+  const aggregatedActivities = useMemo(() => aggregateActivities(hourlyData), [hourlyData]);
+
   if (!day) return null;
 
   const healthEmoji = getEvaluationEmoji(day.overall_evaluation);
@@ -49,6 +160,7 @@ const HealthDetails = ({ day, onClose }) => {
     const hours = Math.floor(minutes / 60);
     const mins = Math.round(minutes % 60);
     if (hours === 0) return `${mins}m`;
+    if (mins === 0) return `${hours}h 0m`;
     return `${hours}h ${mins}m`;
   };
 
@@ -279,31 +391,88 @@ const HealthDetails = ({ day, onClose }) => {
               </div>
             </div>
 
-            {/* Location Section */}
+            {/* Location Breakdown Section */}
             <div className="health-section">
               <h3 className="section-title">
                 <MapPin size={20} />
-                Location
+                Location Breakdown
               </h3>
               <div className="section-content">
-                <div className="detail-item">
-                  <label>Cities Visited:</label>
-                  <span>{day.cities_visited || 0}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Dominant City:</label>
-                  <span>{day.dominant_city || 'Unknown'}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Countries Visited:</label>
-                  <span>{day.countries_visited || 0}</span>
-                </div>
-                <div className="detail-item">
-                  <label>Time at Home:</label>
-                  <span>{day.percent_time_home ? `${day.percent_time_home.toFixed(0)}%` : 'No data'}</span>
+                {aggregatedLocations.length > 0 ? (
+                  <div className="breakdown-list">
+                    {aggregatedLocations.map((loc, index) => (
+                      <div key={index} className="breakdown-item">
+                        <div className="breakdown-item-main">
+                          <span className="breakdown-name">
+                            {loc.place_name || loc.city || 'Unknown Location'}
+                            {loc.is_home && (
+                              <span className="home-badge">
+                                <Home size={12} />
+                                Home
+                              </span>
+                            )}
+                          </span>
+                          <span className="breakdown-value">{formatMinutes(loc.totalMinutes)}</span>
+                        </div>
+                        <div className="breakdown-item-sub">
+                          {loc.city && loc.place_name && <span className="breakdown-city">{loc.city}</span>}
+                          {loc.visitCount > 1 && (
+                            <span className="breakdown-visits">{loc.visitCount} visits</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="detail-item">
+                    <label>Dominant City:</label>
+                    <span>{day.dominant_city || 'Unknown'}</span>
+                  </div>
+                )}
+                {/* Summary stats */}
+                <div className="breakdown-summary">
+                  <div className="detail-item">
+                    <label>Cities Visited:</label>
+                    <span>{day.cities_visited || 0}</span>
+                  </div>
+                  {day.percent_time_home != null && (
+                    <div className="detail-item">
+                      <label>Time at Home:</label>
+                      <span>{day.percent_time_home.toFixed(0)}%</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
+
+            {/* Activity Breakdown Section */}
+            {aggregatedActivities.length > 0 && (
+              <div className="health-section">
+                <h3 className="section-title">
+                  <Activity size={20} />
+                  Activity Breakdown
+                </h3>
+                <div className="section-content">
+                  <div className="breakdown-list">
+                    {aggregatedActivities.map((activity, index) => (
+                      <div key={index} className="breakdown-item">
+                        <div className="breakdown-item-main">
+                          <span className="breakdown-name">{activity.displayName}</span>
+                          <span className="breakdown-value">
+                            {formatMinutes(activity.minutes)}
+                            {activity.distance_m > 0 && (
+                              <span className="breakdown-distance">
+                                ({(activity.distance_m / 1000).toFixed(1)} km)
+                              </span>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Screen Time Section */}
             <div className="health-section">
