@@ -10,6 +10,32 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// HTTP Basic Auth - only in production when credentials are set
+const AUTH_USER = process.env.AUTH_USER;
+const AUTH_PASS = process.env.AUTH_PASS;
+
+if (process.env.NODE_ENV === 'production' && AUTH_USER && AUTH_PASS) {
+    app.use((req, res, next) => {
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader || !authHeader.startsWith('Basic ')) {
+            res.setHeader('WWW-Authenticate', 'Basic realm="LifeLog Dashboard"');
+            return res.status(401).send('Authentication required');
+        }
+
+        const base64Credentials = authHeader.split(' ')[1];
+        const credentials = Buffer.from(base64Credentials, 'base64').toString('utf8');
+        const [username, password] = credentials.split(':');
+
+        if (username === AUTH_USER && password === AUTH_PASS) {
+            return next();
+        }
+
+        res.setHeader('WWW-Authenticate', 'Basic realm="LifeLog Dashboard"');
+        return res.status(401).send('Invalid credentials');
+    });
+}
+
 // CORS configuration - restrict to allowed origin in production
 const corsOptions = {
   origin: process.env.ALLOWED_ORIGIN || 'http://localhost:5173',
