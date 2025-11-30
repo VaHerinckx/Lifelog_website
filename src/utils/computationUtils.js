@@ -75,7 +75,12 @@ export const applyMetricFilter = (data, metricConfig) => {
   return data.filter(item => {
     return conditions.every(condition => {
       const { field, value, operator = '=' } = condition;
-      const itemValue = item[field];
+      let itemValue = item[field];
+
+      // Handle Date objects: convert to ISO string (YYYY-MM-DD) for comparison
+      if (itemValue instanceof Date) {
+        itemValue = itemValue.toISOString().split('T')[0];
+      }
 
       // Handle array values (OR within this condition) - only for equality operators
       if (Array.isArray(value)) {
@@ -191,7 +196,16 @@ export const computeCountDistinct = (data, field, options = {}) => {
     return 0;
   }
 
-  const values = data.map(item => _.get(item, field)).filter(v => v !== null && v !== undefined);
+  const values = data
+    .map(item => {
+      const value = _.get(item, field);
+      // Convert Date objects to ISO string for proper uniqueness comparison
+      if (value instanceof Date) {
+        return value.toISOString().split('T')[0];
+      }
+      return value;
+    })
+    .filter(v => v !== null && v !== undefined);
   return _.uniq(values).length;
 };
 

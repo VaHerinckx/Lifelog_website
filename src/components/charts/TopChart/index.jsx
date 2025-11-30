@@ -120,9 +120,16 @@ const TopChart = ({
           break;
         case 'count_distinct': {
           // Count distinct values of the specified field
+          // Convert Date objects to ISO strings for proper uniqueness comparison
           const distinctValues = new Set(
             items
-              .map(item => item[metricField])
+              .map(item => {
+                const val = item[metricField];
+                if (val instanceof Date) {
+                  return val.toISOString().split('T')[0];
+                }
+                return val;
+              })
               .filter(val => val !== null && val !== undefined && val !== '')
           );
           metricValue = distinctValues.size;

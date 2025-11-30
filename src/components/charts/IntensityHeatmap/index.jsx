@@ -220,7 +220,9 @@ const IntensityHeatmap = ({
       if (aggType === 'count') {
         matrix[rowKey][colKey] += 1;
       } else if (aggType === 'count_distinct') {
-        distinctSets[rowKey][colKey].add(rawValue);
+        // Convert Date objects to ISO strings for proper uniqueness comparison
+        const distinctValue = rawValue instanceof Date ? rawValue.toISOString().split('T')[0] : rawValue;
+        distinctSets[rowKey][colKey].add(distinctValue);
       } else if (aggType === 'average') {
         const avgValue = parseFloat(rawValue) || 0;
         matrix[rowKey][colKey] += avgValue;

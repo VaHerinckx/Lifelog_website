@@ -53,10 +53,13 @@ const cleanData = (data) => {
       const cleanKey = cleanString(key).trim();
 
       // Special handling for date fields
-      if (cleanKey.includes('date') ||
+      // Exclude segment_start_time and segment_end_time which are HH:MM time strings, not dates
+      if ((cleanKey.includes('date') ||
           cleanKey.includes('timestamp') ||
           cleanKey.includes('finish') ||
-          cleanKey.includes('start')) {
+          cleanKey.includes('start')) &&
+          !cleanKey.includes('segment_start_time') &&
+          !cleanKey.includes('segment_end_time')) {
         cleanedItem[cleanKey] = cleanDate(value);
       } else {
         // Normal string cleaning for non-date fields

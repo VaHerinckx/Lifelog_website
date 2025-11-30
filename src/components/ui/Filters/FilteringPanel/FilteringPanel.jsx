@@ -62,6 +62,28 @@ const itemMatchesFilter = (item, config, filterValue) => {
 };
 
 /**
+ * Helper: Extract a bridge field value with normalization
+ * Handles dates by normalizing to YYYY-MM-DD for cross-source comparison
+ */
+const extractBridgeValue = (item, field) => {
+  const value = field.includes('.') ? _.get(item, field) : item[field];
+  if (!value) return null;
+
+  // Normalize dates to YYYY-MM-DD for comparison
+  if (value instanceof Date) {
+    return value.toISOString().split('T')[0];
+  }
+
+  // Check if it's a date string and normalize
+  const dateValue = new Date(value);
+  if (!isNaN(dateValue.getTime())) {
+    return dateValue.toISOString().split('T')[0];
+  }
+
+  return value;
+};
+
+/**
  * A comprehensive filtering panel that manages filters and automatically
  * updates filter options based on data
  *
@@ -130,6 +152,35 @@ const FilteringPanel = ({
     return configs;
   }, [children]);
 
+  // Compute bridge relationships between data sources
+  // A "bridge" is a filter that spans multiple sources with fieldMap - it defines how sources relate
+  const bridgeRelationships = useMemo(() => {
+    const relationships = new Map();
+
+    filterConfigs.forEach(config => {
+      // Bridge filters span multiple sources with fieldMap
+      if (config.dataSources?.length > 1 && config.fieldMap) {
+        const sources = Object.keys(config.fieldMap);
+        for (let i = 0; i < sources.length; i++) {
+          for (let j = i + 1; j < sources.length; j++) {
+            const key = `${sources[i]}:${sources[j]}`;
+            relationships.set(key, {
+              fieldA: config.fieldMap[sources[i]],
+              fieldB: config.fieldMap[sources[j]]
+            });
+            // Reverse lookup
+            relationships.set(`${sources[j]}:${sources[i]}`, {
+              fieldA: config.fieldMap[sources[j]],
+              fieldB: config.fieldMap[sources[i]]
+            });
+          }
+        }
+      }
+    });
+
+    return relationships;
+  }, [filterConfigs]);
+
   // Get primary data source (memoized)
   const primarySource = useMemo(() => {
     return Object.values(dataSources).find(source => Array.isArray(source) && source.length > 0) || [];
@@ -138,7 +189,9 @@ const FilteringPanel = ({
   // OPTIMIZATION: Pre-compute unique values and value-to-indices mapping on data load
   // This runs ONCE when data changes, not on every filter change
   const precomputedOptions = useMemo(() => {
-    if (primarySource.length === 0) return { cache: {}, dateBoundaries: {}, numberBoundaries: {} };
+    if (primarySource.length === 0 && Object.values(dataSources).every(s => !s || s.length === 0)) {
+      return { cache: {}, dateBoundaries: {}, numberBoundaries: {} };
+    }
 
     const cache = {};
     const dateBoundaries = {};
@@ -147,6 +200,16 @@ const FilteringPanel = ({
     filterConfigs.forEach(config => {
       const fieldName = config.dataField || config.optionsSource;
       if (!fieldName) return;
+
+      // Determine which data source to use for extracting options
+      // If filter specifies dataSources, use the first one; otherwise use primarySource
+      let sourceData = primarySource;
+      if (config.dataSources && config.dataSources.length > 0) {
+        const specifiedSource = dataSources[config.dataSources[0]];
+        if (Array.isArray(specifiedSource) && specifiedSource.length > 0) {
+          sourceData = specifiedSource;
+        }
+      }
 
       if (config.optionsSource === 'static' && config.options) {
         // Static options - just store them
@@ -158,7 +221,7 @@ const FilteringPanel = ({
         // Pre-compute date boundaries from full dataset
         let minDate = null;
         let maxDate = null;
-        primarySource.forEach(item => {
+        sourceData.forEach(item => {
           const value = fieldName.includes('.') ? _.get(item, fieldName) : item[fieldName];
           if (value) {
             const date = new Date(value);
@@ -178,7 +241,7 @@ const FilteringPanel = ({
         // Pre-compute number boundaries from full dataset
         let minNum = null;
         let maxNum = null;
-        primarySource.forEach(item => {
+        sourceData.forEach(item => {
           const value = fieldName.includes('.') ? _.get(item, fieldName) : item[fieldName];
           if (value !== null && value !== undefined && value !== '') {
             const num = parseFloat(value);
@@ -203,7 +266,7 @@ const FilteringPanel = ({
       const uniqueSet = new Set();
       const valueToItemIndices = new Map();
 
-      primarySource.forEach((item, index) => {
+      sourceData.forEach((item, index) => {
         const value = fieldName.includes('.') ? _.get(item, fieldName) : item[fieldName];
 
         if (value && value !== 'Unknown' && value.toString().trim() !== '') {
@@ -239,7 +302,7 @@ const FilteringPanel = ({
     });
 
     return { cache, dateBoundaries, numberBoundaries };
-  }, [primarySource, filterConfigs]); // Only recompute when DATA changes, not on filter changes
+  }, [primarySource, dataSources, filterConfigs]); // Only recompute when DATA changes, not on filter changes
 
   // Initialize filters state with proper defaults
   const [filters, setFilters] = useState(() => {
@@ -318,7 +381,9 @@ const FilteringPanel = ({
 
   // OPTIMIZED: Calculate filtered options using precomputed data and exclusion indices
   const filterOptions = useMemo(() => {
-    if (primarySource.length === 0) return { options: {}, dateBoundaries: {}, numberBoundaries: {} };
+    // Check if any data source has data
+    const hasAnyData = primarySource.length > 0 || Object.values(dataSources).some(s => Array.isArray(s) && s.length > 0);
+    if (!hasAnyData) return { options: {}, dateBoundaries: {}, numberBoundaries: {} };
 
     const options = {};
     // Use precomputed boundaries (static, computed once on data load)
@@ -358,6 +423,17 @@ const FilteringPanel = ({
         return;
       }
 
+      // Check if this filter uses a different data source than primarySource
+      // If so, cascading doesn't apply - just return all precomputed values
+      if (config.dataSources && config.dataSources.length > 0) {
+        const specifiedSource = dataSources[config.dataSources[0]];
+        if (specifiedSource && specifiedSource !== primarySource) {
+          // This filter has its own data source, no cascading needed
+          options[config.key] = cached.allValues;
+          return;
+        }
+      }
+
       // Get indices that pass all OTHER filters
       const passingIndices = excludeOneFilterIndices.get(config.key);
       if (!passingIndices || passingIndices.size === 0) {
@@ -387,12 +463,13 @@ const FilteringPanel = ({
     });
 
     return { options, dateBoundaries, numberBoundaries };
-  }, [primarySource, filterConfigs, excludeOneFilterIndices, precomputedOptions]);
+  }, [primarySource, dataSources, filterConfigs, excludeOneFilterIndices, precomputedOptions]);
 
   // Use refs to store callback and configs to prevent infinite loops
   const onFiltersChangeRef = useRef(onFiltersChange);
   const filterConfigsRef = useRef(filterConfigs);
   const dataSourcesRef = useRef(dataSources);
+  const bridgeRelationshipsRef = useRef(bridgeRelationships);
 
   useEffect(() => {
     onFiltersChangeRef.current = onFiltersChange;
@@ -406,6 +483,10 @@ const FilteringPanel = ({
     dataSourcesRef.current = dataSources;
   }, [dataSources]);
 
+  useEffect(() => {
+    bridgeRelationshipsRef.current = bridgeRelationships;
+  }, [bridgeRelationships]);
+
   // Handle individual filter changes
   const handleFilterChange = (filterKey, newValue) => {
     setFilters(prevFilters => {
@@ -418,12 +499,14 @@ const FilteringPanel = ({
   };
 
   // Apply filters to all data sources and notify parent
+  // Uses two-phase approach: direct filtering, then cross-source cascading via bridge fields
   useEffect(() => {
     if (!onFiltersChangeRef.current) return;
 
     // Use refs to get current values
     const currentFilterConfigs = filterConfigsRef.current;
     const currentDataSources = dataSourcesRef.current;
+    const currentBridgeRelationships = bridgeRelationshipsRef.current;
 
     // If single-source mode (backward compatibility), just return filters
     if (!isMultiSource) {
@@ -431,30 +514,42 @@ const FilteringPanel = ({
       return;
     }
 
-    // Multi-source mode: apply filters to each data source
-    const filteredDataSources = {};
-
     // Create filter config map for faster lookup
     const filterConfigsMap = currentFilterConfigs.reduce((acc, config) => {
       acc[config.key] = config;
       return acc;
     }, {});
 
+    // PHASE 1: Apply direct filters to each data source
+    const directFilteredSources = {};
+    const sourceHadUniqueFilter = {}; // Track which sources had source-specific (non-bridge) filters
+
     Object.keys(currentDataSources).forEach(sourceName => {
       const sourceData = currentDataSources[sourceName];
       if (!Array.isArray(sourceData)) return;
 
       let filtered = [...sourceData];
+      let hadUniqueFilter = false;
 
       // Apply each filter
       Object.keys(filters).forEach(filterKey => {
         const filterValue = filters[filterKey];
         const config = filterConfigsMap[filterKey];
 
+        // Skip empty filter values
+        if (!filterValue || (Array.isArray(filterValue) && filterValue.length === 0)) return;
+        if (config?.type === 'daterange' && !filterValue.startDate && !filterValue.endDate) return;
+        if (config?.type === 'numberrange' && filterValue.min === null && filterValue.max === null) return;
+
         // Skip if filter doesn't apply to this data source
         if (config?.dataSources && config.dataSources.length > 0) {
           if (!config.dataSources.includes(sourceName)) {
             return; // Skip this filter for this data source
+          }
+
+          // Track if this source had a source-specific (non-bridge) filter applied
+          if (config.dataSources.length === 1) {
+            hadUniqueFilter = true;
           }
         }
 
@@ -465,18 +560,55 @@ const FilteringPanel = ({
         }
 
         // Apply filter using utility
-        if (filterValue && (Array.isArray(filterValue) ? filterValue.length > 0 : true)) {
-          const singleFilterObj = { [filterKey]: filterValue };
-          const singleConfigMap = { [filterKey]: sourceConfig };
-          filtered = applyFilters(filtered, singleFilterObj, singleConfigMap);
-        }
+        const singleFilterObj = { [filterKey]: filterValue };
+        const singleConfigMap = { [filterKey]: sourceConfig };
+        filtered = applyFilters(filtered, singleFilterObj, singleConfigMap);
       });
 
-      filteredDataSources[sourceName] = filtered;
+      directFilteredSources[sourceName] = filtered;
+      sourceHadUniqueFilter[sourceName] = hadUniqueFilter;
     });
 
-    onFiltersChangeRef.current(filteredDataSources, filters);
-  }, [filters, isMultiSource]); // Removed filterConfigs and dataSources - using refs instead
+    // PHASE 2: Apply cross-source cascading through bridge fields
+    // When a source has a unique filter, cascade to connected sources via bridge fields
+    const cascadedSources = { ...directFilteredSources };
+
+    Object.keys(directFilteredSources).forEach(sourceName => {
+      // Only cascade if this source had a source-specific (unique) filter applied
+      if (!sourceHadUniqueFilter[sourceName]) return;
+
+      // Find all other sources connected to this one via bridges
+      Object.keys(currentDataSources).forEach(otherSource => {
+        if (otherSource === sourceName) return;
+
+        // Look up bridge relationship between these sources
+        const bridgeKey = `${sourceName}:${otherSource}`;
+        const bridge = currentBridgeRelationships.get(bridgeKey);
+
+        if (!bridge) return; // No bridge between these sources
+
+        // Extract bridge field values from the filtered source
+        const bridgeValues = new Set();
+        directFilteredSources[sourceName].forEach(item => {
+          const val = extractBridgeValue(item, bridge.fieldA);
+          if (val) bridgeValues.add(val);
+        });
+
+        // Filter the other source to only items matching the bridge values
+        if (bridgeValues.size > 0) {
+          cascadedSources[otherSource] = cascadedSources[otherSource].filter(item => {
+            const val = extractBridgeValue(item, bridge.fieldB);
+            return bridgeValues.has(val);
+          });
+        } else {
+          // No items in source after filtering - cascade empty result
+          cascadedSources[otherSource] = [];
+        }
+      });
+    });
+
+    onFiltersChangeRef.current(cascadedSources, filters);
+  }, [filters, isMultiSource]); // Using refs for filterConfigs, dataSources, bridgeRelationships
 
   // Loading state
   if (loading) {

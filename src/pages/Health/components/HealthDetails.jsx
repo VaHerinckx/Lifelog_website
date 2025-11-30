@@ -24,91 +24,47 @@ const getEvaluationEmoji = (rating) => {
 };
 
 /**
- * Aggregate location data from hourly segment records
- * Groups by unique location (place_name/city), sums duration, and tracks time ranges
+ * Create a chronological timeline of the day from hourly segment records
+ * Groups by segment_id, includes both stationary and moving segments, sorted by start time
  */
-const aggregateLocations = (hourlyData) => {
+const createDayTimeline = (hourlyData) => {
   if (!hourlyData || hourlyData.length === 0) return [];
 
-  const locationMap = new Map(); // key -> { ...data, totalMinutes, segmentIds, hours }
+  const segmentMap = new Map(); // segment_id -> segment data
 
   hourlyData.forEach(segment => {
-    // Only include stationary segments with location data
-    if (segment.segment_type !== 'stationary') return;
+    const segmentId = segment.segment_id;
+    if (!segmentId) return;
 
-    // Generate unique key (prefer place_name > address > city)
-    const key = segment.place_name || segment.address || segment.city;
-    if (!key) return;
+    // Skip gap-fill segments (they have '_gap' in segment_id)
+    if (segmentId.includes('_gap')) return;
 
-    if (!locationMap.has(key)) {
-      locationMap.set(key, {
+    if (!segmentMap.has(segmentId)) {
+      segmentMap.set(segmentId, {
+        segment_id: segmentId,
+        segment_type: segment.segment_type,
+        segment_start_time: segment.segment_start_time,
+        segment_end_time: segment.segment_end_time,
+        place_name: segment.place_name,
+        address: segment.address,
         city: segment.city,
         country: segment.country,
-        address: segment.address,
-        place_name: segment.place_name,
-        coordinates: segment.coordinates,
         is_home: segment.is_home,
-        location_type: segment.location_type,
+        activity_type: segment.activity_type,
         totalMinutes: 0,
-        segmentIds: new Set(),
-        hours: new Set()
+        totalDistance: 0
       });
     }
 
-    const entry = locationMap.get(key);
+    const entry = segmentMap.get(segmentId);
     entry.totalMinutes += segment.segment_duration_minutes || 0;
-    if (segment.segment_id) {
-      entry.segmentIds.add(segment.segment_id);
-    }
-    if (segment.hour !== undefined) {
-      entry.hours.add(segment.hour);
-    }
+    entry.totalDistance += segment.distance_meters || 0;
   });
 
-  // Convert to array, calculate visit counts, format time ranges, and sort by time (most to least)
-  return Array.from(locationMap.values())
-    .map(loc => ({
-      ...loc,
-      visitCount: loc.segmentIds.size || 1,
-      timeRanges: formatHoursAsRanges(Array.from(loc.hours).sort((a, b) => a - b))
-    }))
-    .sort((a, b) => b.totalMinutes - a.totalMinutes);
-};
-
-/**
- * Format a sorted array of hours into readable time ranges
- * e.g., [0,1,2,8,9,10,11,22,23] -> "00:00-02:59, 08:00-11:59, 22:00-23:59"
- */
-const formatHoursAsRanges = (hours) => {
-  if (!hours || hours.length === 0) return '';
-
-  const ranges = [];
-  let rangeStart = hours[0];
-  let rangeEnd = hours[0];
-
-  for (let i = 1; i < hours.length; i++) {
-    if (hours[i] === rangeEnd + 1) {
-      // Continue the range
-      rangeEnd = hours[i];
-    } else {
-      // Close current range and start new one
-      ranges.push({ start: rangeStart, end: rangeEnd });
-      rangeStart = hours[i];
-      rangeEnd = hours[i];
-    }
-  }
-  // Don't forget the last range
-  ranges.push({ start: rangeStart, end: rangeEnd });
-
-  // Format each range
-  return ranges.map(r => {
-    const startStr = `${String(r.start).padStart(2, '0')}:00`;
-    const endStr = `${String(r.end).padStart(2, '0')}:59`;
-    if (r.start === r.end) {
-      return startStr;
-    }
-    return `${startStr}-${endStr}`;
-  }).join(', ');
+  // Convert to array and sort by start time ascending (chronological order)
+  return Array.from(segmentMap.values())
+    .filter(seg => seg.segment_start_time) // Only include segments with start time
+    .sort((a, b) => a.segment_start_time.localeCompare(b.segment_start_time));
 };
 
 /**
@@ -198,9 +154,16 @@ const aggregateHourlyMetrics = (hourlyData) => {
 };
 
 const HealthDetails = ({ day, hourlyData = [], onClose }) => {
+  // Debug: log raw data
+  console.log('DEBUG hourlyData:', hourlyData.length, hourlyData[0]);
+
   // Aggregate location and activity data from hourly records
   // These must be called before any conditional returns (React hooks rules)
-  const aggregatedLocations = useMemo(() => aggregateLocations(hourlyData), [hourlyData]);
+  const dayTimeline = useMemo(() => {
+    const result = createDayTimeline(hourlyData);
+    console.log('DEBUG dayTimeline:', result.length, result);
+    return result;
+  }, [hourlyData]);
   const aggregatedActivities = useMemo(() => aggregateActivities(hourlyData), [hourlyData]);
   const hourlyMetrics = useMemo(() => aggregateHourlyMetrics(hourlyData), [hourlyData]);
 
@@ -443,41 +406,44 @@ const HealthDetails = ({ day, hourlyData = [], onClose }) => {
               </div>
             </div>
 
-            {/* Location Breakdown Section */}
-            {aggregatedLocations.length > 0 && (
+            {/* Day Timeline Section */}
+            {dayTimeline.length > 0 && (
               <div className="health-section">
                 <h3 className="section-title">
                   <MapPin size={20} />
-                  Location Breakdown
+                  Day Timeline
                 </h3>
                 <div className="section-content">
                   <div className="breakdown-list">
-                    {aggregatedLocations.map((loc, index) => (
+                    {dayTimeline.map((seg, index) => (
                       <div key={index} className="breakdown-item">
                         <div className="breakdown-item-main">
                           <span className="breakdown-name">
-                            {loc.place_name || loc.city || 'Unknown Location'}
-                            {loc.is_home && (
+                            {seg.segment_type === 'stationary'
+                              ? (seg.place_name || seg.city || 'Unknown Location')
+                              : (seg.activity_type ? seg.activity_type.charAt(0).toUpperCase() + seg.activity_type.slice(1).replace(/_/g, ' ') : 'Moving')
+                            }
+                            {seg.is_home && (
                               <span className="home-badge">
                                 <Home size={12} />
                                 Home
                               </span>
                             )}
                           </span>
-                          <span className="breakdown-value">{formatMinutes(loc.totalMinutes)}</span>
+                          <span className="breakdown-value">{formatMinutes(seg.totalMinutes)}</span>
                         </div>
                         <div className="breakdown-item-sub">
-                          {loc.city && loc.place_name && <span className="breakdown-city">{loc.city}</span>}
-                          {loc.visitCount > 1 && (
-                            <span className="breakdown-visits">{loc.visitCount} visits</span>
+                          {seg.segment_type === 'stationary' && seg.city && seg.place_name && (
+                            <span className="breakdown-city">{seg.city}</span>
+                          )}
+                          {seg.segment_type === 'moving' && seg.totalDistance > 0 && (
+                            <span className="breakdown-distance">{(seg.totalDistance / 1000).toFixed(1)} km</span>
                           )}
                         </div>
-                        {loc.timeRanges && (
-                          <div className="breakdown-item-time">
-                            <Clock size={12} />
-                            <span>{loc.timeRanges}</span>
-                          </div>
-                        )}
+                        <div className="breakdown-item-time">
+                          <Clock size={12} />
+                          <span>{seg.segment_start_time} - {seg.segment_end_time}</span>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -531,7 +497,7 @@ const HealthDetails = ({ day, hourlyData = [], onClose }) => {
                 </div>
                 <div className="detail-item">
                   <label>Before Sleep:</label>
-                  <span>{formatScreenTime(day.total_screen_before_sleep_minutes)}</span>
+                  <span>{formatScreenTime(day.total_screen_time_minutes_before_sleep)}</span>
                 </div>
               </div>
             </div>

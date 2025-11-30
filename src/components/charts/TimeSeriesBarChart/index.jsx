@@ -39,14 +39,23 @@ const TimeSeriesBarChart = ({
 
   useEffect(() => {
     // Resolve data source for current metric (supports per-metric data overrides)
-    const { data: effectiveData, dateColumnName: effectiveDateColumn } = resolveMetricDataSource(
+    const { data: resolvedData, dateColumnName: effectiveDateColumn } = resolveMetricDataSource(
       currentMetricConfig,
       data,
       dateColumnName
     );
 
     // Basic validation
-    if (!Array.isArray(effectiveData) || effectiveData.length === 0) {
+    if (!Array.isArray(resolvedData) || resolvedData.length === 0) {
+      setChartData([]);
+      return;
+    }
+
+    // Apply filterConditions BEFORE grouping by period (filters entire dataset)
+    const effectiveData = applyMetricFilter(resolvedData, currentMetricConfig);
+
+    // Check if filter removed all data
+    if (effectiveData.length === 0) {
       setChartData([]);
       return;
     }
@@ -105,6 +114,18 @@ const TimeSeriesBarChart = ({
       }
     };
 
+    // Helper to check if entry has valid metric data
+    const hasValidMetricData = (entry) => {
+      // For count aggregation, any entry counts
+      if (aggregationType === 'count' || aggregationType === 'count_distinct') {
+        return true;
+      }
+      // For other aggregations, check if the metric field has a valid value
+      if (!metricField) return true;
+      const value = entry[metricField];
+      return value !== null && value !== undefined && value !== '' && !Number.isNaN(Number(value)) && Number(value) !== 0;
+    };
+
     // Step 1: Group data by period
     const periodGroups = {};
     let minDate = null;
@@ -115,9 +136,12 @@ const TimeSeriesBarChart = ({
       const date = parseDate(entry[effectiveDateColumn]);
       if (!date) return;
 
-      // Update min and max dates
-      if (!minDate || date < minDate) minDate = new Date(date);
-      if (!maxDate || date > maxDate) maxDate = new Date(date);
+      // Only update min/max dates for entries with valid metric data
+      // This ensures the chart range starts from first actual data point
+      if (hasValidMetricData(entry)) {
+        if (!minDate || date < minDate) minDate = new Date(date);
+        if (!maxDate || date > maxDate) maxDate = new Date(date);
+      }
 
       // Generate period key
       const periodKey = generatePeriodKey(date);
@@ -189,24 +213,32 @@ const TimeSeriesBarChart = ({
     // For cumsum, we first compute sum per period, then accumulate
     const baseAggregationType = aggregationType === 'cumsum' ? 'sum' : aggregationType;
 
-    const chartDataArray = Object.values(periodGroups).map(group => {
-      // Apply metric filter to this period's data before aggregation
-      const filteredGroupData = applyMetricFilter(group.data, currentMetricConfig);
+    // Generate period keys for min/max date range to filter periods
+    const minPeriodKey = minDate ? generatePeriodKey(minDate) : null;
+    const maxPeriodKey = maxDate ? generatePeriodKey(maxDate) : null;
 
-      // Use performComputation to calculate the aggregated value for this period
-      const value = performComputation(
-        filteredGroupData,
-        metricField,
-        baseAggregationType,
-        computationOptions
-      );
+    const chartDataArray = Object.values(periodGroups)
+      // Filter to only include periods within the valid data range
+      .filter(group => {
+        if (!minPeriodKey || !maxPeriodKey) return true;
+        return group.sortKey >= minPeriodKey && group.sortKey <= maxPeriodKey;
+      })
+      .map(group => {
+        // Use performComputation to calculate the aggregated value for this period
+        // Note: filterConditions already applied to entire dataset before grouping
+        const value = performComputation(
+          group.data,
+          metricField,
+          baseAggregationType,
+          computationOptions
+        );
 
-      return {
-        period: group.displayLabel,
-        value,
-        sortKey: group.sortKey
-      };
-    });
+        return {
+          period: group.displayLabel,
+          value,
+          sortKey: group.sortKey
+        };
+      });
 
     // Sort chronologically
     chartDataArray.sort((a, b) => a.sortKey.localeCompare(b.sortKey));

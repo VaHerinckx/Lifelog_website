@@ -24,6 +24,7 @@ import KpiCard from '../../components/charts/KpiCard';
 // Import chart components for analysis tab
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
+import TopChart from '../../components/charts/TopChart';
 
 const HealthPage = () => {
   usePageTitle('Health');
@@ -159,6 +160,14 @@ const HealthPage = () => {
                 icon={<Heart />}
                 placeholder="Select rating"
                 dataSources={['healthDaily']}
+              />
+              <Filter
+                type="multiselect"
+                label="Place"
+                field="place_name"
+                icon={<Heart />}
+                placeholder="Select rating"
+                dataSources={['healthHourly']}
               />
             </FilteringPanel>
 
@@ -326,11 +335,11 @@ const HealthPage = () => {
                     { value: 'sleep quality', label: 'Sleep Quality (1-5)', aggregation: 'average', field: 'sleep_quality', decimals: 1 },
                     { value: 'sleep rest feeling', label: 'Rest Feeling (1-5)', aggregation: 'average', field: 'sleep_rest_feeling', decimals: 1 },
                     { value: 'screentime', label: 'Screen Time (min)', aggregation: 'average', field: 'total_screen_time_minutes', decimals: 0 },
-                    { value: 'screentime_before_sleep', label: 'Screen Time before sleep (min)', aggregation: 'average', field: 'total_screen_before_sleep_minutes', decimals: 0 },
+                    { value: 'screentime_before_sleep', label: 'Screen Time before sleep (min)', aggregation: 'average', field: 'total_screen_time_minutes_before_sleep', decimals: 0 },
                     { value: 'energy', label: 'Active Energy (kcal)', aggregation: 'average', field: 'total_active_energy_kcal', decimals: 0 },
-                    { value: 'fitness', label: 'Fitness Feeling (1-5)', aggregation: 'average', field: 'fitness_feeling', decimals: 1 },
-                    { value: 'evaluation', label: 'Day Score (1-5)', aggregation: 'average', field: 'overall_evaluation', decimals: 1 },
-                    { value: 'visits', label: 'Unique Places Visited', aggregation: 'count_distinct', field: 'place_name', decimals: 0, data: filteredHealthHourly, dateColumnName: 'datetime' },
+                    { value: 'fitness', label: 'Fitness Feeling (1-5)', aggregation: 'average', field: 'fitness_feeling', decimals: 1},
+                    { value: 'evaluation', label: 'Day Score (1-5)', aggregation: 'average', field: 'overall_evaluation', decimals: 1},
+                    { value: 'visits', label: 'Unique Places Visited', aggregation: 'count_distinct', field: 'place_name', decimals: 0, data: filteredHealthHourly, dateColumnName: 'datetime', filterConditions: [{ field: 'date', operator: '>=', value: '2025-03-01'}] },
                   ]}
                   defaultMetric="steps"
                   title="Health Metrics by Period"
@@ -353,6 +362,34 @@ const HealthPage = () => {
                   columnAxis="weekday"
                   showAxisSwap={true}
                   title="Health Activity by Time of Day"
+                />
+                <TopChart
+                  data={filteredHealthHourly}
+                  dimensionOptions={[
+                    { value: 'place_name', label: 'Place', field: 'place_name', labelFields: ['place_name'] },
+                    { value: 'time_period', label: 'Time of Day', field: 'time_period', labelFields: ['time_period'] },
+                    { value: 'hour', label: 'Hour', field: 'hour', labelFields: ['hour'] },
+                  ]}
+                  metricOptions={[
+                    { value: 'steps', label: 'Steps', field: 'steps', aggregation: 'sum', decimals: 0, compactNumbers: false },
+                    { value: 'active_energy', label: 'Active Energy (kcal)', field: 'active_energy_kcal', aggregation: 'sum', decimals: 0, compactNumbers: true },
+                    { value: 'screen_time', label: 'Screen Time (min)', field: 'screen_time_minutes', aggregation: 'sum', decimals: 0 },
+                    { value: 'screentime_before_sleep', label: 'Screen Time before sleep (min)', field: 'screen_time_minutes_before_sleep', aggregation: 'sum', decimals: 0},
+                    { value: 'heart_rate', label: 'Avg Heart Rate (bpm)', field: 'avg_heart_rate', aggregation: 'average', decimals: 0 },
+                    { value: 'sleep', label: 'Sleep (min)', field: 'sleep_minutes', aggregation: 'sum', decimals: 0, compactNumbers: true },
+                    { value: 'distance', label: 'Distance (m)', field: 'distance_meters', aggregation: 'sum', decimals: 0, compactNumbers: true },
+                    { value: 'pickups', label: 'Phone Pickups', field: 'phone_pickups', aggregation: 'sum', decimals: 0 },
+                    { value: 'visits', label: 'Days visited', field: 'date', aggregation: 'count_distinct', decimals: 0 },
+                  ]}
+                  defaultDimension="place_name"
+                  defaultMetric="steps"
+                  title="Top Health Analysis"
+                  topN={10}
+                  enableTopNControl={true}
+                  topNOptions={[5, 10, 15, 20, 25, 30]}
+                  enableSortToggle={true}
+                  scrollable={true}
+                  barHeight={50}
                 />
               </>
             )}
