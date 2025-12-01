@@ -27,7 +27,8 @@ const KpiCard = ({
   data,
   dataSource, // eslint-disable-line no-unused-vars -- used by KPICardsPanel to route data
   metricOptions,
-  icon
+  icon,
+  formatValue
 }) => {
   // Extract configuration from metricOptions
   const {
@@ -51,9 +52,42 @@ const KpiCard = ({
     // Apply filterConditions if provided
     const dataToCompute = applyMetricFilter(data, { filterConditions });
 
+    // DEBUG: Log for sleep_start_time_minutes
+    if (field === 'sleep_start_time_minutes') {
+      // Find rows with actual values - check for various falsy conditions
+      const rowsWithValues = data?.filter(d => {
+        const val = d.sleep_start_time_minutes;
+        return val !== '' && val !== undefined && val !== null && val !== 'NaN' && !Number.isNaN(val);
+      });
+      // Check all keys in first row
+      const firstRowKeys = data?.[0] ? Object.keys(data[0]) : [];
+      // Get sample of first 10 rows with their raw values
+      const rawSample = data?.slice(0, 10).map(d => d.sleep_start_time_minutes);
+      // Find first row with a truthy value
+      const firstTruthyRow = data?.find(d => d.sleep_start_time_minutes && d.sleep_start_time_minutes !== '');
+      console.log('KpiCard DEBUG - sleep_start_time_minutes:', {
+        originalDataLength: data?.length,
+        filteredDataLength: dataToCompute?.length,
+        rowsWithValuesCount: rowsWithValues?.length,
+        hasSleepStartTimeMinutes: firstRowKeys.includes('sleep_start_time_minutes'),
+        rawSampleFirst10: rawSample,
+        firstTruthyRow: firstTruthyRow ? {
+          date: firstTruthyRow.date,
+          value: firstTruthyRow.sleep_start_time_minutes,
+          type: typeof firstTruthyRow.sleep_start_time_minutes
+        } : 'NONE FOUND',
+        filterConditions
+      });
+    }
+
     // Perform the computation on filtered data
     const computationOptions = { decimals, defaultValue: 0 };
     const result = performComputation(dataToCompute, field, aggregation, computationOptions);
+
+    // DEBUG: Log result
+    if (field === 'sleep_start_time_minutes') {
+      console.log('KpiCard DEBUG - computed result:', result);
+    }
 
     return result;
   }, [data, field, aggregation, filterConditions, decimals]);
@@ -77,6 +111,11 @@ const KpiCard = ({
 
   // Format the display value
   const displayValue = useMemo(() => {
+    // If custom formatValue function provided, use it
+    if (formatValue && typeof formatValue === 'function') {
+      return formatValue(computedValue);
+    }
+
     // If already formatted (string), return as-is
     if (typeof computedValue === 'string') {
       return computedValue;
@@ -103,7 +142,7 @@ const KpiCard = ({
     }
 
     return computedValue;
-  }, [computedValue, compactNumbers, decimals, prefix, suffix]);
+  }, [computedValue, formatValue, compactNumbers, decimals, prefix, suffix]);
 
   return (
     <div className="kpi-card">
@@ -137,7 +176,8 @@ KpiCard.propTypes = {
       ]).isRequired
     }))
   }).isRequired,
-  icon: PropTypes.node
+  icon: PropTypes.node,
+  formatValue: PropTypes.func
 };
 
 export default KpiCard;

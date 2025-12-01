@@ -45,5 +45,7 @@ export const DRIVE_FILES = {
 const API_BASE = import.meta.env.PROD ? '' : 'http://localhost:3001';
 
 export const getDriveDownloadUrl = (fileId) => {
-  return `${API_BASE}/api/google-drive/${fileId}`;
+  // Add cache buster to force fresh fetch from Google Drive
+  const cacheBuster = Date.now();
+  return `${API_BASE}/api/google-drive/${fileId}?_cb=${cacheBuster}`;
 };

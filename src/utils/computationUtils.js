@@ -93,6 +93,18 @@ export const applyMetricFilter = (data, metricConfig) => {
       }
 
       // Handle comparison operators (mathematical symbols)
+      // For numeric comparisons, convert string values to numbers
+      const isNumericOperator = ['>', '>=', '<', '<='].includes(operator);
+      if (isNumericOperator && typeof value === 'number') {
+        // Convert itemValue to number for comparison
+        const numericItemValue = parseFloat(itemValue);
+        // If itemValue can't be parsed as a number, exclude from results
+        if (isNaN(numericItemValue)) {
+          return false;
+        }
+        itemValue = numericItemValue;
+      }
+
       switch (operator) {
         case '=':
         case '==':

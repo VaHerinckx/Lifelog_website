@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Activity, List, Grid, Calendar, Moon, Heart } from 'lucide-react';
+import { Activity, List, Grid, Calendar, Moon, Heart, Flag, Building2, Store } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -163,10 +163,26 @@ const HealthPage = () => {
               />
               <Filter
                 type="multiselect"
+                label="Country"
+                field="country"
+                icon={<Flag />}
+                placeholder="Select country"
+                dataSources={['healthHourly']}
+              />
+              <Filter
+                type="multiselect"
+                label="City"
+                field="city"
+                icon={<Building2 />}
+                placeholder="Select city"
+                dataSources={['healthHourly']}
+              />
+              <Filter
+                type="multiselect"
                 label="Place"
                 field="place_name"
-                icon={<Heart />}
-                placeholder="Select rating"
+                icon={<Store />}
+                placeholder="Select visited place(s)"
                 dataSources={['healthHourly']}
               />
             </FilteringPanel>
@@ -218,6 +234,22 @@ const HealthPage = () => {
                   filterConditions: [{ field: 'total_sleep_minutes', operator: '>', value: 0 }]
                 }}
                 icon={<Moon />}
+              />
+              <KpiCard
+                dataSource="healthDaily"
+                metricOptions={{
+                  label: 'Avg. Sleep Start',
+                  aggregation: 'average',
+                  field: 'sleep_start_time_minutes',
+                  decimals: 0,
+                  filterConditions: [{ field: 'sleep_start_time_minutes', operator: '>', value: 0 }]
+                }}
+                icon={<Moon />}
+                formatValue={(mins) => {
+                  const hours = Math.floor(mins / 60);
+                  const minutes = Math.round(mins % 60);
+                  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                }}
               />
               <KpiCard
                 dataSource="healthDaily"
@@ -372,6 +404,7 @@ const HealthPage = () => {
                   ]}
                   metricOptions={[
                     { value: 'steps', label: 'Steps', field: 'steps', aggregation: 'sum', decimals: 0, compactNumbers: false },
+                    { value: 'duration', label: 'Duration (hours)', field: 'segment_duration_hours', aggregation: 'sum', decimals: 0, compactNumbers: false },
                     { value: 'active_energy', label: 'Active Energy (kcal)', field: 'active_energy_kcal', aggregation: 'sum', decimals: 0, compactNumbers: true },
                     { value: 'screen_time', label: 'Screen Time (min)', field: 'screen_time_minutes', aggregation: 'sum', decimals: 0 },
                     { value: 'screentime_before_sleep', label: 'Screen Time before sleep (min)', field: 'screen_time_minutes_before_sleep', aggregation: 'sum', decimals: 0},

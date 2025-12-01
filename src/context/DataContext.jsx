@@ -302,6 +302,9 @@ export const DataProvider = ({ children }) => {
                 sleep_rest_feeling: day.sleep_rest_feeling ? parseFloat(day.sleep_rest_feeling) : null,
                 fitness_feeling: day.fitness_feeling ? parseFloat(day.fitness_feeling) : null,
                 overall_evaluation: day.overall_evaluation ? parseFloat(day.overall_evaluation) : null,
+                // Sleep times (numeric for averaging)
+                sleep_start_time_minutes: day.sleep_start_time_minutes ? parseFloat(day.sleep_start_time_minutes) : null,
+                wake_up_time_minutes: day.wake_up_time_minutes ? parseFloat(day.wake_up_time_minutes) : null,
                 // Daily totals
                 total_steps: day.total_steps ? parseInt(day.total_steps) : 0,
                 total_apple_distance_meters: day.total_apple_distance_meters ? parseFloat(day.total_apple_distance_meters) : 0,
@@ -327,6 +330,8 @@ export const DataProvider = ({ children }) => {
                 hour: segment.hour ? parseInt(segment.hour) : 0,
                 weekday: segment.weekday ? parseInt(segment.weekday) : 0,
                 segment_duration_minutes: segment.segment_duration_minutes ? parseFloat(segment.segment_duration_minutes) : 0,
+                segment_duration_hours: segment.segment_duration_hours ? parseFloat(segment.segment_duration_hours) : 0,
+                segment_duration_days: segment.segment_duration_days ? parseFloat(segment.segment_duration_days) : 0,
                 // Movement metrics
                 steps: segment.steps ? parseInt(segment.steps) : 0,
                 apple_distance_meters: segment.apple_distance_meters ? parseFloat(segment.apple_distance_meters) : 0,
