@@ -1,12 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, Film, Music, UtensilsCrossed, Mic, Tv, DollarSign, Activity, Dumbbell, Briefcase } from 'lucide-react';
+import { Home, BookOpen, Film, Music, UtensilsCrossed, Mic, Tv, DollarSign, Activity, Dumbbell, Briefcase, Menu, X } from 'lucide-react';
 import { useAuth } from '../../../../context/AuthContext';
 import './NavigationBar.css';
 
 const NavigationBar = () => {
   const location = useLocation();
   const { isPageAllowed } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const allNavItems = [
     { path: '/', label: 'Home', icon: Home, implemented: true },
@@ -32,34 +33,79 @@ const NavigationBar = () => {
       currentLocation: location.pathname,
       timestamp: new Date().toISOString()
     });
+    setIsMenuOpen(false); // Close mobile menu on navigation
   };
+
+  const renderNavItems = (isMobile = false) => (
+    navItems.map((item) => {
+      const IconComponent = item.icon;
+      return (
+        <Link
+          key={item.path}
+          to={item.path}
+          className={`nav-item ${isMobile ? 'mobile-nav-item' : ''} ${location.pathname === item.path ? 'active' : ''}`}
+          onClick={() => handleNavClick(item)}
+        >
+          <IconComponent className="nav-icon" size={24} />
+          <span className="nav-label">{item.label}</span>
+        </Link>
+      );
+    })
+  );
 
   return (
     <nav className="navigation-bar">
       <div className="nav-container">
         <div className="nav-logo">
-          <Link to="/" className="logo-link">
+          <Link to="/" className="logo-link" onClick={() => setIsMenuOpen(false)}>
             <img src="/logo.png" alt="LifeLog Logo" className="nav-logo-img" />
             <span className="nav-logo-text">LifeLog</span>
           </Link>
         </div>
+
+        {/* Desktop/tablet navigation */}
         <div className="nav-items">
-          {navItems.map((item) => {
-            const IconComponent = item.icon;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
-                onClick={() => handleNavClick(item)}
-              >
-                <IconComponent className="nav-icon" size={24} />
-                <span className="nav-label">{item.label}</span>
-              </Link>
-            );
-          })}
+          {renderNavItems()}
+        </div>
+
+        {/* Hamburger button for mobile */}
+        <button
+          className="hamburger-btn"
+          onClick={() => setIsMenuOpen(true)}
+          aria-label="Open menu"
+        >
+          <Menu size={24} />
+        </button>
+      </div>
+
+      {/* Mobile slide-out menu */}
+      <div className={`mobile-menu ${isMenuOpen ? 'open' : ''}`}>
+        <div className="mobile-menu-header">
+          <Link to="/" className="logo-link" onClick={() => setIsMenuOpen(false)}>
+            <img src="/logo.png" alt="LifeLog Logo" className="nav-logo-img" />
+            <span className="nav-logo-text">LifeLog</span>
+          </Link>
+          <button
+            className="close-menu-btn"
+            onClick={() => setIsMenuOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={24} />
+          </button>
+        </div>
+        <div className="mobile-nav-items">
+          {renderNavItems(true)}
         </div>
       </div>
+
+      {/* Overlay backdrop */}
+      {isMenuOpen && (
+        <div
+          className="menu-overlay"
+          onClick={() => setIsMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
     </nav>
   );
 };

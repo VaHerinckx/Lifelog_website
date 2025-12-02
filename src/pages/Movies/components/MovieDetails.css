@@ -416,6 +416,7 @@
   }
 
   .movie-details-poster {
+    position: static;
     margin-right: 0;
     margin-bottom: var(--spacing-md);
     align-self: center;

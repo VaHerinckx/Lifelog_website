@@ -108,7 +108,35 @@
   font-size: var(--font-size-sm);
 }
 
-/* Mobile responsive adjustments */
+/* Hamburger button - hidden by default */
+.hamburger-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--color-white);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.hamburger-btn:hover {
+  background-color: var(--border-color-light);
+}
+
+/* Mobile menu - hidden by default */
+.mobile-menu {
+  display: none;
+}
+
+/* Menu overlay - only visible when menu is open */
+.menu-overlay {
+  display: none;
+}
+
+/* Medium screens - hide LifeLog text, keep icon bar */
 @media (max-width: 768px) {
   .navigation-bar {
     height: var(--nav-height-mobile);
@@ -127,7 +155,7 @@
   }
 
   .nav-logo-text {
-    font-size: var(--font-size-xl);
+    display: none; /* Hide LifeLog text on medium screens */
   }
 
   .nav-items {
@@ -145,5 +173,111 @@
 
   .nav-label {
     display: none; /* Hide labels on mobile */
+  }
+}
+
+/* Very small screens - hamburger menu */
+@media (max-width: 480px) {
+  .nav-items {
+    display: none; /* Hide horizontal nav */
+  }
+
+  .hamburger-btn {
+    display: flex; /* Show hamburger button */
+  }
+
+  /* Mobile slide-out menu */
+  .mobile-menu {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 280px;
+    height: 100vh;
+    background-color: var(--background-color);
+    transition: left 0.3s ease;
+    z-index: calc(var(--z-modal) + 1);
+    overflow-y: auto;
+  }
+
+  .mobile-menu.open {
+    left: 0;
+  }
+
+  .mobile-menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+    border-bottom: var(--border-width-thin) solid var(--border-color-light);
+  }
+
+  .mobile-menu-header .nav-logo-text {
+    display: block; /* Show LifeLog text in mobile menu */
+  }
+
+  .close-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--color-white);
+    cursor: pointer;
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast);
+  }
+
+  .close-menu-btn:hover {
+    background-color: var(--border-color-light);
+  }
+
+  .mobile-nav-items {
+    display: flex;
+    flex-direction: column;
+    padding: var(--spacing-md);
+    gap: var(--spacing-xs);
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    color: var(--color-text-inverse-muted);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+  }
+
+  .mobile-nav-item:hover {
+    background-color: var(--border-color-light);
+    color: var(--color-white);
+  }
+
+  .mobile-nav-item.active {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: var(--color-white);
+  }
+
+  .mobile-nav-item .nav-label {
+    display: block; /* Show labels in mobile menu */
+    font-size: var(--font-size-base);
+  }
+
+  .mobile-nav-item .nav-icon {
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+  }
+
+  /* Menu overlay backdrop */
+  .menu-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: var(--z-modal);
+    backdrop-filter: blur(2px);
   }
 }

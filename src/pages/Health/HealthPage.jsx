@@ -366,6 +366,7 @@ const HealthPage = () => {
                     { value: 'sleep', label: 'Sleep Duration (min)', aggregation: 'average', field: 'total_sleep_minutes', decimals: 0 },
                     { value: 'sleep quality', label: 'Sleep Quality (1-5)', aggregation: 'average', field: 'sleep_quality', decimals: 1 },
                     { value: 'sleep rest feeling', label: 'Rest Feeling (1-5)', aggregation: 'average', field: 'sleep_rest_feeling', decimals: 1 },
+                    { value: 'stresslevel', label: 'Stress Level', aggregation: 'average', field: 'daily_stress_avg', decimals: 0 },
                     { value: 'screentime', label: 'Screen Time (min)', aggregation: 'average', field: 'total_screen_time_minutes', decimals: 0 },
                     { value: 'screentime_before_sleep', label: 'Screen Time before sleep (min)', aggregation: 'average', field: 'total_screen_time_minutes_before_sleep', decimals: 0 },
                     { value: 'energy', label: 'Active Energy (kcal)', aggregation: 'average', field: 'total_active_energy_kcal', decimals: 0 },
