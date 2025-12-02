@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { X } from 'lucide-react';
 import { performComputation, formatComputedValue, applyMetricFilter, resolveMetricDataSource } from '../../../utils/computationUtils';
 import { parseDate } from '../../../utils/dateUtils';
 import './TimeSeriesBarChart.css';
@@ -32,6 +33,17 @@ const TimeSeriesBarChart = ({
   const [selectedMetric, setSelectedMetric] = useState(defaultMetric || metricOptions[0]?.value);
   // State for chart data
   const [chartData, setChartData] = useState([]);
+  // State for focus mode
+  const [isFocusMode, setIsFocusMode] = useState(false);
+
+  // Escape key handler for focus mode
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isFocusMode) setIsFocusMode(false);
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isFocusMode]);
 
   // Determine if using simple or advanced API
   const useSimpleAPI = metricOptions.length === 0;
@@ -318,76 +330,108 @@ const TimeSeriesBarChart = ({
     }
   };
 
-  return (
-    <div className="time-series-chart-container">
-      <div className="chart-header">
-        <h2 className="time-series-chart__title">{title}</h2>
-
-        <div className="chart-controls">
-          {/* Period Selector */}
-          <div className="chart-filter">
-            <label htmlFor="period-select">Period:</label>
-            <select
-              id="period-select"
-              value={selectedPeriod}
-              onChange={(e) => setSelectedPeriod(e.target.value)}
-              className="filter-select"
-            >
-              <option value="yearly">Yearly</option>
-              <option value="monthly">Monthly</option>
-              <option value="weekly">Weekly</option>
-              <option value="daily">Daily</option>
-            </select>
-          </div>
-
-          {/* Metric Selector - Only show if metricOptions provided */}
-          {metricOptions.length > 1 && (
-            <div className="chart-filter">
-              <label htmlFor="metric-select">Show:</label>
-              <select
-                id="metric-select"
-                className="filter-select"
-                value={selectedMetric}
-                onChange={(e) => setSelectedMetric(e.target.value)}
-              >
-                {metricOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
+  // Render controls (shared between normal and focus mode)
+  const renderControls = (inFocusMode = false) => (
+    <div className="chart-controls" onClick={(e) => e.stopPropagation()}>
+      {/* Period Selector */}
+      <div className="chart-filter">
+        <label htmlFor={inFocusMode ? "focus-period-select" : "period-select"}>Period:</label>
+        <select
+          id={inFocusMode ? "focus-period-select" : "period-select"}
+          value={selectedPeriod}
+          onChange={(e) => setSelectedPeriod(e.target.value)}
+          className="filter-select"
+        >
+          <option value="yearly">Yearly</option>
+          <option value="monthly">Monthly</option>
+          <option value="weekly">Weekly</option>
+          <option value="daily">Daily</option>
+        </select>
       </div>
 
-      {chartData.length === 0 ? (
-        <div className="no-chart-data">
-          <p>No data available for the selected period.</p>
+      {/* Metric Selector - Only show if metricOptions provided */}
+      {metricOptions.length > 1 && (
+        <div className="chart-filter">
+          <label htmlFor={inFocusMode ? "focus-metric-select" : "metric-select"}>Show:</label>
+          <select
+            id={inFocusMode ? "focus-metric-select" : "metric-select"}
+            className="filter-select"
+            value={selectedMetric}
+            onChange={(e) => setSelectedMetric(e.target.value)}
+          >
+            {metricOptions.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
-      ) : (
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis
-              dataKey="period"
-              angle={selectedPeriod === 'monthly' || selectedPeriod === 'weekly' || selectedPeriod === 'daily' ? -45 : 0}
-              textAnchor="end"
-              height={80}
-              interval={getXAxisInterval()}
-            />
-            <YAxis
-              tickFormatter={formatYAxisValue}
-            />
-            <Tooltip
-              formatter={(value) => [formatYAxisValue(value), getYAxisLabel()]}
-            />
-            <Legend />
-            <Bar dataKey="value" name={getYAxisLabel()} className="time-series-chart__bar" />
-          </BarChart>
-        </ResponsiveContainer>
       )}
     </div>
+  );
+
+  // Render chart content (shared between normal and focus mode)
+  const renderChart = () => (
+    chartData.length === 0 ? (
+      <div className="no-chart-data">
+        <p>No data available for the selected period.</p>
+      </div>
+    ) : (
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={chartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis
+            dataKey="period"
+            angle={selectedPeriod === 'monthly' || selectedPeriod === 'weekly' || selectedPeriod === 'daily' ? -45 : 0}
+            textAnchor="end"
+            height={80}
+            interval={getXAxisInterval()}
+          />
+          <YAxis
+            tickFormatter={formatYAxisValue}
+          />
+          <Tooltip
+            formatter={(value) => [formatYAxisValue(value), getYAxisLabel()]}
+          />
+          <Legend />
+          <Bar dataKey="value" name={getYAxisLabel()} className="time-series-chart__bar" />
+        </BarChart>
+      </ResponsiveContainer>
+    )
+  );
+
+  return (
+    <>
+      {/* Normal view */}
+      <div className="time-series-chart-container" onClick={() => setIsFocusMode(true)}>
+        <div className="chart-header">
+          <h2 className="time-series-chart__title">{title}</h2>
+          {renderControls(false)}
+        </div>
+        {renderChart()}
+      </div>
+
+      {/* Focus mode overlay */}
+      {isFocusMode && (
+        <div className="chart-focus-overlay" onClick={() => setIsFocusMode(false)}>
+          <div className="chart-focus-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="focus-close-button"
+              onClick={() => setIsFocusMode(false)}
+              aria-label="Close focus mode"
+            >
+              <X size={24} />
+            </button>
+            <div className="focus-controls-bar">
+              {renderControls(true)}
+            </div>
+            <div className="focus-chart-container">
+              {renderChart()}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

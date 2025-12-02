@@ -1,6 +1,7 @@
 // src/components/charts/IntensityHeatmap/index.jsx
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import PropTypes from 'prop-types';
+import { X } from 'lucide-react';
 import { applyMetricFilter, resolveMetricDataSource } from '../../../utils/computationUtils';
 import './IntensityHeatmap.css';
 
@@ -75,6 +76,17 @@ const IntensityHeatmap = ({
   const [maxValue, setMaxValue] = useState(0);
   const [selectedMetric, setSelectedMetric] = useState(defaultMetric || metricOptions[0]?.value);
   const [axesSwapped, setAxesSwapped] = useState(false);
+  // State for focus mode
+  const [isFocusMode, setIsFocusMode] = useState(false);
+
+  // Escape key handler for focus mode
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isFocusMode) setIsFocusMode(false);
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isFocusMode]);
 
   // Determine if using simple or advanced API
   const useSimpleAPI = !metricOptions || metricOptions.length === 0;
@@ -430,131 +442,163 @@ const IntensityHeatmap = ({
   // Check if we should show controls (metric selector or axis swap)
   const showControls = showAxisSwap || (!useSimpleAPI && metricOptions.length > 1);
 
-  return (
-    <div className="heatmap-container">
-      <div className="heatmap-header">
-        <h3 className="heatmap-title">{title}</h3>
-        {showControls && (
-          <div className="heatmap-controls">
-            {!useSimpleAPI && metricOptions.length > 1 && (
-              <div className="chart-filter">
-                <label htmlFor="heatmap-metric-select">Show:</label>
-                <select
-                  id="heatmap-metric-select"
-                  className="filter-select"
-                  value={selectedMetric}
-                  onChange={(e) => setSelectedMetric(e.target.value)}
-                >
-                  {metricOptions.map(opt => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-            {showAxisSwap && (
-              <button
-                className="axis-swap-button"
-                onClick={handleAxisSwap}
-                title="Swap rows and columns"
-                aria-label="Swap rows and columns"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4" />
-                </svg>
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-      <div className="heatmap-table-container">
-        <table className="heatmap-table">
-          <thead>
-            <tr>
-              <th></th>
-              {columnValues.map(col => (
-                <th key={col.key}>{col.label}</th>
-              ))}
-              <th className="total-header">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rowValues.map(row => {
-              const rowTotal = columnValues.reduce((sum, col) => {
+  // Render controls (shared between normal and focus mode)
+  const renderControls = (inFocusMode = false) => (
+    <div className="heatmap-controls" onClick={(e) => e.stopPropagation()}>
+      {!useSimpleAPI && metricOptions.length > 1 && (
+        <div className="chart-filter">
+          <label htmlFor={inFocusMode ? "focus-heatmap-metric-select" : "heatmap-metric-select"}>Show:</label>
+          <select
+            id={inFocusMode ? "focus-heatmap-metric-select" : "heatmap-metric-select"}
+            className="filter-select"
+            value={selectedMetric}
+            onChange={(e) => setSelectedMetric(e.target.value)}
+          >
+            {metricOptions.map(opt => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      {showAxisSwap && (
+        <button
+          className="axis-swap-button"
+          onClick={handleAxisSwap}
+          title="Swap rows and columns"
+          aria-label="Swap rows and columns"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4" />
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+
+  // Render table (shared between normal and focus mode)
+  const renderTable = () => (
+    <div className="heatmap-table-container">
+      <table className="heatmap-table">
+        <thead>
+          <tr>
+            <th></th>
+            {columnValues.map(col => (
+              <th key={col.key}>{col.label}</th>
+            ))}
+            <th className="total-header">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rowValues.map(row => {
+            const rowTotal = columnValues.reduce((sum, col) => {
+              return sum + (heatmapData[row.key]?.[col.key] || 0);
+            }, 0);
+
+            return (
+              <tr key={row.key}>
+                <td className="day-label">{row.label}</td>
+                {columnValues.map(col => {
+                  const value = heatmapData[row.key]?.[col.key] || 0;
+                  const displayValue = formatValue(value);
+                  return (
+                    <td
+                      key={`${row.key}-${col.key}`}
+                      className="heatmap-cell"
+                      style={{
+                        backgroundColor: getColor(value, maxValue),
+                        color: value > maxValue / 2 ? 'white' : '#171738'
+                      }}
+                      title={generateTooltip(row.key, col.key)}
+                    >
+                      {displayValue}
+                    </td>
+                  );
+                })}
+                <td className="total-cell">
+                  {formatTotalValue(rowTotal)}
+                  {grandTotal > 0 && (
+                    <span className="percentage">
+                      {' '}({Math.round((rowTotal / grandTotal) * 100)}%)
+                    </span>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+
+          {/* Total row */}
+          <tr className="total-row">
+            <td className="total-label">Total</td>
+            {columnValues.map(col => {
+              const columnTotal = rowValues.reduce((sum, row) => {
                 return sum + (heatmapData[row.key]?.[col.key] || 0);
               }, 0);
 
               return (
-                <tr key={row.key}>
-                  <td className="day-label">{row.label}</td>
-                  {columnValues.map(col => {
-                    const value = heatmapData[row.key]?.[col.key] || 0;
-                    const displayValue = formatValue(value);
-                    return (
-                      <td
-                        key={`${row.key}-${col.key}`}
-                        className="heatmap-cell"
-                        style={{
-                          backgroundColor: getColor(value, maxValue),
-                          color: value > maxValue / 2 ? 'white' : '#171738'
-                        }}
-                        title={generateTooltip(row.key, col.key)}
-                      >
-                        {displayValue}
-                      </td>
-                    );
-                  })}
-                  <td className="total-cell">
-                    {formatTotalValue(rowTotal)}
-                    {grandTotal > 0 && (
-                      <span className="percentage">
-                        {' '}({Math.round((rowTotal / grandTotal) * 100)}%)
-                      </span>
-                    )}
-                  </td>
-                </tr>
+                <td key={`total-${col.key}`} className="total-cell">
+                  {formatTotalValue(columnTotal)}
+                  {grandTotal > 0 && (
+                    <span className="percentage">
+                      {' '}({Math.round((columnTotal / grandTotal) * 100)}%)
+                    </span>
+                  )}
+                </td>
               );
             })}
 
-            {/* Total row */}
-            <tr className="total-row">
-              <td className="total-label">Total</td>
-              {columnValues.map(col => {
-                const columnTotal = rowValues.reduce((sum, row) => {
-                  return sum + (heatmapData[row.key]?.[col.key] || 0);
-                }, 0);
-
-                return (
-                  <td key={`total-${col.key}`} className="total-cell">
-                    {formatTotalValue(columnTotal)}
-                    {grandTotal > 0 && (
-                      <span className="percentage">
-                        {' '}({Math.round((columnTotal / grandTotal) * 100)}%)
-                      </span>
-                    )}
-                  </td>
-                );
-              })}
-
-              {/* Grand total (bottom-right cell) */}
-              <td className="grand-total-cell">
-                {formatTotalValue(grandTotal)}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+            {/* Grand total (bottom-right cell) */}
+            <td className="grand-total-cell">
+              {formatTotalValue(grandTotal)}
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+  );
+
+  return (
+    <>
+      {/* Normal view */}
+      <div className="heatmap-container" onClick={() => setIsFocusMode(true)}>
+        <div className="heatmap-header">
+          <h3 className="heatmap-title">{title}</h3>
+          {showControls && renderControls(false)}
+        </div>
+        {renderTable()}
+      </div>
+
+      {/* Focus mode overlay */}
+      {isFocusMode && (
+        <div className="heatmap-focus-overlay" onClick={() => setIsFocusMode(false)}>
+          <div className="heatmap-focus-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="focus-close-button"
+              onClick={() => setIsFocusMode(false)}
+              aria-label="Close focus mode"
+            >
+              <X size={24} />
+            </button>
+            <div className="heatmap-focus-controls-bar">
+              {renderControls(true)}
+            </div>
+            <div className="heatmap-focus-chart-container">
+              {renderTable()}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

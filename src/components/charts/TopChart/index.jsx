@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
-import { ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUp, ArrowDown, X } from 'lucide-react';
 import _ from 'lodash';
 import { applyMetricFilter, resolveMetricDataSource } from '../../../utils/computationUtils';
 import './TopChart.css';
@@ -54,6 +54,17 @@ const TopChart = ({
   const [topNValue, setTopNValue] = useState(topN);
   const [sortDirection, setSortDirection] = useState('desc');
   const [topItems, setTopItems] = useState([]);
+  // State for focus mode
+  const [isFocusMode, setIsFocusMode] = useState(false);
+
+  // Escape key handler for focus mode
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isFocusMode) setIsFocusMode(false);
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isFocusMode]);
 
   // Find current dimension and metric configs
   const currentDimensionConfig = dimensionOptions.find(d => d.value === selectedDimension);
@@ -278,124 +289,97 @@ const TopChart = ({
     artwork: PropTypes.string
   };
 
-  return (
-    <div className="top-categorys-container">
-      <div className="chart-header">
-        <h3 className="chart-title">{title || 'Top Chart'}</h3>
-
-        <div className="chart-controls">
-          {/* Dimension Selector */}
-          {dimensionOptions.length > 1 && (
-            <div className="chart-filter">
-              <label htmlFor="dimension-select">Group by:</label>
-              <select
-                id="dimension-select"
-                className="filter-select"
-                value={selectedDimension}
-                onChange={(e) => setSelectedDimension(e.target.value)}
-              >
-                {dimensionOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Metric Selector */}
-          {metricOptions.length > 1 && (
-            <div className="chart-filter">
-              <label htmlFor="metric-select">Show:</label>
-              <select
-                id="metric-select"
-                className="filter-select"
-                value={selectedMetric}
-                onChange={(e) => setSelectedMetric(e.target.value)}
-              >
-                {metricOptions.map(option => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Top N Selector */}
-          {enableTopNControl && (
-            <div className="chart-filter">
-              <label htmlFor="topn-select">Show top:</label>
-              <select
-                id="topn-select"
-                className="filter-select"
-                value={topNValue}
-                onChange={(e) => setTopNValue(Number(e.target.value))}
-              >
-                {topNOptions.map(option => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Sort Direction Toggle */}
-          {enableSortToggle && (
-            <button
-              className="sort-direction-btn"
-              onClick={() => setSortDirection(prev => prev === 'desc' ? 'asc' : 'desc')}
-              aria-label={`Sort ${sortDirection === 'asc' ? 'descending' : 'ascending'}`}
-              title={sortDirection === 'asc' ? 'Ascending (click for descending)' : 'Descending (click for ascending)'}
-            >
-              {sortDirection === 'asc' ? <ArrowUp size={18} /> : <ArrowDown size={18} />}
-            </button>
-          )}
+  // Render controls (shared between normal and focus mode)
+  const renderControls = (inFocusMode = false) => (
+    <div className="chart-controls" onClick={(e) => e.stopPropagation()}>
+      {/* Dimension Selector */}
+      {dimensionOptions.length > 1 && (
+        <div className="chart-filter">
+          <label htmlFor={inFocusMode ? "focus-dimension-select" : "dimension-select"}>Group by:</label>
+          <select
+            id={inFocusMode ? "focus-dimension-select" : "dimension-select"}
+            className="filter-select"
+            value={selectedDimension}
+            onChange={(e) => setSelectedDimension(e.target.value)}
+          >
+            {dimensionOptions.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
-      </div>
+      )}
 
-      {/* Chart content - scrollable or responsive based on prop */}
-      {scrollable ? (
-        <div
-          className="chart-scrollable-container"
-          style={{
-            height: `calc(${topItems.length * barHeight}px + 40px)`,
-            maxHeight: '100%',
-            overflowY: 'auto'
-          }}
+      {/* Metric Selector */}
+      {metricOptions.length > 1 && (
+        <div className="chart-filter">
+          <label htmlFor={inFocusMode ? "focus-metric-select" : "metric-select"}>Show:</label>
+          <select
+            id={inFocusMode ? "focus-metric-select" : "metric-select"}
+            className="filter-select"
+            value={selectedMetric}
+            onChange={(e) => setSelectedMetric(e.target.value)}
+          >
+            {metricOptions.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Top N Selector */}
+      {enableTopNControl && (
+        <div className="chart-filter">
+          <label htmlFor={inFocusMode ? "focus-topn-select" : "topn-select"}>Show top:</label>
+          <select
+            id={inFocusMode ? "focus-topn-select" : "topn-select"}
+            className="filter-select"
+            value={topNValue}
+            onChange={(e) => setTopNValue(Number(e.target.value))}
+          >
+            {topNOptions.map(option => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {/* Sort Direction Toggle */}
+      {enableSortToggle && (
+        <button
+          className="sort-direction-btn"
+          onClick={() => setSortDirection(prev => prev === 'desc' ? 'asc' : 'desc')}
+          aria-label={`Sort ${sortDirection === 'asc' ? 'descending' : 'ascending'}`}
+          title={sortDirection === 'asc' ? 'Ascending (click for descending)' : 'Descending (click for ascending)'}
         >
-          <ResponsiveContainer width="100%" height={topItems.length * barHeight + 40}>
-            <BarChart
-              data={topItems}
-              layout="vertical"
-              margin={{ top: 20, right: 100, bottom: 20, left: 200 }}
-              barSize={barHeight - 10}
-            >
-              <XAxis
-                type="number"
-                tickFormatter={(value) => formatNumber(value, currentMetricConfig?.decimals || 0)}
-                domain={[0, 'dataMax']}
-                hide
-              />
-              <YAxis
-                type="category"
-                dataKey="name"
-                hide
-              />
-              <Bar
-                dataKey="value"
-                shape={<CustomBar />}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      ) : (
-        <ResponsiveContainer width="100%" height="100%">
+          {sortDirection === 'asc' ? <ArrowUp size={18} /> : <ArrowDown size={18} />}
+        </button>
+      )}
+    </div>
+  );
+
+  // Render chart content (shared between normal and focus mode)
+  const renderChart = () => (
+    scrollable ? (
+      <div
+        className="chart-scrollable-container"
+        style={{
+          height: `calc(${topItems.length * barHeight}px + 40px)`,
+          maxHeight: '100%',
+          overflowY: 'auto'
+        }}
+      >
+        <ResponsiveContainer width="100%" height={topItems.length * barHeight + 40}>
           <BarChart
             data={topItems}
             layout="vertical"
             margin={{ top: 20, right: 100, bottom: 20, left: 200 }}
+            barSize={barHeight - 10}
           >
             <XAxis
               type="number"
@@ -414,8 +398,66 @@ const TopChart = ({
             />
           </BarChart>
         </ResponsiveContainer>
+      </div>
+    ) : (
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={topItems}
+          layout="vertical"
+          margin={{ top: 20, right: 100, bottom: 20, left: 200 }}
+        >
+          <XAxis
+            type="number"
+            tickFormatter={(value) => formatNumber(value, currentMetricConfig?.decimals || 0)}
+            domain={[0, 'dataMax']}
+            hide
+          />
+          <YAxis
+            type="category"
+            dataKey="name"
+            hide
+          />
+          <Bar
+            dataKey="value"
+            shape={<CustomBar />}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    )
+  );
+
+  return (
+    <>
+      {/* Normal view */}
+      <div className="top-categorys-container" onClick={() => setIsFocusMode(true)}>
+        <div className="chart-header">
+          <h3 className="chart-title">{title || 'Top Chart'}</h3>
+          {renderControls(false)}
+        </div>
+        {renderChart()}
+      </div>
+
+      {/* Focus mode overlay */}
+      {isFocusMode && (
+        <div className="topchart-focus-overlay" onClick={() => setIsFocusMode(false)}>
+          <div className="topchart-focus-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="focus-close-button"
+              onClick={() => setIsFocusMode(false)}
+              aria-label="Close focus mode"
+            >
+              <X size={24} />
+            </button>
+            <div className="topchart-focus-controls-bar">
+              {renderControls(true)}
+            </div>
+            <div className="topchart-focus-chart-container">
+              {renderChart()}
+            </div>
+          </div>
+        </div>
       )}
-    </div>
+    </>
   );
 };
 
