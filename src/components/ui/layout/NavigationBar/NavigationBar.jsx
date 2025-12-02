@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BookOpen, Film, Music, UtensilsCrossed, Mic, Tv, DollarSign, Activity, Dumbbell, Briefcase, Menu, X } from 'lucide-react';
+import { BookOpen, Film, Music, UtensilsCrossed, Mic, Tv, DollarSign, Activity, Dumbbell, Briefcase, Menu, X } from 'lucide-react';
 import { useAuth } from '../../../../context/AuthContext';
 import './NavigationBar.css';
 
@@ -10,7 +10,7 @@ const NavigationBar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const allNavItems = [
-    { path: '/', label: 'Home', icon: Home, implemented: true },
+    // Home removed - logo links to homepage
     { path: '/reading', label: 'Reading', icon: BookOpen, implemented: true },
     { path: '/movies', label: 'Movies', icon: Film, implemented: true },
     { path: '/music', label: 'Music', icon: Music, implemented: true },
@@ -45,9 +45,11 @@ const NavigationBar = () => {
           to={item.path}
           className={`nav-item ${isMobile ? 'mobile-nav-item' : ''} ${location.pathname === item.path ? 'active' : ''}`}
           onClick={() => handleNavClick(item)}
+          title={item.label}
         >
           <IconComponent className="nav-icon" size={24} />
-          <span className="nav-label">{item.label}</span>
+          {/* Only show labels in mobile menu */}
+          {isMobile && <span className="nav-label">{item.label}</span>}
         </Link>
       );
     })
@@ -56,19 +58,7 @@ const NavigationBar = () => {
   return (
     <nav className="navigation-bar">
       <div className="nav-container">
-        <div className="nav-logo">
-          <Link to="/" className="logo-link" onClick={() => setIsMenuOpen(false)}>
-            <img src="/logo.png" alt="LifeLog Logo" className="nav-logo-img" />
-            <span className="nav-logo-text">LifeLog</span>
-          </Link>
-        </div>
-
-        {/* Desktop/tablet navigation */}
-        <div className="nav-items">
-          {renderNavItems()}
-        </div>
-
-        {/* Hamburger button for mobile */}
+        {/* Hamburger button for mobile - positioned left */}
         <button
           className="hamburger-btn"
           onClick={() => setIsMenuOpen(true)}
@@ -76,14 +66,29 @@ const NavigationBar = () => {
         >
           <Menu size={24} />
         </button>
+
+        {/* All nav items including logo - evenly distributed */}
+        <div className="nav-items">
+          {/* Logo as first nav item */}
+          <Link
+            to="/"
+            className={`nav-item nav-logo-item ${location.pathname === '/' ? 'active' : ''}`}
+            onClick={() => setIsMenuOpen(false)}
+            title="Home"
+          >
+            <img src="/logo.png" alt="LifeLog" className="nav-logo-img" />
+          </Link>
+
+          {/* Other nav items */}
+          {renderNavItems()}
+        </div>
       </div>
 
       {/* Mobile slide-out menu */}
       <div className={`mobile-menu ${isMenuOpen ? 'open' : ''}`}>
         <div className="mobile-menu-header">
-          <Link to="/" className="logo-link" onClick={() => setIsMenuOpen(false)}>
-            <img src="/logo.png" alt="LifeLog Logo" className="nav-logo-img" />
-            <span className="nav-logo-text">LifeLog</span>
+          <Link to="/" onClick={() => setIsMenuOpen(false)}>
+            <img src="/logo.png" alt="LifeLog" className="nav-logo-img" />
           </Link>
           <button
             className="close-menu-btn"

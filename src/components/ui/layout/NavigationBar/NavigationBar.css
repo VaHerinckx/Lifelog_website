@@ -17,58 +17,33 @@
   height: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 var(--spacing-lg);
+  padding: 0 var(--spacing-md);
   position: relative;
   z-index: var(--z-modal);
-}
-
-.nav-logo {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0; /* Prevent logo from shrinking */
-  margin-right: var(--spacing-xl);
-}
-
-.logo-link {
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  color: var(--color-white);
-  gap: var(--spacing-sm);
-}
-
-.nav-logo-img {
-  height: 40px;
-  width: auto;
-}
-
-.nav-logo-text {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  /* Brand gradient - keeping hardcoded accent colors */
-  background: linear-gradient(to right, #ef4444, #dc2626);
-  -webkit-background-clip: text;
-  color: transparent;
 }
 
 .nav-items {
   display: flex;
-  gap: var(--spacing-lg);
   align-items: center;
-  overflow-x: auto;
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  flex: 1;
-  justify-content: center;
-  min-width: 0; /* Allow flex item to shrink */
-  pointer-events: auto; /* Ensure clicks work */
+  width: 100%;
+  justify-content: space-evenly; /* Even distribution across full width */
+  pointer-events: auto;
   position: relative;
   z-index: var(--z-modal);
 }
 
-.nav-items::-webkit-scrollbar {
-  display: none;
+/* Logo as nav item */
+.nav-logo-item {
+  padding: var(--spacing-xs);
+}
+
+.nav-logo-item:hover {
+  background-color: transparent; /* No hover background for logo */
+}
+
+.nav-logo-img {
+  height: 36px;
+  width: auto;
 }
 
 .nav-item {
@@ -102,10 +77,7 @@
   width: var(--icon-size-sm);
   height: var(--icon-size-sm);
   object-fit: contain;
-}
-
-.nav-label {
-  font-size: var(--font-size-sm);
+  flex-shrink: 0;
 }
 
 /* Hamburger button - hidden by default */
@@ -136,7 +108,7 @@
   display: none;
 }
 
-/* Medium screens - hide LifeLog text, keep icon bar */
+/* Medium screens */
 @media (max-width: 768px) {
   .navigation-bar {
     height: var(--nav-height-mobile);
@@ -146,44 +118,47 @@
     padding: 0 var(--spacing-sm);
   }
 
-  .nav-logo {
-    margin-right: var(--spacing-md);
-  }
-
   .nav-logo-img {
     height: 32px;
   }
 
-  .nav-logo-text {
-    display: none; /* Hide LifeLog text on medium screens */
-  }
-
-  .nav-items {
-    gap: var(--spacing-sm);
-  }
-
   .nav-item {
-    padding: calc(var(--spacing-xs) * 0.75) var(--spacing-xs);
+    padding: var(--spacing-xs);
   }
 
   .nav-icon {
     width: var(--icon-size-xs);
     height: var(--icon-size-xs);
   }
-
-  .nav-label {
-    display: none; /* Hide labels on mobile */
-  }
 }
 
 /* Very small screens - hamburger menu */
 @media (max-width: 480px) {
-  .nav-items {
-    display: none; /* Hide horizontal nav */
+  .nav-container {
+    justify-content: center;
+    position: relative;
   }
 
+  .nav-items {
+    justify-content: center; /* Center the logo */
+    width: auto;
+  }
+
+  /* Hide all nav items except logo */
+  .nav-items .nav-item:not(.nav-logo-item) {
+    display: none;
+  }
+
+  /* Hamburger on left */
   .hamburger-btn {
-    display: flex; /* Show hamburger button */
+    display: flex;
+    position: absolute;
+    left: var(--spacing-sm);
+  }
+
+  /* Logo larger on mobile */
+  .nav-logo-img {
+    height: 36px;
   }
 
   /* Mobile slide-out menu */
@@ -212,8 +187,8 @@
     border-bottom: var(--border-width-thin) solid var(--border-color-light);
   }
 
-  .mobile-menu-header .nav-logo-text {
-    display: block; /* Show LifeLog text in mobile menu */
+  .mobile-menu-header .nav-logo-img {
+    height: 32px;
   }
 
   .close-menu-btn {
