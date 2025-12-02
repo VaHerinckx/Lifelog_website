@@ -182,13 +182,19 @@
   .mobile-menu-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     padding: var(--spacing-md);
     border-bottom: var(--border-width-thin) solid var(--border-color-light);
+    position: relative;
   }
 
   .mobile-menu-header .nav-logo-img {
     height: 32px;
+  }
+
+  .mobile-menu-header .close-menu-btn {
+    position: absolute;
+    right: var(--spacing-md);
   }
 
   .close-menu-btn {
