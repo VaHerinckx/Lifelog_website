@@ -25,6 +25,7 @@ import KpiCard from '../../components/charts/KpiCard';
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
 import TopChart from '../../components/charts/TopChart';
+import ProportionChart from '../../components/charts/ProportionChart';
 
 // Import utilities
 import { sortByDateSafely } from '../../utils/sortingUtils';
@@ -362,6 +363,25 @@ const MusicPage = () => {
                scrollable={true}
                barHeight={50}
                />
+              <ProportionChart
+                data={filteredToggles}
+                dimensionOptions={[
+                  { value: 'simplified_genre', label: 'Genre', field: 'simplified_genre' },
+                  { value: 'artist_name', label: 'Artist', field: 'artist_name' },
+                  { value: 'album_name', label: 'Album', field: 'album_name' },
+                  { value: 'is_new_artist', label: 'New Artist', field: 'is_new_artist' },
+                  { value: 'is_new_recurring_artist', label: 'New Recurring Artist', field: 'is_new_recurring_artist' }
+                ]}
+                metricOptions={[
+                  { value: 'listening_hours', label: 'Listening Hours', aggregation: 'sum', field: 'listening_hours', suffix: ' hrs', decimals: 1 },
+                  { value: 'toggles', label: 'Toggles', aggregation: 'count', field: 'toggle_id' }
+                ]}
+                defaultDimension="simplified_genre"
+                defaultMetric="listening_hours"
+                title="Listening Distribution"
+                maxCategories={8}
+                showPercentages={true}
+              />
               </>
             )}
           />

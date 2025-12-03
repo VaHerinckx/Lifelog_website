@@ -25,6 +25,7 @@ import KpiCard from '../../components/charts/KpiCard';
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
 import TopChart from '../../components/charts/TopChart';
+import ProportionChart from '../../components/charts/ProportionChart';
 
 const HealthPage = () => {
   usePageTitle('Health');
@@ -424,6 +425,25 @@ const HealthPage = () => {
                   enableSortToggle={true}
                   scrollable={true}
                   barHeight={50}
+                />
+                <ProportionChart
+                  data={filteredHealthHourly}
+                  dimensionOptions={[
+                    { value: 'time_period', label: 'Time of Day', field: 'time_period' },
+                    { value: 'country', label: 'Country', field: 'country' },
+                    { value: 'city', label: 'City', field: 'city' },
+                    { value: 'place_name', label: 'Place', field: 'place_name' }
+                  ]}
+                  metricOptions={[
+                    { value: 'steps', label: 'Steps', aggregation: 'sum', field: 'steps', decimals: 0 },
+                    { value: 'duration', label: 'Hours', aggregation: 'sum', field: 'segment_duration_hours', suffix: ' hrs', decimals: 1 },
+                    { value: 'active_energy', label: 'Active Energy', aggregation: 'sum', field: 'active_energy_kcal', suffix: ' kcal', decimals: 0 }
+                  ]}
+                  defaultDimension="time_period"
+                  defaultMetric="steps"
+                  title="Activity Distribution"
+                  maxCategories={8}
+                  showPercentages={true}
                 />
               </>
             )}

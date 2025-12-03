@@ -24,6 +24,7 @@ import KpiCard from '../../components/charts/KpiCard/index';
 // Import chart components for analysis tab
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 import TopChart from '../../components/charts/TopChart';
+import ProportionChart from '../../components/charts/ProportionChart';
 
 // Helper function to parse time string to minutes for efficient sorting
 const parseTimeToMinutes = (timeString) => {
@@ -413,6 +414,24 @@ const NutritionPage = () => {
                     enableSortToggle={true}
                     scrollable={true}
                     barHeight={50}
+                />
+                <ProportionChart
+                  data={filteredMeals}
+                  dimensionOptions={[
+                    { value: 'meal', label: 'Meal Type', field: 'meal' },
+                    { value: 'places', label: 'Location', field: 'places' },
+                    { value: 'origin', label: 'Origin', field: 'origin' },
+                    { value: 'weekday', label: 'Weekday', field: 'weekday' }
+                  ]}
+                  metricOptions={[
+                    { value: 'meals', label: 'Meals', aggregation: 'count', field: 'meal_id' },
+                    { value: 'meal_score', label: 'Avg Meal Score', aggregation: 'average', field: 'usda_meal_score', decimals: 1 }
+                  ]}
+                  defaultDimension="meal"
+                  defaultMetric="meals"
+                  title="Meal Distribution"
+                  maxCategories={8}
+                  showPercentages={true}
                 />
               </>
             )}

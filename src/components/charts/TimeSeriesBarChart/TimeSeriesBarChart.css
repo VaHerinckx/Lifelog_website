@@ -57,6 +57,39 @@
   white-space: nowrap;
 }
 
+/* Chart Type Toggle Buttons */
+.chart-type-toggle {
+  display: flex;
+  border: var(--border-width-thin) solid var(--border-color-medium);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.chart-type-toggle .toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: var(--color-surface-elevated);
+  border: none;
+  cursor: pointer;
+  color: var(--color-text-primary);
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+
+.chart-type-toggle .toggle-btn:first-child {
+  border-right: var(--border-width-thin) solid var(--border-color-medium);
+}
+
+.chart-type-toggle .toggle-btn:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.chart-type-toggle .toggle-btn.active {
+  background-color: var(--color-primary);
+  color: white;
+}
+
 .chart-filter .filter-select {
   width: 120px;
   padding: var(--spacing-xs);
@@ -116,7 +149,8 @@
 
 /* Prevent controls from triggering focus mode */
 .time-series-chart-container .chart-controls,
-.time-series-chart-container .chart-filter {
+.time-series-chart-container .chart-filter,
+.time-series-chart-container .chart-type-toggle {
   cursor: default;
 }
 

@@ -25,6 +25,7 @@ import KpiCard from '../../components/charts/KpiCard';
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
 import TopChart from '../../components/charts/TopChart';
+import ProportionChart from '../../components/charts/ProportionChart';
 
 const MoviesPage = () => {
   usePageTitle('Movies');
@@ -393,6 +394,24 @@ const MoviesPage = () => {
                 enableSortToggle={true}
                 scrollable={true}
                 barHeight={50}
+              />
+              <ProportionChart
+                data={filteredMovies}
+                dimensionOptions={[
+                  { value: 'genre', label: 'Genre', field: 'genre' },
+                  { value: 'original_language', label: 'Language', field: 'original_language' },
+                  { value: 'director', label: 'Director', field: 'director' },
+                  { value: 'year', label: 'Release Year', field: 'year' }
+                ]}
+                metricOptions={[
+                  { value: 'runtime', label: 'Watch Time', aggregation: 'sum', field: 'runtime_hour', suffix: ' hrs', decimals: 1 },
+                  { value: 'movies', label: 'Movies', aggregation: 'count', field: 'movie_id' }
+                ]}
+                defaultDimension="genre"
+                defaultMetric="runtime"
+                title="Viewing Distribution"
+                maxCategories={8}
+                showPercentages={true}
               />
             </>
           )}

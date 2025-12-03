@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { X } from 'lucide-react';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { X, BarChart3, TrendingUp } from 'lucide-react';
 import { performComputation, formatComputedValue, applyMetricFilter, resolveMetricDataSource } from '../../../utils/computationUtils';
 import { parseDate } from '../../../utils/dateUtils';
 import './TimeSeriesBarChart.css';
@@ -35,6 +35,8 @@ const TimeSeriesBarChart = ({
   const [chartData, setChartData] = useState([]);
   // State for focus mode
   const [isFocusMode, setIsFocusMode] = useState(false);
+  // State for chart type (bar or line)
+  const [chartType, setChartType] = useState('bar');
 
   // Escape key handler for focus mode
   useEffect(() => {
@@ -333,6 +335,26 @@ const TimeSeriesBarChart = ({
   // Render controls (shared between normal and focus mode)
   const renderControls = (inFocusMode = false) => (
     <div className="chart-controls" onClick={(e) => e.stopPropagation()}>
+      {/* Chart Type Toggle */}
+      <div className="chart-type-toggle">
+        <button
+          className={`toggle-btn ${chartType === 'bar' ? 'active' : ''}`}
+          onClick={() => setChartType('bar')}
+          aria-label="Bar chart"
+          title="Bar chart"
+        >
+          <BarChart3 size={16} />
+        </button>
+        <button
+          className={`toggle-btn ${chartType === 'line' ? 'active' : ''}`}
+          onClick={() => setChartType('line')}
+          aria-label="Line chart"
+          title="Line chart"
+        >
+          <TrendingUp size={16} />
+        </button>
+      </div>
+
       {/* Period Selector */}
       <div className="chart-filter">
         <label htmlFor={inFocusMode ? "focus-period-select" : "period-select"}>Period:</label>
@@ -370,6 +392,17 @@ const TimeSeriesBarChart = ({
     </div>
   );
 
+  // Shared chart axis and grid configuration
+  const chartAxisConfig = {
+    xAxis: {
+      dataKey: "period",
+      angle: selectedPeriod === 'monthly' || selectedPeriod === 'weekly' || selectedPeriod === 'daily' ? -45 : 0,
+      textAnchor: "end",
+      height: 80,
+      interval: getXAxisInterval()
+    }
+  };
+
   // Render chart content (shared between normal and focus mode)
   const renderChart = () => (
     chartData.length === 0 ? (
@@ -378,24 +411,33 @@ const TimeSeriesBarChart = ({
       </div>
     ) : (
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey="period"
-            angle={selectedPeriod === 'monthly' || selectedPeriod === 'weekly' || selectedPeriod === 'daily' ? -45 : 0}
-            textAnchor="end"
-            height={80}
-            interval={getXAxisInterval()}
-          />
-          <YAxis
-            tickFormatter={formatYAxisValue}
-          />
-          <Tooltip
-            formatter={(value) => [formatYAxisValue(value), getYAxisLabel()]}
-          />
-          <Legend />
-          <Bar dataKey="value" name={getYAxisLabel()} className="time-series-chart__bar" />
-        </BarChart>
+        {chartType === 'bar' ? (
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis {...chartAxisConfig.xAxis} />
+            <YAxis tickFormatter={formatYAxisValue} />
+            <Tooltip formatter={(value) => [formatYAxisValue(value), getYAxisLabel()]} />
+            <Legend />
+            <Bar dataKey="value" name={getYAxisLabel()} className="time-series-chart__bar" />
+          </BarChart>
+        ) : (
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis {...chartAxisConfig.xAxis} />
+            <YAxis tickFormatter={formatYAxisValue} />
+            <Tooltip formatter={(value) => [formatYAxisValue(value), getYAxisLabel()]} />
+            <Legend />
+            <Line
+              type="monotone"
+              dataKey="value"
+              name={getYAxisLabel()}
+              stroke="var(--chart-primary-color)"
+              strokeWidth={2}
+              dot={{ fill: 'var(--chart-primary-color)', r: 3 }}
+              activeDot={{ r: 5 }}
+            />
+          </LineChart>
+        )}
       </ResponsiveContainer>
     )
   );

@@ -77,15 +77,40 @@
 .book-details-info h2 {
   font-size: var(--font-size-3xl);
   color: var(--color-text-on-surface);
-  margin-bottom: var(--spacing-xs);
+  margin-bottom: var(--spacing-sm);
 }
 
-.book-details-info h3 {
+.book-author-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.book-author-section h3 {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-medium);
   color: var(--color-primary);
-  margin-top: 0;
-  margin-bottom: var(--spacing-lg);
+  margin: 0;
+}
+
+.author-photo {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  object-fit: cover;
+  box-shadow: var(--shadow-sm);
+}
+
+.author-photo-placeholder {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white);
 }
 
 .book-details-meta {
@@ -100,6 +125,27 @@
   align-items: center;
   gap: var(--spacing-xs);
   font-size: var(--font-size-base);
+}
+
+.book-synopsis {
+  background-color: var(--color-primary-tint-10);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+.book-synopsis h4 {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-on-surface);
+  margin: 0 0 var(--spacing-xs) 0;
+}
+
+.book-synopsis p {
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-on-surface);
+  margin: 0;
 }
 
 .book-ratings {
@@ -174,8 +220,14 @@
     font-size: var(--font-size-2xl);
   }
 
-  .book-details-info h3 {
+  .book-author-section h3 {
     font-size: var(--font-size-lg);
+  }
+
+  .author-photo,
+  .author-photo-placeholder {
+    width: 40px;
+    height: 40px;
   }
 
   .meta-item {

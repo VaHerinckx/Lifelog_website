@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, BookOpen, Calendar, Clock } from 'lucide-react';
+import { X, BookOpen, Calendar, Clock, User } from 'lucide-react';
 import './BookDetails.css';
 import { StarRating } from '../../../components/ui';
 
@@ -27,7 +27,24 @@ const BookDetails = ({ book, onClose }) => {
 
           <div className="book-details-info">
             <h2>{book.title}</h2>
-            <h3>by {book.author}</h3>
+
+            <div className="book-author-section">
+              {book.author_photo_url ? (
+                <img
+                  src={book.author_photo_url}
+                  alt={book.author}
+                  className="author-photo"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <div className="author-photo-placeholder">
+                  <User size={24} />
+                </div>
+              )}
+              <h3>by {book.author}</h3>
+            </div>
 
             <div className="book-details-meta">
               {book.original_publication_year && (
@@ -79,6 +96,13 @@ const BookDetails = ({ book, onClose }) => {
                 </span>
               )}
             </div>
+
+            {book.synopsis && (
+              <div className="book-synopsis">
+                <h4>Synopsis</h4>
+                <p>{book.synopsis}</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

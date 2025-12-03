@@ -25,6 +25,7 @@ import KpiCard from '../../components/charts/KpiCard';
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
 import TopChart from '../../components/charts/TopChart';
+import ProportionChart from '../../components/charts/ProportionChart';
 
 const PodcastPage = () => {
   usePageTitle('Podcasts');
@@ -342,6 +343,25 @@ const PodcastPage = () => {
                   enableSortToggle={true}
                   scrollable={true}
                   barHeight={50}
+                />
+                <ProportionChart
+                  data={filteredPodcasts}
+                  dimensionOptions={[
+                    { value: 'genre', label: 'Genre', field: 'genre' },
+                    { value: 'podcast_name', label: 'Podcast', field: 'podcast_name' },
+                    { value: 'artist', label: 'Host', field: 'artist' },
+                    { value: 'language', label: 'Language', field: 'language' },
+                    { value: 'is_recurring_podcast', label: 'Recurring', field: 'is_recurring_podcast' }
+                  ]}
+                  metricOptions={[
+                    { value: 'listened_hours', label: 'Listening Hours', aggregation: 'sum', field: 'listened_hours', suffix: ' hrs', decimals: 1 },
+                    { value: 'episodes', label: 'Episodes', aggregation: 'count', field: 'episode_uuid' }
+                  ]}
+                  defaultDimension="genre"
+                  defaultMetric="listened_hours"
+                  title="Listening Distribution"
+                  maxCategories={8}
+                  showPercentages={true}
                 />
               </>
             )}

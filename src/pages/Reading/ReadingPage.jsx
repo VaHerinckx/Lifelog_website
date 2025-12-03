@@ -25,6 +25,7 @@ import KpiCard from '../../components/charts/KpiCard';
 import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
 import TopChart from '../../components/charts/TopChart';
+import ProportionChart from '../../components/charts/ProportionChart';
 
 const ReadingPage = () => {
   usePageTitle('Reading');
@@ -339,6 +340,24 @@ const ReadingPage = () => {
                   enableSortToggle={true}
                   scrollable={true}
                   barHeight={50}
+                />
+                <ProportionChart
+                  data={filteredBooks}
+                  dimensionOptions={[
+                    { value: 'genre', label: 'Genre', field: 'genre' },
+                    { value: 'author', label: 'Author', field: 'author' },
+                    { value: 'reading_format', label: 'Format', field: 'reading_format' },
+                    { value: 'fiction_yn', label: 'Fiction/Non-Fiction', field: 'fiction_yn' }
+                  ]}
+                  metricOptions={[
+                    { value: 'pages', label: 'Pages', aggregation: 'sum', field: 'number_of_pages', suffix: ' pages', decimals: 0 },
+                    { value: 'books', label: 'Books', aggregation: 'count', field: 'book_id' }
+                  ]}
+                  defaultDimension="genre"
+                  defaultMetric="pages"
+                  title="Reading Distribution"
+                  maxCategories={8}
+                  showPercentages={true}
                 />
               </>
             )}
