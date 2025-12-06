@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Utensils, List, Grid, Calendar, MapPin, Tag } from 'lucide-react';
+import { Utensils, List, Grid, Calendar, MapPin, Tag, Coffee } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -229,20 +229,26 @@ const NutritionPage = () => {
                 dataSources={['nutrition']}
               />
               <Filter
-                type="multiselect"
-                label="Foods"
-                field="food"
+                type="hierarchical"
+                selectionMode="multi"
+                label="Food Category"
+                field="food_category"
+                childField="food"
                 icon={<Utensils />}
-                placeholder="Select individual foods"
+                placeholder="Select food categories"
                 dataSources={['nutrition']}
+                showCounts={false}
               />
               <Filter
-                type="multiselect"
-                label="Drinks"
-                field="drink"
-                icon={<Utensils />}
-                placeholder="Select individual drinks"
+                type="hierarchical"
+                selectionMode="multi"
+                label="Drink Category"
+                field="drink_category"
+                childField="drink"
+                icon={<Coffee />}
+                placeholder="Select drink categories"
                 dataSources={['nutrition']}
+                showCounts={false}
               />
             </FilteringPanel>
 
@@ -392,7 +398,9 @@ const NutritionPage = () => {
                     data={filteredItems}
                     dimensionOptions={[
                       { value: 'food_list', label: 'Meal', field: 'food_list', labelFields: ['food_list'] },
+                      { value: 'food_category', label: 'Food Category', field: 'food_category', labelFields: ['food_category'] },
                       { value: 'food', label: 'Food', field: 'food', labelFields: ['food'] },
+                      { value: 'drink_category', label: 'Drink Category', field: 'drink_category', labelFields: ['drink_category'] },
                       { value: 'drink', label: 'Drink', field: 'drink', labelFields: ['drink'] },
                       { value: 'places', label: 'Location', field: 'places', labelFields: ['places'] },
                       { value: 'origin', label: 'Origin', field: 'origin', labelFields: ['origin'] },

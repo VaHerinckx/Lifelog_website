@@ -27,6 +27,7 @@ import './Filter.css';
  * @param {Map} [props.hierarchy] - Hierarchy Map for hierarchical type (parent -> [children])
  * @param {Map} [props.hierarchyWithCounts] - Hierarchy with counts for hierarchical type
  * @param {string} [props.selectionMode] - 'single' or 'multi' for hierarchical type
+ * @param {boolean} [props.showCounts] - Whether to show counts in hierarchical type (default: true)
  */
 const Filter = ({
   type = 'singleselect',
@@ -47,7 +48,8 @@ const Filter = ({
   suffix = '',
   hierarchy = null,
   hierarchyWithCounts = null,
-  selectionMode = 'multi'
+  selectionMode = 'multi',
+  showCounts = true
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -836,7 +838,7 @@ const Filter = ({
                           </span>
                           <span className="filter-option-text">
                             {parent}
-                            <span className="hierarchical-count"> ({parentData.count})</span>
+                            {showCounts && <span className="hierarchical-count"> ({parentData.count})</span>}
                           </span>
                         </div>
                       </div>
@@ -865,7 +867,7 @@ const Filter = ({
                               </span>
                               <span className="filter-option-text">
                                 {child}
-                                <span className="hierarchical-count"> ({count})</span>
+                                {showCounts && <span className="hierarchical-count"> ({count})</span>}
                               </span>
                             </div>
                           ))}
