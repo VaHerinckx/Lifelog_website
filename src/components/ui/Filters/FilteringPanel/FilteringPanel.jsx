@@ -1,6 +1,7 @@
 // src/components/ui/Filters/FilteringPanel/FilteringPanel.jsx
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import _ from 'lodash';
+import { SlidersHorizontal, X } from 'lucide-react';
 import Filter from '../Filter/Filter';
 import { applyFilters, matchDelimitedValue, buildHierarchyWithCounts } from '../../../../utils/filterUtils';
 import './FilteringPanel.css';
@@ -334,6 +335,11 @@ const FilteringPanel = ({
   // This prevents expensive recalculation on every filter click
   const [debouncedFilters, setDebouncedFilters] = useState(filters);
 
+  // Mobile modal state management
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [appliedFilters, setAppliedFilters] = useState(filters);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 992);
+
   // Debounce filter updates for options calculation (150ms delay)
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -342,6 +348,121 @@ const FilteringPanel = ({
 
     return () => clearTimeout(timer);
   }, [filters]);
+
+  // Count active filters (non-default values)
+  const getActiveFilterCount = useCallback((filterState) => {
+    return filterConfigs.reduce((count, config) => {
+      const value = filterState[config.key];
+
+      // Multiselect: count if non-empty array
+      if (config.type === 'multiselect' && Array.isArray(value) && value.length > 0) {
+        return count + 1;
+      }
+
+      // Singleselect: count if not default value
+      if (config.type === 'singleselect' && value !== config.defaultValue && value !== 'all') {
+        return count + 1;
+      }
+
+      // Date range: count if either bound is set
+      if (config.type === 'daterange' && (value?.startDate || value?.endDate)) {
+        return count + 1;
+      }
+
+      // Number range: count if either bound is set
+      if (config.type === 'numberrange' && (value?.min !== null || value?.max !== null)) {
+        return count + 1;
+      }
+
+      // Hierarchical: count if non-empty selection
+      if (config.type === 'hierarchical' && Array.isArray(value) && value.length > 0) {
+        return count + 1;
+      }
+
+      return count;
+    }, 0);
+  }, [filterConfigs]);
+
+  // Modal handler functions
+  const openModal = useCallback(() => {
+    setFilters(appliedFilters); // Reset to last applied state
+    setIsModalOpen(true);
+  }, [appliedFilters]);
+
+  const closeModal = useCallback(() => {
+    setFilters(appliedFilters); // Discard preview changes
+    setIsModalOpen(false);
+  }, [appliedFilters]);
+
+  const applyFiltersHandler = useCallback(() => {
+    setAppliedFilters(filters); // Apply current filter state
+    setIsModalOpen(false);
+  }, [filters]);
+
+  const clearAllFilters = useCallback(() => {
+    const resetState = {};
+    filterConfigs.forEach(config => {
+      if (config.type === 'multiselect') {
+        resetState[config.key] = [];
+      } else if (config.type === 'hierarchical') {
+        resetState[config.key] = config.selectionMode === 'single' ? null : [];
+      } else if (config.type === 'singleselect') {
+        resetState[config.key] = config.defaultValue || 'all';
+      } else if (config.type === 'daterange') {
+        resetState[config.key] = { startDate: null, endDate: null };
+      } else if (config.type === 'numberrange') {
+        resetState[config.key] = { min: null, max: null };
+      }
+    });
+    setFilters(resetState);
+    setAppliedFilters(resetState);
+  }, [filterConfigs]);
+
+  const activeFilterCount = useMemo(() => getActiveFilterCount(appliedFilters), [appliedFilters, getActiveFilterCount]);
+
+  // Window resize listener with auto-apply on mobile→desktop transition
+  useEffect(() => {
+    const handleResize = () => {
+      const newIsMobile = window.innerWidth <= 992;
+      setIsMobile(newIsMobile);
+
+      // CRITICAL: Auto-apply filters when transitioning mobile → desktop
+      if (!newIsMobile && isModalOpen) {
+        setAppliedFilters(filters); // Apply preview filters
+        setIsModalOpen(false);      // Close modal
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isModalOpen, filters]);
+
+  // Body scroll lock when modal is open
+  useEffect(() => {
+    if (isMobile && isModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobile, isModalOpen]);
+
+  // ESC key handler for closing modal
+  useEffect(() => {
+    if (!isModalOpen) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen, closeModal]);
 
   // OPTIMIZATION: Compute indices for each "exclude one filter" scenario
   // This allows efficient cascading filter options calculation
@@ -508,9 +629,13 @@ const FilteringPanel = ({
     const currentDataSources = dataSourcesRef.current;
     const currentBridgeRelationships = bridgeRelationshipsRef.current;
 
+    // MOBILE: Only trigger when appliedFilters changes
+    // DESKTOP: Trigger when filters changes (immediate)
+    const filtersToApply = isMobile ? appliedFilters : filters;
+
     // If single-source mode (backward compatibility), just return filters
     if (!isMultiSource) {
-      onFiltersChangeRef.current(filters);
+      onFiltersChangeRef.current(filtersToApply);
       return;
     }
 
@@ -532,8 +657,8 @@ const FilteringPanel = ({
       let hadUniqueFilter = false;
 
       // Apply each filter
-      Object.keys(filters).forEach(filterKey => {
-        const filterValue = filters[filterKey];
+      Object.keys(filtersToApply).forEach(filterKey => {
+        const filterValue = filtersToApply[filterKey];
         const config = filterConfigsMap[filterKey];
 
         // Skip empty filter values
@@ -607,8 +732,66 @@ const FilteringPanel = ({
       });
     });
 
-    onFiltersChangeRef.current(cascadedSources, filters);
-  }, [filters, isMultiSource]); // Using refs for filterConfigs, dataSources, bridgeRelationships
+    onFiltersChangeRef.current(cascadedSources, filtersToApply);
+  }, [filters, appliedFilters, isMobile, isMultiSource]); // Using refs for filterConfigs, dataSources, bridgeRelationships
+
+  // Helper function to render filter items (used in both desktop and mobile)
+  const renderFilterItems = () => {
+    return React.Children.map(children, (child) => {
+      if (!React.isValidElement(child)) return null;
+
+      // Find the config for this child
+      const childKey = child.props.field || child.props.label?.toLowerCase().replace(/\s+/g, '_');
+      const config = filterConfigs.find(c => c.key === childKey);
+
+      if (!config) return null;
+
+      // Use custom options if provided, otherwise use auto-calculated options
+      const customOptions = config.options || child.props.options;
+      const calculatedOptions = filterOptions.options?.[config.key] || [];
+
+      // For hierarchical filters, calculatedOptions is a Map, not an array
+      const availableOptions = config.type === 'hierarchical'
+        ? null  // Don't use options for hierarchical
+        : (customOptions || calculatedOptions);
+
+      const boundaries = filterOptions.dateBoundaries?.[config.key];
+      const numBoundaries = filterOptions.numberBoundaries?.[config.key];
+      const currentValue = filters[config.key];
+
+      // For hierarchical filters, check if hierarchy is available
+      if (config.type === 'hierarchical' && !calculatedOptions) {
+        return null;
+      }
+
+      // Note: We no longer hide daterange/numberrange filters when no boundaries exist
+      // Instead, we render them with empty/disabled state for UI stability
+
+      // Clone the child and inject the computed props
+      const clonedProps = {
+        options: availableOptions,
+        value: currentValue,
+        onChange: (value) => handleFilterChange(config.key, value),
+        minDate: boundaries?.minDate,
+        maxDate: boundaries?.maxDate,
+        minNumber: numBoundaries?.minNumber,
+        maxNumber: numBoundaries?.maxNumber,
+        suffix: child.props.suffix || ''
+      };
+
+      // Add hierarchical-specific props if this is a hierarchical filter
+      if (config.type === 'hierarchical') {
+        clonedProps.hierarchyWithCounts = calculatedOptions;
+        clonedProps.selectionMode = config.selectionMode;
+      }
+
+      return (
+        <div key={config.key} className="filter-item">
+          {React.cloneElement(child, clonedProps)}
+        </div>
+      );
+    });
+  };
 
   // Loading state
   if (loading) {
@@ -628,64 +811,88 @@ const FilteringPanel = ({
     );
   }
 
+  // Mobile: Render filter button and modal
+  if (isMobile) {
+    return (
+      <>
+        {/* Filter Toggle Button */}
+        <button
+          className={`filter-toggle-button ${activeFilterCount > 0 ? 'active' : ''}`}
+          onClick={openModal}
+          aria-label={`Open filters${activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}`}
+        >
+          <SlidersHorizontal size={20} />
+          <span>Filters</span>
+          {activeFilterCount > 0 && (
+            <span className="filter-badge">{activeFilterCount}</span>
+          )}
+        </button>
+
+        {/* Full-Screen Modal */}
+        {isModalOpen && (
+          <div className="filter-modal-overlay" onClick={closeModal}>
+            <div
+              className="filter-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="filter-modal-title"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Sticky Header */}
+              <div className="filter-modal-header">
+                <h2 id="filter-modal-title">Filters</h2>
+                <div className="filter-modal-header-actions">
+                  <button
+                    className="clear-all-button"
+                    onClick={clearAllFilters}
+                  >
+                    Clear All
+                  </button>
+                  <button
+                    className="close-button"
+                    onClick={closeModal}
+                    aria-label="Close filters"
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrollable Content */}
+              <div className="filter-modal-content">
+                <div className="filter-modal-filters">
+                  {renderFilterItems()}
+                </div>
+              </div>
+
+              {/* Sticky Footer */}
+              <div className="filter-modal-footer">
+                <button
+                  className="clear-all-filters-button"
+                  onClick={clearAllFilters}
+                >
+                  Clear All Filters
+                </button>
+                <button
+                  className="apply-filters-button"
+                  onClick={applyFiltersHandler}
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  }
+
+  // Desktop: Render inline grid
   return (
     <div className="filtering-panel">
       <div className="filtering-panel-content">
         <div className="filters-grid">
-          {React.Children.map(children, (child) => {
-            if (!React.isValidElement(child)) return null;
-
-            // Find the config for this child
-            const childKey = child.props.field || child.props.label?.toLowerCase().replace(/\s+/g, '_');
-            const config = filterConfigs.find(c => c.key === childKey);
-
-            if (!config) return null;
-
-            // Use custom options if provided, otherwise use auto-calculated options
-            const customOptions = config.options || child.props.options;
-            const calculatedOptions = filterOptions.options?.[config.key] || [];
-
-            // For hierarchical filters, calculatedOptions is a Map, not an array
-            const availableOptions = config.type === 'hierarchical'
-              ? null  // Don't use options for hierarchical
-              : (customOptions || calculatedOptions);
-
-            const boundaries = filterOptions.dateBoundaries?.[config.key];
-            const numBoundaries = filterOptions.numberBoundaries?.[config.key];
-            const currentValue = filters[config.key];
-
-            // For hierarchical filters, check if hierarchy is available
-            if (config.type === 'hierarchical' && !calculatedOptions) {
-              return null;
-            }
-
-            // Note: We no longer hide daterange/numberrange filters when no boundaries exist
-            // Instead, we render them with empty/disabled state for UI stability
-
-            // Clone the child and inject the computed props
-            const clonedProps = {
-              options: availableOptions,
-              value: currentValue,
-              onChange: (value) => handleFilterChange(config.key, value),
-              minDate: boundaries?.minDate,
-              maxDate: boundaries?.maxDate,
-              minNumber: numBoundaries?.minNumber,
-              maxNumber: numBoundaries?.maxNumber,
-              suffix: child.props.suffix || ''
-            };
-
-            // Add hierarchical-specific props if this is a hierarchical filter
-            if (config.type === 'hierarchical') {
-              clonedProps.hierarchyWithCounts = calculatedOptions;
-              clonedProps.selectionMode = config.selectionMode;
-            }
-
-            return (
-              <div key={config.key} className="filter-item">
-                {React.cloneElement(child, clonedProps)}
-              </div>
-            );
-          })}
+          {renderFilterItems()}
         </div>
       </div>
     </div>

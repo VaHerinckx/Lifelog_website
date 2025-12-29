@@ -530,3 +530,37 @@
     padding-left: var(--spacing-md);
   }
 }
+
+/* ========================================
+   MODAL CONTEXT Z-INDEX SCOPING
+   ======================================== */
+
+/* Scope z-index for dropdowns inside modal to prevent rendering below overlay */
+.filter-modal-content .filter-dropdown {
+  z-index: 10; /* Relative to modal, not page */
+  position: relative;
+}
+
+.filter-modal-content .filter-container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Make filters full-width in modal */
+@media (max-width: 992px) {
+  .filter-modal-filters .filter-container {
+    width: 100%;
+    flex-basis: 100%;
+  }
+
+  /* Ensure dropdowns don't overflow viewport */
+  .filter-modal-filters .filter-dropdown {
+    max-height: 300px; /* Prevent dropdown from being too tall */
+  }
+
+  /* Adjust date range layout for mobile modal */
+  .filter-modal-filters .date-range-inputs {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+}
