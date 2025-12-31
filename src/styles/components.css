@@ -388,20 +388,6 @@
   box-shadow: var(--shadow-lg);
 }
 
-.kpi-card {
-  background-color: var(--color-surface);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
-  text-align: center;
-  transition: transform var(--transition-normal);
-}
-
-.kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
 /* ===== CONTENT CARD PATTERNS ===== */
 /* Standardized patterns for book/movie/episode cards */
 
@@ -562,10 +548,6 @@
 
 @media (max-width: 768px) {
   .card-base {
-    padding: var(--spacing-md);
-  }
-
-  .kpi-card {
     padding: var(--spacing-md);
   }
 

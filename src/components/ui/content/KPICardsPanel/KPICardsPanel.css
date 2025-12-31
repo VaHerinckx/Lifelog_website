@@ -103,7 +103,20 @@
 }
 
 @media (max-width: 480px) {
+  .cards-panel {
+    margin: var(--spacing-sm) 0;  /* Reduce panel margins */
+  }
+
   .cards-panel-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);  /* Maintain 2 columns on small mobile */
+    gap: var(--spacing-xs);  /* 16px → 8px - tighter card grouping */
+  }
+
+  .cards-panel-title {
+    font-size: var(--font-size-lg);  /* Reduce title size */
+  }
+
+  .cards-panel-description {
+    font-size: var(--font-size-xs);  /* Reduce description size */
   }
 }

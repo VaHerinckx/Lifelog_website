@@ -17,6 +17,10 @@
   margin-bottom: var(--spacing-lg);
 }
 
+.layout {
+  padding-bottom: var(--spacing-md);
+}
+
 .page-error-title {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);

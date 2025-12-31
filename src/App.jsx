@@ -57,6 +57,8 @@ const App = () => {
           </Route>
         </Routes>
       </Router>
+      {/* Sticky bottom spacer for persistent viewport padding */}
+      <div className="bottom-spacer" />
     </DataProvider>
     </AuthProvider>
   );
