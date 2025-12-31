@@ -103,6 +103,12 @@ const PodcastPage = () => {
             <FilteringPanel
               data={filterPanelData}
               onFiltersChange={handleFiltersChange}
+              renderMode="bubble"
+              bubbleConfig={{
+                maxVisible: 10,
+                searchThreshold: 15,
+                showCounts: false
+              }}
             >
               <Filter
                 type="daterange"

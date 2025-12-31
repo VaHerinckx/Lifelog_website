@@ -5,7 +5,7 @@ import './Filter.css';
 
 /**
  * A versatile filter component that supports single-select, multi-select, hierarchical, date range, and number range modes
- * with PowerBI-style radio button (circle) and checkbox (square) styling
+ * with PowerBI-style radio button (circle) and checkbox (square) styling, or Airbnb-style bubble interface
  *
  * @param {Object} props
  * @param {string} props.type - 'singleselect', 'multiselect', 'hierarchical', 'daterange', or 'numberrange'
@@ -28,6 +28,10 @@ import './Filter.css';
  * @param {Map} [props.hierarchyWithCounts] - Hierarchy with counts for hierarchical type
  * @param {string} [props.selectionMode] - 'single' or 'multi' for hierarchical type
  * @param {boolean} [props.showCounts] - Whether to show counts in hierarchical type (default: true)
+ * @param {string} [props.renderMode] - 'dropdown' or 'bubble' (default: 'dropdown')
+ * @param {number} [props.maxVisibleBubbles] - Maximum bubbles to show before "Show more" (default: 10)
+ * @param {number} [props.searchThreshold] - Show search bar when options exceed this (default: 15)
+ * @param {boolean} [props.showBubbleCounts] - Show counts in bubble labels (default: false)
  */
 const Filter = ({
   type = 'singleselect',
@@ -49,7 +53,12 @@ const Filter = ({
   hierarchy = null,
   hierarchyWithCounts = null,
   selectionMode = 'multi',
-  showCounts = true
+  showCounts = true,
+  // Bubble mode props
+  renderMode = 'dropdown',
+  maxVisibleBubbles = 10,
+  searchThreshold = 15,
+  showBubbleCounts = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -64,6 +73,10 @@ const Filter = ({
   // Date range specific state
   const [dragging, setDragging] = useState(null);
   const [tempRange, setTempRange] = useState(null); // Store temporary range during drag
+
+  // Bubble mode specific state
+  const [isExpanded, setIsExpanded] = useState(false); // For "Show more/less" functionality
+  const [expandedParents, setExpandedParents] = useState(new Set()); // For hierarchical parent expansion in bubble mode
 
   // Normalize value to always be an array for easier processing (except daterange, numberrange, and hierarchical single-select)
   const selectedValues = type === 'daterange'
@@ -576,6 +589,393 @@ const Filter = ({
     return false;
   };
 
+  // ===================
+  // BUBBLE MODE RENDERING
+  // ===================
+
+  /**
+   * Render range filters (daterange, numberrange) inline in bubble mode
+   * Always visible, no dropdown wrapper
+   */
+  const renderRangeInline = () => {
+    if (type === 'daterange') {
+      return minDate && maxDate ? (
+        <div className="filter-range-inline">
+          <div className="daterange-inputs">
+            <div className="daterange-input-group">
+              <label htmlFor="start-date">Start:</label>
+              <input
+                type="date"
+                id="start-date"
+                value={selectedValues.startDate || formatDateForInput(minDate)}
+                onChange={(e) => handleDateInputChange(e, 'startDate')}
+                min={formatDateForInput(minDate)}
+                max={formatDateForInput(maxDate)}
+              />
+            </div>
+            <div className="daterange-input-group">
+              <label htmlFor="end-date">End:</label>
+              <input
+                type="date"
+                id="end-date"
+                value={selectedValues.endDate || formatDateForInput(maxDate)}
+                onChange={(e) => handleDateInputChange(e, 'endDate')}
+                min={formatDateForInput(minDate)}
+                max={formatDateForInput(maxDate)}
+              />
+            </div>
+          </div>
+
+          <div className="daterange-slider" ref={sliderRef} onClick={handleTrackClick}>
+            <div className="slider-track">
+              <div
+                className="slider-fill"
+                style={{
+                  left: `${dateToPosition(new Date(displayValues.startDate || minDate))}%`,
+                  width: `${dateToPosition(new Date(displayValues.endDate || maxDate)) - dateToPosition(new Date(displayValues.startDate || minDate))}%`
+                }}
+              />
+            </div>
+
+            <div
+              className="slider-handle slider-handle-start"
+              style={{ left: `${dateToPosition(new Date(displayValues.startDate || minDate))}%` }}
+              onMouseDown={(e) => handleSliderMouseDown(e, 'start')}
+              title={formatDate(new Date(displayValues.startDate || minDate))}
+            />
+
+            <div
+              className="slider-handle slider-handle-end"
+              style={{ left: `${dateToPosition(new Date(displayValues.endDate || maxDate))}%` }}
+              onMouseDown={(e) => handleSliderMouseDown(e, 'end')}
+              title={formatDate(new Date(displayValues.endDate || maxDate))}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="filter-no-results">Date range data not available</div>
+      );
+    } else if (type === 'numberrange') {
+      return minNumber !== null && maxNumber !== null ? (
+        <div className="filter-range-inline">
+          <div className="numberrange-inputs">
+            <div className="numberrange-input-group">
+              <label htmlFor="min-number">Min:</label>
+              <input
+                type="number"
+                id="min-number"
+                value={selectedValues.min !== null ? selectedValues.min : minNumber}
+                onChange={(e) => handleNumberInputChange(e, 'min')}
+                min={minNumber}
+                max={maxNumber}
+              />
+            </div>
+            <div className="numberrange-input-group">
+              <label htmlFor="max-number">Max:</label>
+              <input
+                type="number"
+                id="max-number"
+                value={selectedValues.max !== null ? selectedValues.max : maxNumber}
+                onChange={(e) => handleNumberInputChange(e, 'max')}
+                min={minNumber}
+                max={maxNumber}
+              />
+            </div>
+          </div>
+
+          <div className="numberrange-slider" ref={sliderRef} onClick={handleTrackClick}>
+            <div className="slider-track">
+              <div
+                className="slider-fill"
+                style={{
+                  left: `${numberToPosition(displayValues.min !== null ? displayValues.min : minNumber)}%`,
+                  width: `${numberToPosition(displayValues.max !== null ? displayValues.max : maxNumber) - numberToPosition(displayValues.min !== null ? displayValues.min : minNumber)}%`
+                }}
+              />
+            </div>
+
+            <div
+              className="slider-handle slider-handle-start"
+              style={{ left: `${numberToPosition(displayValues.min !== null ? displayValues.min : minNumber)}%` }}
+              onMouseDown={(e) => handleSliderMouseDown(e, 'start')}
+              title={`${formatNumber(displayValues.min !== null ? displayValues.min : minNumber)}${suffix}`}
+            />
+
+            <div
+              className="slider-handle slider-handle-end"
+              style={{ left: `${numberToPosition(displayValues.max !== null ? displayValues.max : maxNumber)}%` }}
+              onMouseDown={(e) => handleSliderMouseDown(e, 'end')}
+              title={`${formatNumber(displayValues.max !== null ? displayValues.max : maxNumber)}${suffix}`}
+            />
+          </div>
+        </div>
+      ) : (
+        <div className="filter-no-results">Number range data not available</div>
+      );
+    }
+    return null;
+  };
+
+  /**
+   * Get visible bubbles based on search term and expanded state
+   * Returns array of options to render
+   */
+  const getVisibleBubbles = () => {
+    // Filter by search term first
+    const searchFiltered = searchTerm
+      ? filteredOptions
+      : (options || []);
+
+    // When searching, show all matches (ignore maxVisibleBubbles)
+    if (searchTerm) {
+      return searchFiltered;
+    }
+
+    // Apply show more/less limit only when not searching
+    return isExpanded
+      ? searchFiltered
+      : searchFiltered.slice(0, maxVisibleBubbles);
+  };
+
+  /**
+   * Toggle show more/less state
+   */
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  /**
+   * Toggle hierarchical parent expansion in bubble mode
+   */
+  const toggleParentExpansion = (parent) => {
+    setExpandedParents(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(parent)) {
+        newSet.delete(parent);
+      } else {
+        newSet.add(parent);
+      }
+      return newSet;
+    });
+  };
+
+  /**
+   * Render bubble interface for singleselect and multiselect
+   */
+  const renderBubbles = () => {
+    const visibleBubbles = getVisibleBubbles();
+    const allOptions = searchTerm ? filteredOptions : (options || []);
+    const remainingCount = allOptions.length - maxVisibleBubbles;
+    // Always base threshold on original options count, not filtered count
+    const shouldShowSearchBar = (options || []).length > searchThreshold;
+
+    return (
+      <div className="filter-bubble-mode">
+        {/* Search bar (if threshold exceeded) */}
+        {shouldShowSearchBar && (
+          <div className="filter-bubble-search">
+            <Search size={16} />
+            <input
+              type="text"
+              placeholder={searchPlaceholder}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="filter-bubble-search-input"
+            />
+          </div>
+        )}
+
+        {/* Bubble container */}
+        <div className="filter-bubble-container">
+          {/* Select All bubble for multiselect */}
+          {type === 'multiselect' && (
+            <button
+              className={`filter-bubble select-all-bubble ${areAllFilteredSelected() ? 'selected' : ''}`}
+              onClick={handleSelectAll}
+            >
+              {areAllFilteredSelected() ? 'Deselect All' : 'Select All'}
+            </button>
+          )}
+
+          {/* Option bubbles */}
+          {visibleBubbles.length > 0 ? (
+            visibleBubbles.map((option, index) => {
+              const isSelected = selectedValues.includes(option);
+
+              return (
+                <button
+                  key={option}
+                  className={`filter-bubble ${isSelected ? 'selected' : ''} entering`}
+                  style={{ '--bubble-index': index }}
+                  onClick={() =>
+                    type === 'singleselect'
+                      ? handleSingleSelect(option)
+                      : handleMultiSelect(option)
+                  }
+                >
+                  {option}
+                  {type === 'multiselect' && isSelected && (
+                    <Check size={14} />
+                  )}
+                </button>
+              );
+            })
+          ) : (
+            <div className="filter-no-results">
+              {searchTerm ? 'No options match your search' : 'No options available'}
+            </div>
+          )}
+
+          {/* Show more/less bubble */}
+          {!searchTerm && remainingCount > 0 && (
+            <button
+              className="filter-bubble show-more"
+              onClick={toggleExpanded}
+            >
+              {isExpanded ? 'Show less' : `Show ${remainingCount} more`}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  /**
+   * Render hierarchical bubbles (two-level parent-child)
+   */
+  const renderHierarchicalBubbles = () => {
+    const hierarchy = filteredHierarchy || hierarchyWithCounts;
+    if (!hierarchy) return null;
+
+    const allOptions = Array.from(hierarchy.keys());
+    const shouldShowSearchBar = allOptions.length > searchThreshold;
+
+    return (
+      <div className="filter-bubble-mode">
+        {/* Search bar (if threshold exceeded) */}
+        {shouldShowSearchBar && (
+          <div className="filter-bubble-search">
+            <Search size={16} />
+            <input
+              type="text"
+              placeholder={searchPlaceholder}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="filter-bubble-search-input"
+            />
+          </div>
+        )}
+
+        {/* Bubble container */}
+        <div className="filter-bubble-container">
+          {/* Select All bubble for multiselect mode */}
+          {selectionMode === 'multi' && (
+            <button
+              className={`filter-bubble select-all-bubble ${areAllHierarchicalSelected() ? 'selected' : ''}`}
+              onClick={handleHierarchicalSelectAll}
+            >
+              {areAllHierarchicalSelected() ? 'Deselect All' : 'Select All'}
+            </button>
+          )}
+
+          {/* Hierarchical parent-child bubbles */}
+          {hierarchy.size > 0 ? (
+            Array.from(hierarchy.entries()).map(([parent, parentData]) => {
+              const isParentSelected = selectedValues.includes(parent);
+              const isParentExpanded = expandedParents.has(parent);
+              const hasChildren = parentData.children && parentData.children.size > 0;
+
+              return (
+                <div key={parent} className="hierarchical-bubble-group">
+                  {/* Parent bubble */}
+                  <button
+                    className={`filter-bubble hierarchical-parent ${isParentSelected ? 'selected' : ''}`}
+                    onClick={() => handleHierarchicalSelect(parent)}
+                  >
+                    {parent}
+                    {showBubbleCounts && <span className="bubble-count">({parentData.count})</span>}
+                    {hasChildren && (
+                      <span
+                        className={`bubble-chevron ${isParentExpanded ? 'expanded' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleParentExpansion(parent);
+                        }}
+                      >
+                        <ChevronDown size={14} />
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Child bubbles (shown when parent is expanded or searching) */}
+                  {hasChildren && (isParentExpanded || searchTerm) && (
+                    <div className="filter-bubble-children">
+                      {Array.from(parentData.children.entries()).map(([child, count]) => {
+                        const isChildSelected = selectedValues.includes(child);
+
+                        return (
+                          <button
+                            key={child}
+                            className={`filter-bubble ${isChildSelected ? 'selected' : ''}`}
+                            onClick={() => handleHierarchicalSelect(child)}
+                          >
+                            {child}
+                            {showBubbleCounts && <span className="bubble-count">({count})</span>}
+                            {selectionMode === 'multi' && isChildSelected && (
+                              <Check size={14} />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <div className="filter-no-results">
+              {searchTerm ? 'No options match your search' : 'No options available'}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  /**
+   * Main bubble interface renderer
+   * Decides which bubble type to render based on filter type
+   */
+  const renderBubbleInterface = () => {
+    // Range filters (daterange, numberrange) render inline slider
+    if (type === 'daterange' || type === 'numberrange') {
+      return renderRangeInline();
+    }
+
+    // Hierarchical filters use two-level bubble rendering
+    if (type === 'hierarchical') {
+      return renderHierarchicalBubbles();
+    }
+
+    // Singleselect and multiselect use standard bubble rendering
+    return renderBubbles();
+  };
+
+  // ===================
+  // MAIN RENDER
+  // ===================
+
+  // Bubble mode: All filter types supported
+  if (renderMode === 'bubble') {
+    return (
+      <div className="filter-container bubble-mode">
+        {label && <label className="filter-label">{label}</label>}
+        {renderBubbleInterface()}
+      </div>
+    );
+  }
+
+  // Standard dropdown mode rendering
   return (
     <div className="filter-container" ref={dropdownRef}>
       {label && <label className="filter-label">{label}</label>}

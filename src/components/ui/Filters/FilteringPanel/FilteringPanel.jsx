@@ -1,7 +1,7 @@
 // src/components/ui/Filters/FilteringPanel/FilteringPanel.jsx
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import _ from 'lodash';
-import { SlidersHorizontal, X } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import Filter from '../Filter/Filter';
 import { applyFilters, matchDelimitedValue, buildHierarchyWithCounts } from '../../../../utils/filterUtils';
 import './FilteringPanel.css';
@@ -94,13 +94,17 @@ const extractBridgeValue = (item, field) => {
  * @param {string} [props.fullDataset] - Full dataset for date boundary calculation (music data)
  * @param {Function} props.onFiltersChange - Callback when filters change
  * @param {boolean} [props.loading] - Loading state
+ * @param {string} [props.renderMode] - 'dropdown' or 'bubble' (default: 'dropdown')
+ * @param {Object} [props.bubbleConfig] - Configuration for bubble mode (maxVisible, searchThreshold)
  */
 const FilteringPanel = ({
   data = [],
   fullDataset = '',
   children,
   onFiltersChange,
-  loading = false
+  loading = false,
+  renderMode = 'dropdown',
+  bubbleConfig = {}
 }) => {
   // Ensure data is never null or undefined
   const safeData = data ?? [];
@@ -390,9 +394,13 @@ const FilteringPanel = ({
   }, [appliedFilters]);
 
   const closeModal = useCallback(() => {
-    setFilters(appliedFilters); // Discard preview changes
+    // On mobile: discard preview changes
+    // On desktop: keep changes (they're already applied immediately)
+    if (isMobile) {
+      setFilters(appliedFilters);
+    }
     setIsModalOpen(false);
-  }, [appliedFilters]);
+  }, [appliedFilters, isMobile]);
 
   const applyFiltersHandler = useCallback(() => {
     setAppliedFilters(filters); // Apply current filter state
@@ -419,6 +427,13 @@ const FilteringPanel = ({
   }, [filterConfigs]);
 
   const activeFilterCount = useMemo(() => getActiveFilterCount(appliedFilters), [appliedFilters, getActiveFilterCount]);
+
+  // Sync appliedFilters with filters on desktop (immediate mode)
+  useEffect(() => {
+    if (!isMobile) {
+      setAppliedFilters(filters);
+    }
+  }, [filters, isMobile]);
 
   // Window resize listener with auto-apply on mobile→desktop transition
   useEffect(() => {
@@ -776,7 +791,12 @@ const FilteringPanel = ({
         maxDate: boundaries?.maxDate,
         minNumber: numBoundaries?.minNumber,
         maxNumber: numBoundaries?.maxNumber,
-        suffix: child.props.suffix || ''
+        suffix: child.props.suffix || '',
+        // Pass bubble mode props
+        renderMode: renderMode,
+        maxVisibleBubbles: bubbleConfig.maxVisible || 10,
+        searchThreshold: bubbleConfig.searchThreshold || 15,
+        showBubbleCounts: bubbleConfig.showCounts || false
       };
 
       // Add hierarchical-specific props if this is a hierarchical filter
@@ -811,91 +831,60 @@ const FilteringPanel = ({
     );
   }
 
-  // Mobile: Render filter button and modal
-  if (isMobile) {
-    return (
-      <>
-        {/* Filter Toggle Button */}
-        <button
-          className={`filter-toggle-button ${activeFilterCount > 0 ? 'active' : ''}`}
-          onClick={openModal}
-          aria-label={`Open filters${activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}`}
-        >
-          <SlidersHorizontal size={20} />
-          <span>Filters</span>
-          {activeFilterCount > 0 && (
-            <span className="filter-badge">{activeFilterCount}</span>
-          )}
-        </button>
+  // Always render filter button and modal (modal-first approach for all screen sizes)
+  return (
+    <>
+      {/* Filter Toggle Button */}
+      <button
+        className={`filter-toggle-button ${activeFilterCount > 0 ? 'active' : ''}`}
+        onClick={openModal}
+        aria-label={`Open filters${activeFilterCount > 0 ? ` (${activeFilterCount} active)` : ''}`}
+      >
+        <SlidersHorizontal size={20} />
+        <span>Filters</span>
+        {activeFilterCount > 0 && (
+          <span className="filter-badge">{activeFilterCount}</span>
+        )}
+      </button>
 
-        {/* Full-Screen Modal */}
-        {isModalOpen && (
-          <div className="filter-modal-overlay" onClick={closeModal}>
-            <div
-              className="filter-modal"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="filter-modal-title"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Sticky Header */}
-              <div className="filter-modal-header">
-                <h2 id="filter-modal-title">Filters</h2>
-                <div className="filter-modal-header-actions">
-                  <button
-                    className="clear-all-button"
-                    onClick={clearAllFilters}
-                  >
-                    Clear All
-                  </button>
-                  <button
-                    className="close-button"
-                    onClick={closeModal}
-                    aria-label="Close filters"
-                  >
-                    <X size={24} />
-                  </button>
-                </div>
-              </div>
+      {/* Filter Modal (full-screen on mobile, centered on desktop) */}
+      {isModalOpen && (
+        <div className="filter-modal-overlay" onClick={closeModal}>
+          <div
+            className="filter-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="filter-modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Sticky Header */}
+            <div className="filter-modal-header">
+              <button
+                className="clear-all-button"
+                onClick={clearAllFilters}
+                aria-label="Clear all filters"
+              >
+                Clear All
+              </button>
+              <button
+                className="close-button"
+                onClick={closeModal}
+                aria-label="Close filters"
+              >
+                  X
+              </button>
+            </div>
 
-              {/* Scrollable Content */}
-              <div className="filter-modal-content">
-                <div className="filter-modal-filters">
-                  {renderFilterItems()}
-                </div>
-              </div>
-
-              {/* Sticky Footer */}
-              <div className="filter-modal-footer">
-                <button
-                  className="clear-all-filters-button"
-                  onClick={clearAllFilters}
-                >
-                  Clear All Filters
-                </button>
-                <button
-                  className="apply-filters-button"
-                  onClick={applyFiltersHandler}
-                >
-                  Apply Filters
-                </button>
+            {/* Scrollable Content */}
+            <div className="filter-modal-content">
+              <div className="filter-modal-filters">
+                {renderFilterItems()}
               </div>
             </div>
           </div>
-        )}
-      </>
-    );
-  }
-
-  // Desktop: Render inline grid
-  return (
-    <div className="filtering-panel">
-      <div className="filtering-panel-content">
-        <div className="filters-grid">
-          {renderFilterItems()}
         </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 };
 

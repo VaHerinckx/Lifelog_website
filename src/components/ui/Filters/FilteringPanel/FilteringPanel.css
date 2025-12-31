@@ -179,13 +179,13 @@
    MOBILE FILTER MODAL STYLES
    ======================================== */
 
-/* Filter Toggle Button */
+/* Filter Toggle Button - Always visible (modal-first approach) */
 .filter-toggle-button {
   position: fixed;
   top: calc(var(--nav-height, 60px) + var(--spacing-md));
   right: var(--spacing-md);
   z-index: 1020; /* Below navigation bar */
-  display: none; /* Hidden on desktop */
+  display: flex; /* Always visible on all screen sizes */
 
   background-color: var(--color-surface);
   border: 2px solid var(--color-primary);
@@ -193,7 +193,6 @@
   border-radius: var(--radius-full);
   padding: var(--spacing-sm) var(--spacing-md);
 
-  display: flex;
   align-items: center;
   gap: var(--spacing-xs);
 
@@ -292,41 +291,57 @@
 
 .filter-modal-header-actions {
   display: flex;
+  flex-direction: row;
   align-items: center;
   gap: var(--spacing-sm);
+  flex-shrink: 0;
 }
 
 .clear-all-button {
-  background: none;
-  border: 1px solid var(--color-border);
-  color: var(--color-text-secondary);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
+  background-color: rgba(255, 255, 255, 0.7);
+  border: none;
+  color: var(--color-text-primary);
+  padding: 6px 12px;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
   transition: all 0.2s ease;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-height: 32px;
 }
 
 .clear-all-button:hover {
-  background-color: var(--color-background-secondary);
+  background-color: rgba(255, 255, 255, 0.9);
   color: var(--color-text-primary);
 }
 
 .close-button {
-  background: none;
+  background-color: rgba(255, 255, 255, 0.7);
   border: none;
-  color: var(--color-text-secondary);
-  padding: var(--spacing-xs);
+  color: var(--color-text-primary);
+  padding: 6px 12px;
   cursor: pointer;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
   transition: all 0.2s ease;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
+  white-space: nowrap;
+  min-height: 32px;
 }
 
 .close-button:hover {
-  background-color: var(--color-background-secondary);
+  background-color: rgba(255, 255, 255, 0.9);
   color: var(--color-text-primary);
 }
 
@@ -349,76 +364,77 @@
   width: 100%;
 }
 
-/* Modal Footer (Sticky) */
-.filter-modal-footer {
-  position: sticky;
-  bottom: 0;
-  z-index: 10;
-
-  background-color: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  padding: var(--spacing-md) var(--spacing-lg);
-
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
+/* Separator lines between filters in modal (bubble mode) */
+.filter-modal-filters > .filter-item {
+  padding-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--color-text-primary);
 }
 
-.clear-all-filters-button {
-  width: 100%;
-  background-color: var(--color-error);
-  border: 1px solid var(--color-error);
-  color: white;
-  border-radius: var(--radius-md);
-  padding: var(--spacing-sm);
-
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-
-  transition: all 0.2s ease;
+/* Remove border from last filter */
+.filter-modal-filters > .filter-item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
 
-.clear-all-filters-button:hover {
-  background-color: var(--color-error-dark);
-  border-color: var(--color-error-dark);
-  color: white;
+/* Desktop: Centered modal with backdrop blur */
+@media (min-width: 993px) {
+  .filter-modal {
+    /* Override full-screen positioning */
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    bottom: auto;
+    right: auto;
+
+    /* Centered modal sizing */
+    width: 90%;
+    max-width: 800px;
+    max-height: 85vh;
+
+    /* Rounded corners for desktop */
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .filter-modal-overlay {
+    /* Enhanced backdrop blur on desktop */
+    backdrop-filter: blur(8px);
+  }
+
+  .filter-modal-header {
+    /* Rounded top corners */
+    border-top-left-radius: var(--radius-lg);
+    border-top-right-radius: var(--radius-lg);
+  }
+
+  .filter-modal-footer {
+    /* Rounded bottom corners */
+    border-bottom-left-radius: var(--radius-lg);
+    border-bottom-right-radius: var(--radius-lg);
+  }
 }
 
-.clear-all-filters-button:active {
-  transform: scale(0.98);
-}
-
-.apply-filters-button {
-  width: 100%;
-  background-color: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  padding: var(--spacing-md);
-
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-
-  transition: all 0.2s ease;
-}
-
-.apply-filters-button:hover {
-  background-color: var(--color-primary-tint-10);
-}
-
-.apply-filters-button:active {
-  transform: scale(0.98);
-}
-
-/* Show filter button and hide desktop layout on mobile */
+/* Mobile: Add margins around modal */
 @media (max-width: 992px) {
-  .filter-toggle-button {
-    display: flex;
+  .filter-modal {
+    top: var(--spacing-md);
+    left: var(--spacing-md);
+    right: var(--spacing-md);
+    bottom: var(--spacing-md);
+    border-radius: var(--radius-md);
   }
 
-  .filtering-panel {
-    display: none; /* Hide inline grid on mobile */
+  /* Adjust animation to account for margins */
+  @keyframes slideUp {
+    from { transform: translateY(calc(100% + var(--spacing-md))); }
+    to { transform: translateY(0); }
   }
+}
+
+/* Hide old desktop inline grid (no longer used) */
+.filtering-panel {
+  display: none;
 }

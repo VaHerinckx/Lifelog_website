@@ -564,3 +564,278 @@
     gap: var(--spacing-sm);
   }
 }
+
+/* ===================================================
+   BUBBLE MODE STYLING
+   ================================================ */
+
+/* Bubble mode container */
+.filter-container.bubble-mode {
+  /* Separator borders handled by .filter-item wrapper in FilteringPanel.css */
+}
+
+/* Filter labels in bubble mode - bold and bigger */
+.bubble-mode .filter-label {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text-primary);
+}
+
+/* Bubble mode container */
+.filter-bubble-mode {
+  width: 100%;
+}
+
+/* Search bar for bubble mode */
+.filter-bubble-search {
+  position: relative;
+  margin-bottom: var(--spacing-sm);
+  width: 100%;
+}
+
+.filter-bubble-search svg {
+  position: absolute;
+  left: var(--spacing-sm);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-primary);
+  pointer-events: none;
+}
+
+.filter-bubble-search-input {
+  width: 100%;
+  padding: var(--spacing-xs) var(--spacing-xs) var(--spacing-xs) var(--spacing-xl);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  transition: border-color var(--transition-fast);
+}
+
+.filter-bubble-search-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.filter-bubble-search-input::placeholder {
+  color: var(--color-text-primary);
+}
+
+/* Bubble container */
+.filter-bubble-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs);
+  align-items: flex-start;
+  margin-top: var(--spacing-sm);
+}
+
+/* Individual bubble */
+.filter-bubble {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+  border: none;
+  white-space: nowrap;
+
+  /* Unselected state - lighter background for contrast */
+  background-color: #f0f0f0;
+  border: 1px solid #d0d0d0;
+  color: var(--color-text-primary);
+}
+
+.filter-bubble:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-tint-5);
+  transform: translateY(-1px);
+}
+
+.filter-bubble:active {
+  transform: scale(0.95);
+}
+
+.filter-bubble.selected {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+.filter-bubble.selected:hover {
+  background-color: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+/* Select All bubble variant */
+.filter-bubble.select-all-bubble {
+  background-color: #f0f0f0;
+  border: 1px solid #d0d0d0;
+  font-weight: var(--font-weight-bold) !important;
+}
+
+.filter-bubble.select-all-bubble.selected {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  font-weight: var(--font-weight-bold) !important;
+}
+
+/* Show more/less bubble variant */
+.filter-bubble.show-more {
+  border: 1px dashed var(--color-border);
+  background-color: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  font-style: italic;
+  font-weight: var(--font-weight-normal);
+}
+
+.filter-bubble.show-more:hover {
+  background-color: var(--color-primary-tint-10);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  border-style: solid;
+  font-style: normal;
+}
+
+/* Hierarchical parent bubble */
+.filter-bubble.hierarchical-parent {
+  font-weight: var(--font-weight-semibold);
+  padding: 8px 14px;
+  position: relative;
+}
+
+/* Bubble count badge */
+.bubble-count {
+  opacity: 0.7;
+  font-size: var(--font-size-xs);
+  margin-left: 2px;
+  font-weight: var(--font-weight-normal);
+}
+
+/* Chevron icon in hierarchical bubble */
+.bubble-chevron {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 4px;
+  transition: transform var(--transition-fast);
+}
+
+.bubble-chevron.expanded {
+  transform: rotate(180deg);
+}
+
+/* Hierarchical bubble group container */
+.hierarchical-bubble-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  width: 100%;
+}
+
+/* Hierarchical children container */
+.filter-bubble-children {
+  margin-left: var(--spacing-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
+  padding-left: var(--spacing-sm);
+  border-left: 2px solid var(--color-border);
+}
+
+/* Animation for expanding bubbles */
+@keyframes bubbleSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filter-bubble.entering {
+  animation: bubbleSlideIn 0.2s ease-out;
+  animation-delay: calc(min(var(--bubble-index), 20) * 0.02s);
+}
+
+/* Performance optimization */
+.filter-bubble-container {
+  contain: layout style paint;
+}
+
+/* Mobile: Touch-friendly sizing */
+@media (max-width: 768px) {
+  .filter-bubble {
+    padding: 8px 14px;
+    font-size: var(--font-size-base);
+    min-height: 44px;
+    gap: var(--spacing-sm);
+  }
+
+  .filter-bubble.hierarchical-parent {
+    padding: 10px 16px;
+  }
+
+  .filter-bubble-container {
+    gap: var(--spacing-sm);
+  }
+
+  .filter-bubble-search-input {
+    font-size: var(--font-size-base);
+    padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) 40px;
+  }
+
+  .filter-bubble-children {
+    margin-left: var(--spacing-sm);
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 769px) and (max-width: 992px) {
+  .filter-bubble {
+    padding: 7px 13px;
+  }
+}
+
+/* ===================================================
+   RANGE FILTERS INLINE (BUBBLE MODE)
+   ================================================ */
+
+/* Inline range filter container */
+.filter-range-inline {
+  width: 100%;
+  padding: var(--spacing-sm) 0;
+}
+
+/* Ensure date/number range inputs and sliders work inline */
+.filter-range-inline .daterange-inputs,
+.filter-range-inline .numberrange-inputs {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.filter-range-inline .daterange-slider,
+.filter-range-inline .numberrange-slider {
+  width: 100%;
+}
+
+/* Mobile: Stack inputs vertically */
+@media (max-width: 768px) {
+  .filter-range-inline .daterange-inputs,
+  .filter-range-inline .numberrange-inputs {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+}
