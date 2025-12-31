@@ -250,57 +250,89 @@
   font-style: italic;
 }
 
-/* DATE RANGE STYLES */
-.filter-daterange-content {
+/* ============================================================
+   GENERIC RANGE FILTER STYLES (Date & Number)
+   Shared by both daterange and numberrange filter types
+   ============================================================ */
+
+/* Dropdown mode container */
+.filter-range-content {
   padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
 }
 
-.daterange-inputs {
+/* Input container (Start/End or Min/Max) */
+.range-inputs {
   display: flex;
   justify-content: space-between;
   gap: var(--spacing-sm);
 }
 
-.daterange-input-group {
+/* Individual input wrapper (label + input) */
+.range-input-group {
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
   flex: 1;
 }
 
-.daterange-input-group label {
+.range-input-group label {
   font-weight: var(--font-weight-medium);
   font-size: var(--font-size-sm);
-  min-width: 40px;
+  min-width: 35px; /* Accommodates both "Start:"/"End:" and "Min:"/"Max:" */
   color: var(--text-element);
 }
 
-.daterange-input-group input {
+/* Input fields - works for both date and number types */
+.range-input-group input {
   flex: 1;
   padding: calc(var(--spacing-xs) * 0.75) var(--spacing-xs);
-  border: var(--border-width-thin) solid var(--border-color-primary-light);
-  border-radius: var(--radius-sm);
+  border: var(--border-width-thin) solid var(--color-border); /* Matches bubbles */
+  border-radius: var(--radius-md); /* 8px - matches bubbles (was --radius-sm/4px) */
   background-color: var(--color-white);
   font-size: var(--font-size-sm);
   color: var(--text-element);
   min-height: 32px;
+  transition: border-color 0.2s ease;
 }
 
-.daterange-input-group input:focus {
-  border-color: var(--color-primary);
+.range-input-group input:hover {
+  border-color: var(--border-color-primary);
+}
+
+.range-input-group input:focus {
   outline: none;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 2px var(--color-primary-tint-20);
 }
 
-.daterange-slider {
+/* Number input spinner styling */
+.range-input-group input[type="number"]::-webkit-inner-spin-button,
+.range-input-group input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+/* Slider container */
+.range-slider {
   position: relative;
   height: 38px;
   width: 100%;
   cursor: pointer;
-  margin: var(--spacing-xs) 0;
+  margin-top: var(--spacing-xs);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .range-inputs {
+    flex-direction: column;
+    gap: var(--spacing-xs);
+  }
+
+  .range-input-group label {
+    min-width: 30px;
+  }
 }
 
 .slider-track {
@@ -799,7 +831,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  padding: var(--spacing-xs);
+  /*padding: var(--spacing-xs);*/
   border-radius: var(--radius-full);
   color: var(--color-primary);
   transition: all var(--transition-fast);
@@ -893,11 +925,11 @@
   .bubble-chevron-external {
     width: 36px;
     height: 36px;
-    padding: var(--spacing-sm);
+    padding: var(--spacing-xxs);
   }
 
   .hierarchical-parent-row {
-    gap: var(--spacing-sm);
+    gap: var(--spacing-xs);
   }
 }
 
@@ -919,15 +951,13 @@
 }
 
 /* Ensure date/number range inputs and sliders work inline */
-.filter-range-inline .daterange-inputs,
-.filter-range-inline .numberrange-inputs {
+.filter-range-inline .range-inputs {
   display: flex;
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-md);
 }
 
-.filter-range-inline .daterange-slider,
-.filter-range-inline .numberrange-slider {
+.filter-range-inline .range-slider {
   width: 100%;
 }
 
@@ -937,8 +967,7 @@
     padding-top: var(--spacing-sm);
   }
 
-  .filter-range-inline .daterange-inputs,
-  .filter-range-inline .numberrange-inputs {
+  .filter-range-inline .range-inputs {
     flex-direction: column;
     gap: var(--spacing-sm);
   }

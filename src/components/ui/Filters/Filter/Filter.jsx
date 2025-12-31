@@ -608,8 +608,8 @@ const Filter = ({
     if (type === 'daterange') {
       return minDate && maxDate ? (
         <div className="filter-range-inline">
-          <div className="daterange-inputs">
-            <div className="daterange-input-group">
+          <div className="range-inputs">
+            <div className="range-input-group">
               <label htmlFor="start-date">Start:</label>
               <input
                 type="date"
@@ -620,7 +620,7 @@ const Filter = ({
                 max={formatDateForInput(maxDate)}
               />
             </div>
-            <div className="daterange-input-group">
+            <div className="range-input-group">
               <label htmlFor="end-date">End:</label>
               <input
                 type="date"
@@ -633,7 +633,7 @@ const Filter = ({
             </div>
           </div>
 
-          <div className="daterange-slider" ref={sliderRef} onClick={handleTrackClick}>
+          <div className="range-slider" ref={sliderRef} onClick={handleTrackClick}>
             <div className="slider-track">
               <div
                 className="slider-fill"
@@ -665,8 +665,8 @@ const Filter = ({
     } else if (type === 'numberrange') {
       return minNumber !== null && maxNumber !== null ? (
         <div className="filter-range-inline">
-          <div className="numberrange-inputs">
-            <div className="numberrange-input-group">
+          <div className="range-inputs">
+            <div className="range-input-group">
               <label htmlFor="min-number">Min:</label>
               <input
                 type="number"
@@ -677,7 +677,7 @@ const Filter = ({
                 max={maxNumber}
               />
             </div>
-            <div className="numberrange-input-group">
+            <div className="range-input-group">
               <label htmlFor="max-number">Max:</label>
               <input
                 type="number"
@@ -690,7 +690,7 @@ const Filter = ({
             </div>
           </div>
 
-          <div className="numberrange-slider" ref={sliderRef} onClick={handleTrackClick}>
+          <div className="range-slider" ref={sliderRef} onClick={handleTrackClick}>
             <div className="slider-track">
               <div
                 className="slider-fill"
@@ -1055,9 +1055,9 @@ const Filter = ({
           {type === 'daterange' && (
             <>
               {minDate && maxDate ? (
-                <div className="filter-daterange-content">
-                  <div className="daterange-inputs">
-                    <div className="daterange-input-group">
+                <div className="filter-range-content">
+                  <div className="range-inputs">
+                    <div className="range-input-group">
                       <label htmlFor="start-date">Start:</label>
                       <input
                         type="date"
@@ -1068,7 +1068,7 @@ const Filter = ({
                         max={formatDateForInput(maxDate)}
                       />
                     </div>
-                    <div className="daterange-input-group">
+                    <div className="range-input-group">
                       <label htmlFor="end-date">End:</label>
                       <input
                         type="date"
@@ -1081,7 +1081,7 @@ const Filter = ({
                     </div>
                   </div>
 
-                  <div className="daterange-slider" ref={sliderRef} onClick={handleTrackClick}>
+                  <div className="range-slider" ref={sliderRef} onClick={handleTrackClick}>
                     <div className="slider-track">
                       {/* Slider fill */}
                       <div
@@ -1120,9 +1120,9 @@ const Filter = ({
           {type === 'numberrange' && (
             <>
               {minNumber !== null && maxNumber !== null ? (
-                <div className="filter-daterange-content">
-                  <div className="daterange-inputs">
-                    <div className="daterange-input-group">
+                <div className="filter-range-content">
+                  <div className="range-inputs">
+                    <div className="range-input-group">
                       <label htmlFor="min-number">Min:</label>
                       <input
                         type="number"
@@ -1133,7 +1133,7 @@ const Filter = ({
                         max={maxNumber}
                       />
                     </div>
-                    <div className="daterange-input-group">
+                    <div className="range-input-group">
                       <label htmlFor="max-number">Max:</label>
                       <input
                         type="number"
@@ -1146,7 +1146,7 @@ const Filter = ({
                     </div>
                   </div>
 
-                  <div className="daterange-slider" ref={sliderRef} onClick={handleTrackClick}>
+                  <div className="range-slider" ref={sliderRef} onClick={handleTrackClick}>
                     <div className="slider-track">
                       {/* Slider fill */}
                       <div

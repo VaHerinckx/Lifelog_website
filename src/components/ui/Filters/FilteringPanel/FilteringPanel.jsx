@@ -860,18 +860,18 @@ const FilteringPanel = ({
             {/* Sticky Header */}
             <div className="filter-modal-header">
               <button
-                className="clear-all-button"
+                className="filter-modal-header-button"
                 onClick={clearAllFilters}
                 aria-label="Clear all filters"
               >
                 Clear All
               </button>
               <button
-                className="close-button"
+                className="filter-modal-header-button"
                 onClick={closeModal}
                 aria-label="Close filters"
               >
-                  X
+                X
               </button>
             </div>
 

@@ -4,6 +4,7 @@
 :root {
   /* ===== SPACING SCALE ===== */
   /* Base 8px scale - multiply by 8 to get pixel value */
+  --spacing-xxs: 0.05rem;    /* 0.8px  - Tight spacing, small gaps */
   --spacing-xs: 0.5rem;    /* 8px  - Tight spacing, small gaps */
   --spacing-sm: 0.75rem;   /* 12px - Small spacing, compact layouts */
   --spacing-md: 1rem;      /* 16px - Standard spacing, default gaps */

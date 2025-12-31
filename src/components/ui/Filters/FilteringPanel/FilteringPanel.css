@@ -257,13 +257,6 @@
 
   display: flex;
   flex-direction: column;
-
-  animation: slideUp 0.3s ease;
-}
-
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
 }
 
 /* Modal Header (Sticky) */
@@ -297,48 +290,26 @@
   flex-shrink: 0;
 }
 
-.clear-all-button {
-  background-color: rgba(255, 255, 255, 0.7);
+.filter-modal-header-button {
+  background-color: var(--overlay-light);
   border: none;
   color: var(--color-text-primary);
   padding: var(--spacing-xs) var(--spacing-sm);
   cursor: pointer;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-full);
-  transition: all 0.2s ease;
+  transition: all var(--transition-normal);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  gap: var(--spacing-xs);
   flex-shrink: 0;
-  white-space: nowrap;
   min-height: var(--icon-size-lg);
-}
-
-.clear-all-button:hover {
-  background-color: rgba(255, 255, 255, 0.9);
-  color: var(--color-text-primary);
-}
-
-.close-button {
-  background-color: rgba(255, 255, 255, 0.7);
-  border: none;
-  color: var(--color-text-primary);
-  padding: var(--spacing-xs);
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-full);
-  transition: all 0.2s ease;
-  flex-shrink: 0;
   min-width: var(--icon-size-lg);
-  min-height: var(--icon-size-lg);
 }
 
-.close-button:hover {
-  background-color: rgba(255, 255, 255, 0.9);
+.filter-modal-header-button:hover {
+  background-color: var(--overlay-light-hover);
   color: var(--color-text-primary);
 }
 
@@ -417,24 +388,21 @@
 /* Mobile: Add margins around modal and ensure header visibility */
 @media (max-width: 992px) {
   .filter-modal {
-    top: var(--spacing-md);
+    top: var(--nav-height-mobile);
     left: var(--spacing-md);
     right: var(--spacing-md);
     bottom: var(--spacing-md);
     border-radius: var(--radius-md);
+
+    /* Adjust height calculation to account for nav bar offset */
+    height: calc(100vh - var(--nav-height-mobile) - var(--spacing-md));
   }
 
   /* Ensure header content is vertically centered and fully visible */
   .filter-modal-header {
-    padding: var(--spacing-lg);
+    padding: 0 var(--spacing-lg);
     min-height: calc(var(--icon-size-lg) * 2.25);
     align-items: center;
-  }
-
-  /* Adjust animation to account for margins */
-  @keyframes slideUp {
-    from { transform: translateY(calc(100% + var(--spacing-md))); }
-    to { transform: translateY(0); }
   }
 }
 
