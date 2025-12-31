@@ -341,7 +341,6 @@ const FilteringPanel = ({
 
   // Mobile modal state management
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [appliedFilters, setAppliedFilters] = useState(filters);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 992);
 
   // Debounce filter updates for options calculation (150ms delay)
@@ -389,23 +388,12 @@ const FilteringPanel = ({
 
   // Modal handler functions
   const openModal = useCallback(() => {
-    setFilters(appliedFilters); // Reset to last applied state
     setIsModalOpen(true);
-  }, [appliedFilters]);
+  }, []);
 
   const closeModal = useCallback(() => {
-    // On mobile: discard preview changes
-    // On desktop: keep changes (they're already applied immediately)
-    if (isMobile) {
-      setFilters(appliedFilters);
-    }
     setIsModalOpen(false);
-  }, [appliedFilters, isMobile]);
-
-  const applyFiltersHandler = useCallback(() => {
-    setAppliedFilters(filters); // Apply current filter state
-    setIsModalOpen(false);
-  }, [filters]);
+  }, []);
 
   const clearAllFilters = useCallback(() => {
     const resetState = {};
@@ -423,34 +411,25 @@ const FilteringPanel = ({
       }
     });
     setFilters(resetState);
-    setAppliedFilters(resetState);
   }, [filterConfigs]);
 
-  const activeFilterCount = useMemo(() => getActiveFilterCount(appliedFilters), [appliedFilters, getActiveFilterCount]);
+  const activeFilterCount = useMemo(() => getActiveFilterCount(filters), [filters, getActiveFilterCount]);
 
-  // Sync appliedFilters with filters on desktop (immediate mode)
-  useEffect(() => {
-    if (!isMobile) {
-      setAppliedFilters(filters);
-    }
-  }, [filters, isMobile]);
-
-  // Window resize listener with auto-apply on mobile→desktop transition
+  // Window resize listener
   useEffect(() => {
     const handleResize = () => {
       const newIsMobile = window.innerWidth <= 992;
       setIsMobile(newIsMobile);
 
-      // CRITICAL: Auto-apply filters when transitioning mobile → desktop
+      // Close modal when transitioning mobile → desktop
       if (!newIsMobile && isModalOpen) {
-        setAppliedFilters(filters); // Apply preview filters
-        setIsModalOpen(false);      // Close modal
+        setIsModalOpen(false);
       }
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [isModalOpen, filters]);
+  }, [isModalOpen]);
 
   // Body scroll lock when modal is open
   useEffect(() => {
@@ -644,9 +623,8 @@ const FilteringPanel = ({
     const currentDataSources = dataSourcesRef.current;
     const currentBridgeRelationships = bridgeRelationshipsRef.current;
 
-    // MOBILE: Only trigger when appliedFilters changes
-    // DESKTOP: Trigger when filters changes (immediate)
-    const filtersToApply = isMobile ? appliedFilters : filters;
+    // Always use current filters state (same behavior on mobile and desktop)
+    const filtersToApply = filters;
 
     // If single-source mode (backward compatibility), just return filters
     if (!isMultiSource) {
@@ -748,7 +726,7 @@ const FilteringPanel = ({
     });
 
     onFiltersChangeRef.current(cascadedSources, filtersToApply);
-  }, [filters, appliedFilters, isMobile, isMultiSource]); // Using refs for filterConfigs, dataSources, bridgeRelationships
+  }, [filters, isMultiSource]); // Using refs for filterConfigs, dataSources, bridgeRelationships
 
   // Helper function to render filter items (used in both desktop and mobile)
   const renderFilterItems = () => {
