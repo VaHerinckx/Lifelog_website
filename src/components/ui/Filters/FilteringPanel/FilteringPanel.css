@@ -217,10 +217,10 @@
   background-color: currentColor;
   color: var(--color-surface);
   border-radius: var(--radius-full);
-  padding: 2px 6px;
-  font-size: 12px;
+  padding: calc(var(--spacing-xs) * 0.25) calc(var(--spacing-xs) * 0.75);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
-  min-width: 20px;
+  min-width: var(--icon-size-sm);
   text-align: center;
 }
 
@@ -301,7 +301,7 @@
   background-color: rgba(255, 255, 255, 0.7);
   border: none;
   color: var(--color-text-primary);
-  padding: 6px 12px;
+  padding: var(--spacing-xs) var(--spacing-sm);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -313,7 +313,7 @@
   gap: var(--spacing-xs);
   flex-shrink: 0;
   white-space: nowrap;
-  min-height: 32px;
+  min-height: var(--icon-size-lg);
 }
 
 .clear-all-button:hover {
@@ -325,19 +325,16 @@
   background-color: rgba(255, 255, 255, 0.7);
   border: none;
   color: var(--color-text-primary);
-  padding: 6px 12px;
+  padding: var(--spacing-xs);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-full);
   transition: all 0.2s ease;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  gap: var(--spacing-xs);
   flex-shrink: 0;
-  white-space: nowrap;
-  min-height: 32px;
+  min-width: var(--icon-size-lg);
+  min-height: var(--icon-size-lg);
 }
 
 .close-button:hover {
@@ -417,7 +414,7 @@
   }
 }
 
-/* Mobile: Add margins around modal */
+/* Mobile: Add margins around modal and ensure header visibility */
 @media (max-width: 992px) {
   .filter-modal {
     top: var(--spacing-md);
@@ -425,6 +422,13 @@
     right: var(--spacing-md);
     bottom: var(--spacing-md);
     border-radius: var(--radius-md);
+  }
+
+  /* Ensure header content is vertically centered and fully visible */
+  .filter-modal-header {
+    padding: var(--spacing-lg);
+    min-height: calc(var(--icon-size-lg) * 2.25);
+    align-items: center;
   }
 
   /* Adjust animation to account for margins */

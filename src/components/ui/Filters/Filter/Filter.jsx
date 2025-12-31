@@ -32,6 +32,7 @@ import './Filter.css';
  * @param {number} [props.maxVisibleBubbles] - Maximum bubbles to show before "Show more" (default: 10)
  * @param {number} [props.searchThreshold] - Show search bar when options exceed this (default: 15)
  * @param {boolean} [props.showBubbleCounts] - Show counts in bubble labels (default: false)
+ * @param {number} [props.bubbleExpandIncrement] - Number of items to show/hide when clicking show more/less (default: 10)
  */
 const Filter = ({
   type = 'singleselect',
@@ -58,7 +59,8 @@ const Filter = ({
   renderMode = 'dropdown',
   maxVisibleBubbles = 10,
   searchThreshold = 15,
-  showBubbleCounts = false
+  showBubbleCounts = false,
+  bubbleExpandIncrement = 10
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -75,7 +77,7 @@ const Filter = ({
   const [tempRange, setTempRange] = useState(null); // Store temporary range during drag
 
   // Bubble mode specific state
-  const [isExpanded, setIsExpanded] = useState(false); // For "Show more/less" functionality
+  const [additionalItemsShown, setAdditionalItemsShown] = useState(0); // Tracks how many extra items beyond maxVisibleBubbles are shown
   const [expandedParents, setExpandedParents] = useState(new Set()); // For hierarchical parent expansion in bubble mode
 
   // Normalize value to always be an array for easier processing (except daterange, numberrange, and hierarchical single-select)
@@ -215,6 +217,11 @@ const Filter = ({
       searchInputRef.current.focus();
     }
   }, [isOpen, searchable, type]);
+
+  // Reset additional items shown when search term changes
+  useEffect(() => {
+    setAdditionalItemsShown(0);
+  }, [searchTerm]);
 
   // Handle mouse/touch events for date range and number range sliders
   useEffect(() => {
@@ -717,7 +724,7 @@ const Filter = ({
   };
 
   /**
-   * Get visible bubbles based on search term and expanded state
+   * Get visible bubbles based on search term and additional items shown
    * Returns array of options to render
    */
   const getVisibleBubbles = () => {
@@ -732,16 +739,30 @@ const Filter = ({
     }
 
     // Apply show more/less limit only when not searching
-    return isExpanded
-      ? searchFiltered
-      : searchFiltered.slice(0, maxVisibleBubbles);
+    const visibleCount = maxVisibleBubbles + additionalItemsShown;
+    return searchFiltered.slice(0, visibleCount);
   };
 
   /**
-   * Toggle show more/less state
+   * Show more items (increment by bubbleExpandIncrement)
    */
-  const toggleExpanded = () => {
-    setIsExpanded(!isExpanded);
+  const handleShowMore = () => {
+    setAdditionalItemsShown(prev => {
+      const newTotal = prev + bubbleExpandIncrement;
+      const totalOptions = (searchTerm ? filteredOptions : options).length;
+      const maxAdditional = totalOptions - maxVisibleBubbles;
+      return Math.min(newTotal, maxAdditional);
+    });
+  };
+
+  /**
+   * Show less items (decrement by bubbleExpandIncrement)
+   */
+  const handleShowLess = () => {
+    setAdditionalItemsShown(prev => {
+      const newTotal = prev - bubbleExpandIncrement;
+      return Math.max(newTotal, 0);
+    });
   };
 
   /**
@@ -765,7 +786,8 @@ const Filter = ({
   const renderBubbles = () => {
     const visibleBubbles = getVisibleBubbles();
     const allOptions = searchTerm ? filteredOptions : (options || []);
-    const remainingCount = allOptions.length - maxVisibleBubbles;
+    const currentVisibleCount = maxVisibleBubbles + additionalItemsShown;
+    const remainingCount = allOptions.length - currentVisibleCount;
     // Always base threshold on original options count, not filtered count
     const shouldShowSearchBar = (options || []).length > searchThreshold;
 
@@ -826,14 +848,29 @@ const Filter = ({
             </div>
           )}
 
-          {/* Show more/less bubble */}
-          {!searchTerm && remainingCount > 0 && (
-            <button
-              className="filter-bubble show-more"
-              onClick={toggleExpanded}
-            >
-              {isExpanded ? 'Show less' : `Show ${remainingCount} more`}
-            </button>
+          {/* Show more/less bubbles */}
+          {!searchTerm && (
+            <>
+              {/* Show More button - appears when there are items beyond current visible count */}
+              {allOptions.length > (maxVisibleBubbles + additionalItemsShown) && (
+                <button
+                  className="filter-bubble show-more"
+                  onClick={handleShowMore}
+                >
+                  Show {Math.min(bubbleExpandIncrement, allOptions.length - maxVisibleBubbles - additionalItemsShown)} more
+                </button>
+              )}
+
+              {/* Show Less button - appears when showing more than initial maxVisibleBubbles */}
+              {additionalItemsShown > 0 && (
+                <button
+                  className="filter-bubble show-less"
+                  onClick={handleShowLess}
+                >
+                  Show {Math.min(bubbleExpandIncrement, additionalItemsShown)} less
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -887,25 +924,30 @@ const Filter = ({
 
               return (
                 <div key={parent} className="hierarchical-bubble-group">
-                  {/* Parent bubble */}
-                  <button
-                    className={`filter-bubble hierarchical-parent ${isParentSelected ? 'selected' : ''}`}
-                    onClick={() => handleHierarchicalSelect(parent)}
-                  >
-                    {parent}
-                    {showBubbleCounts && <span className="bubble-count">({parentData.count})</span>}
+                  <div className="hierarchical-parent-row">
+                    {/* Parent bubble */}
+                    <button
+                      className={`filter-bubble hierarchical-parent ${isParentSelected ? 'selected' : ''}`}
+                      onClick={() => handleHierarchicalSelect(parent)}
+                    >
+                      {parent}
+                      {showBubbleCounts && <span className="bubble-count">({parentData.count})</span>}
+                      {selectionMode === 'multi' && isParentSelected && (
+                        <Check size={14} />
+                      )}
+                    </button>
+
+                    {/* Chevron outside the bubble */}
                     {hasChildren && (
-                      <span
-                        className={`bubble-chevron ${isParentExpanded ? 'expanded' : ''}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleParentExpansion(parent);
-                        }}
+                      <button
+                        className={`bubble-chevron-external ${isParentExpanded ? 'expanded' : ''}`}
+                        onClick={() => toggleParentExpansion(parent)}
+                        aria-label={isParentExpanded ? 'Collapse' : 'Expand'}
                       >
-                        <ChevronDown size={14} />
-                      </span>
+                        <ChevronDown size={16} />
+                      </button>
                     )}
-                  </button>
+                  </div>
 
                   {/* Child bubbles (shown when parent is expanded or searching) */}
                   {hasChildren && (isParentExpanded || searchTerm) && (

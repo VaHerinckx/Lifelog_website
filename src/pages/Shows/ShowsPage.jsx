@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Grid, List, Calendar, Star, User, Tv } from 'lucide-react';
+import { Grid, List, Calendar, Star, User, Tv, Clock } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -114,6 +114,14 @@ const ShowsPage = () => {
                 label="Watch Date"
                 field="watched_at"
                 icon={<Calendar />}
+                dataSources={['shows']}
+              />
+              <Filter
+                type="multiselect"
+                label="Watch Year"
+                field="watch_year"
+                icon={<Clock />}
+                placeholder="Select years"
                 dataSources={['shows']}
               />
               <Filter

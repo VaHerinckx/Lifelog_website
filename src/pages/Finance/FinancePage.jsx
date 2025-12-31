@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { DollarSign, List, Grid, Calendar, Tag, Building, TrendingUp, FileText, ShoppingBag, Asterisk } from 'lucide-react';
+import { DollarSign, List, Grid, Calendar, Tag, Building, TrendingUp, FileText, ShoppingBag, Asterisk, Clock } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -135,6 +135,14 @@ const FinancePage = () => {
                 label="Transaction Date"
                 field="date"
                 icon={<Calendar />}
+                dataSources={['finance']}
+              />
+              <Filter
+                type="multiselect"
+                label="Transaction Year"
+                field="transaction_year"
+                icon={<Clock />}
+                placeholder="Select years"
                 dataSources={['finance']}
               />
 

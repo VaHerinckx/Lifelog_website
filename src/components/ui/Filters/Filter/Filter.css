@@ -122,7 +122,7 @@
 }
 
 .filter-search-input {
-  width: 100%;
+  /*width: 100%;*/
   padding: var(--spacing-xs) var(--spacing-xs) var(--spacing-xs) var(--spacing-xl);
   border: var(--border-width-thin) solid var(--border-color-primary-light);
   border-radius: var(--radius-sm);
@@ -177,13 +177,13 @@
 
 /* Radio button styling (circles) */
 .radio-control {
-  width: 18px;
-  height: 18px;
+  width: var(--icon-size-xs);
+  height: var(--icon-size-xs);
 }
 
 .radio-button {
-  width: 18px;
-  height: 18px;
+  width: var(--icon-size-xs);
+  height: var(--icon-size-xs);
   border: var(--border-width-medium) solid var(--border-color-primary-light);
   border-radius: var(--radius-full);
   background-color: var(--color-white);
@@ -200,24 +200,24 @@
 }
 
 .radio-dot {
-  width: 8px;
-  height: 8px;
+  width: calc(var(--icon-size-xs) * 0.5);
+  height: calc(var(--icon-size-xs) * 0.5);
   background-color: var(--color-primary);
   border-radius: var(--radius-full);
 }
 
 /* Checkbox styling (squares) - consistent size always */
 .checkbox-control {
-  width: 18px;
-  height: 18px;
+  width: var(--icon-size-xs);
+  height: var(--icon-size-xs);
   flex-shrink: 0;
 }
 
 .checkbox {
-  width: 18px;
-  height: 18px;
-  min-width: 18px;
-  min-height: 18px;
+  width: var(--icon-size-xs);
+  height: var(--icon-size-xs);
+  min-width: var(--icon-size-xs);
+  min-height: var(--icon-size-xs);
   border: var(--border-width-medium) solid var(--color-primary);
   border-radius: var(--radius-xs);
   background-color: var(--color-white);
@@ -325,8 +325,8 @@
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 16px;
-  height: 16px;
+  width: var(--icon-size-xs);
+  height: var(--icon-size-xs);
   background-color: var(--color-white);
   border: var(--border-width-medium) solid var(--color-primary);
   border-radius: var(--radius-full);
@@ -378,9 +378,23 @@
 
 /* Responsive styling */
 @media (max-width: 768px) {
+  .filter-container {
+    padding-top: var(--spacing-xs);
+  }
+
+  .filter-label {
+    margin-top: var(--spacing-xs);
+    margin-bottom: var(--spacing-sm);
+  }
+
   .filter-header {
     min-height: 42px;
     padding: var(--spacing-sm);
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .filter-dropdown {
+    top: calc(100% + var(--spacing-sm));
   }
 
   .filter-search-input {
@@ -394,14 +408,28 @@
 
   .radio-button,
   .checkbox {
-    width: 20px;
-    height: 20px;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
   }
 
   .radio-control,
   .checkbox-control {
-    width: 20px;
-    height: 20px;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
+  }
+
+  /* Clear button - more visible on mobile */
+  .filter-clear-btn {
+    color: var(--color-primary);
+    padding: var(--spacing-xs);
+    min-width: var(--icon-size-lg);
+    min-height: var(--icon-size-lg);
+    background-color: var(--color-primary-tint-5);
+  }
+
+  .filter-clear-btn:active {
+    background-color: var(--color-primary-tint-20);
+    transform: scale(0.95);
   }
 
   /* Date range responsive */
@@ -415,8 +443,8 @@
   }
 
   .slider-handle {
-    width: 20px;
-    height: 20px;
+    width: var(--icon-size-sm);
+    height: var(--icon-size-sm);
   }
 
   .daterange-slider {
@@ -436,8 +464,8 @@
 /* Touch-friendly adjustments for mobile */
 @media (pointer: coarse) {
   .slider-handle {
-    width: 22px;
-    height: 22px;
+    width: calc(var(--icon-size-sm) * 1.1);
+    height: calc(var(--icon-size-sm) * 1.1);
   }
 
   .daterange-slider {
@@ -589,29 +617,33 @@
 
 /* Search bar for bubble mode */
 .filter-bubble-search {
-  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
   margin-bottom: var(--spacing-sm);
   width: 100%;
+  border: var(--border-width-thin) solid var(--color-border);
+  border-radius: var(--radius-full);
+  background-color: var(--base-color-white);
 }
 
 .filter-bubble-search svg {
-  position: absolute;
-  left: var(--spacing-sm);
-  top: 50%;
-  transform: translateY(-50%);
   color: var(--color-text-primary);
-  pointer-events: none;
+  flex-shrink: 0;
+  padding-left: var(--spacing-sm);
 }
 
 .filter-bubble-search-input {
-  width: 100%;
-  padding: var(--spacing-xs) var(--spacing-xs) var(--spacing-xs) var(--spacing-xl);
-  border: 1px solid var(--color-border);
+  flex: 1;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: var(--border-width-thin) solid var(--color-border);
   border-radius: var(--radius-full);
+  background-color: var(--base-color-white);
   font-size: var(--font-size-sm);
-  background-color: var(--color-surface);
+
   color: var(--color-text-primary);
   transition: border-color var(--transition-fast);
+  box-sizing: border-box;
 }
 
 .filter-bubble-search-input:focus {
@@ -649,8 +681,8 @@
   white-space: nowrap;
 
   /* Unselected state - lighter background for contrast */
-  background-color: #f0f0f0;
-  border: 1px solid #d0d0d0;
+  background-color: var(--base-color-white);
+  border: var(--border-width-thin) solid var(--color-border);
   color: var(--color-text-primary);
 }
 
@@ -677,8 +709,8 @@
 
 /* Select All bubble variant */
 .filter-bubble.select-all-bubble {
-  background-color: #f0f0f0;
-  border: 1px solid #d0d0d0;
+  background-color: var(--base-color-white);
+  border: var(--border-width-thin) solid var(--color-border);
   font-weight: var(--font-weight-bold) !important;
 }
 
@@ -691,14 +723,31 @@
 
 /* Show more/less bubble variant */
 .filter-bubble.show-more {
-  border: 1px dashed var(--color-border);
-  background-color: var(--color-background-secondary);
+  border: var(--border-width-thin) dashed var(--color-border);
+  background-color: var(--base-color-timeline-2);
   color: var(--color-text-primary);
   font-style: italic;
   font-weight: var(--font-weight-normal);
 }
 
 .filter-bubble.show-more:hover {
+  background-color: var(--color-primary-tint-10);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  border-style: solid;
+  font-style: normal;
+}
+
+/* Show less bubble variant */
+.filter-bubble.show-less {
+  border: var(--border-width-thin) dashed var(--color-border);
+  background-color: var(--base-color-timeline-2);
+  color: var(--color-text-primary) !important;
+  font-style: italic;
+  font-weight: var(--font-weight-normal);
+}
+
+.filter-bubble.show-less:hover {
   background-color: var(--color-primary-tint-10);
   border-color: var(--color-primary);
   color: var(--color-primary);
@@ -721,24 +770,59 @@
   font-weight: var(--font-weight-normal);
 }
 
-/* Chevron icon in hierarchical bubble */
-.bubble-chevron {
-  display: inline-flex;
-  align-items: center;
-  margin-left: 4px;
-  transition: transform var(--transition-fast);
-}
-
-.bubble-chevron.expanded {
-  transform: rotate(180deg);
-}
-
 /* Hierarchical bubble group container */
 .hierarchical-bubble-group {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-xs);
+  /* Allow groups to sit side-by-side when no children expanded */
+  flex-shrink: 0;
+}
+
+/* When children are visible, force full width for proper layout */
+.hierarchical-bubble-group:has(.filter-bubble-children) {
   width: 100%;
+}
+
+/* Parent row - holds parent bubble and chevron on same line */
+.hierarchical-parent-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* External chevron button - outside the bubble */
+.bubble-chevron-external {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-full);
+  color: var(--color-primary);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  width: calc(var(--icon-size-sm) * 1.4);
+  height: calc(var(--icon-size-sm) * 1.4);
+}
+
+.bubble-chevron-external:hover {
+  background-color: var(--color-primary-tint-10);
+  transform: scale(1.1);
+}
+
+.bubble-chevron-external:active {
+  transform: scale(0.95);
+}
+
+.bubble-chevron-external.expanded {
+  transform: rotate(180deg);
+}
+
+.bubble-chevron-external.expanded:hover {
+  transform: rotate(180deg) scale(1.1);
 }
 
 /* Hierarchical children container */
@@ -776,6 +860,10 @@
 
 /* Mobile: Touch-friendly sizing */
 @media (max-width: 768px) {
+  .bubble-mode .filter-label {
+    margin-top: var(--spacing-sm);
+  }
+
   .filter-bubble {
     padding: 8px 14px;
     font-size: var(--font-size-base);
@@ -789,15 +877,27 @@
 
   .filter-bubble-container {
     gap: var(--spacing-sm);
+    padding-top: var(--spacing-sm);
   }
 
   .filter-bubble-search-input {
     font-size: var(--font-size-base);
-    padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-sm) 40px;
+    padding: var(--spacing-sm);
   }
 
   .filter-bubble-children {
     margin-left: var(--spacing-sm);
+  }
+
+  /* Larger touch target for chevron on mobile */
+  .bubble-chevron-external {
+    width: 36px;
+    height: 36px;
+    padding: var(--spacing-sm);
+  }
+
+  .hierarchical-parent-row {
+    gap: var(--spacing-sm);
   }
 }
 
@@ -833,6 +933,10 @@
 
 /* Mobile: Stack inputs vertically */
 @media (max-width: 768px) {
+  .filter-range-inline {
+    padding-top: var(--spacing-sm);
+  }
+
   .filter-range-inline .daterange-inputs,
   .filter-range-inline .numberrange-inputs {
     flex-direction: column;

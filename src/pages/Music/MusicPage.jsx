@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Music, Music as MusicIcon, List, Grid, Calendar, Tag, User, Disc, Star, Repeat } from 'lucide-react';
+import { Music, Music as MusicIcon, List, Grid, Calendar, Tag, User, Disc, Star, Repeat, Clock } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -139,6 +139,14 @@ const MusicPage = () => {
                 label="Listening Date"
                 field="timestamp"
                 icon={<Calendar />}
+                dataSources={['music']}
+              />
+              <Filter
+                type="multiselect"
+                label="Listening Year"
+                field="listening_year"
+                icon={<Clock />}
+                placeholder="Select years"
                 dataSources={['music']}
               />
               <Filter

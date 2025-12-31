@@ -172,6 +172,14 @@ const MoviesPage = () => {
               dataSources={['movies']}
             />
             <Filter
+                type="multiselect"
+                label="Watch Year"
+                field="watch_year"
+                icon={<Clock />}
+                placeholder="Select years"
+                dataSources={['movies']}
+            />
+            <Filter
               type="numberrange"
               label="Release Year"
               field="year"

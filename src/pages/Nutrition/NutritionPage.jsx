@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Utensils, List, Grid, Calendar, MapPin, Tag, Coffee } from 'lucide-react';
+import { Utensils, List, Grid, Calendar, MapPin, Tag, Coffee, Clock } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -208,6 +208,14 @@ const NutritionPage = () => {
                 label="Meal Date"
                 field="date"
                 icon={<Calendar />}
+                dataSources={['nutrition']}
+              />
+              <Filter
+                type="multiselect"
+                label="Meal Year"
+                field="nutrition_year"
+                icon={<Clock />}
+                placeholder="Select years"
                 dataSources={['nutrition']}
               />
               <Filter

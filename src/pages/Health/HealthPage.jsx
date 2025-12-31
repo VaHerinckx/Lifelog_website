@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Activity, List, Grid, Calendar, Moon, Heart, Flag, Building2, Store } from 'lucide-react';
+import { Activity, List, Grid, Calendar, Moon, Heart, Flag, Building2, Store, Clock } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 import { usePageTitle } from '../../hooks/usePageTitle';
 
@@ -150,6 +150,17 @@ const HealthPage = () => {
                   healthHourly: 'datetime'
                 }}
                 icon={<Calendar />}
+                dataSources={['healthDaily', 'healthHourly']}
+              />
+              <Filter
+                type="multiselect"
+                label="Year"
+                field="health_year"
+                fieldMap={{
+                  healthDaily: 'health_year',
+                  healthHourly: 'health_year'
+                }}
+                icon={<Clock />}
                 dataSources={['healthDaily', 'healthHourly']}
               />
               <Filter

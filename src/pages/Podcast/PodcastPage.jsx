@@ -119,6 +119,14 @@ const PodcastPage = () => {
               />
               <Filter
                 type="multiselect"
+                label="Listened Year"
+                field="listened_year"
+                icon={<Clock />}
+                placeholder="Select years"
+                dataSources={['podcasts']}
+              />
+              <Filter
+                type="multiselect"
                 label="Podcast"
                 field="podcast_name"
                 icon={<Tag />}
