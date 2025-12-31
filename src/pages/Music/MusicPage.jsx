@@ -32,7 +32,7 @@ import { sortByDateSafely } from '../../utils/sortingUtils';
 
 const MusicPage = () => {
   usePageTitle('Music');
-  const { data, loading, error, fetchData } = useData();
+  const { data, loading, error, loadingProgress, fetchData } = useData();
   const [musicToggles, setMusicToggles] = useState([]);
   const [filteredToggles, setFilteredToggles] = useState([]);
   const [isProcessing, setIsProcessing] = useState(true);
@@ -53,15 +53,9 @@ const MusicPage = () => {
     if (data?.music) {
       setIsProcessing(true);
 
-      // Convert timestamp strings to Date objects for JavaScript date operations
-      const processedToggles = data.music.map(toggle => ({
-        ...toggle,
-        timestamp: toggle.timestamp ? new Date(toggle.timestamp) : null,
-        album_release_date: toggle.album_release_date ? new Date(toggle.album_release_date) : null
-      }));
-
-      // Sort by most recent first
-      const sortedToggles = sortByDateSafely(processedToggles);
+      // DataContext already converts dates, no need to do it again
+      // Just sort the data
+      const sortedToggles = sortByDateSafely(data.music);
 
       setMusicToggles(sortedToggles);
       setFilteredToggles(sortedToggles);
@@ -120,6 +114,45 @@ const MusicPage = () => {
         title="Music Tracker"
         description="Explore your listening history and music preferences across 9+ years"
       />
+
+      {/* Loading Progress Indicator for Large Dataset */}
+      {loading?.music && loadingProgress?.music && (
+        <div style={{
+          padding: 'var(--spacing-lg)',
+          backgroundColor: 'var(--surface-color)',
+          borderRadius: 'var(--border-radius-md)',
+          marginBottom: 'var(--spacing-lg)',
+          textAlign: 'center'
+        }}>
+          <Music size={48} style={{ color: 'var(--primary-color)', marginBottom: 'var(--spacing-md)' }} />
+          <h3 style={{ marginBottom: 'var(--spacing-sm)', color: 'var(--text-primary)' }}>
+            Loading Music Library
+          </h3>
+          <p style={{ marginBottom: 'var(--spacing-md)', color: 'var(--text-secondary)' }}>
+            Processing {loadingProgress.music.current?.toLocaleString() || 0} of {loadingProgress.music.total?.toLocaleString() || 0} records
+          </p>
+          <div style={{
+            width: '100%',
+            maxWidth: '500px',
+            height: '8px',
+            backgroundColor: 'var(--background-color)',
+            borderRadius: 'var(--border-radius-sm)',
+            margin: '0 auto',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              width: `${loadingProgress.music.percent || 0}%`,
+              height: '100%',
+              backgroundColor: 'var(--primary-color)',
+              transition: 'width 0.3s ease',
+              borderRadius: 'var(--border-radius-sm)'
+            }} />
+          </div>
+          <p style={{ marginTop: 'var(--spacing-sm)', color: 'var(--text-tertiary)', fontSize: 'var(--font-size-sm)' }}>
+            {loadingProgress.music.percent || 0}% complete
+          </p>
+        </div>
+      )}
 
         {!loading?.music && !isProcessing && (
           <>

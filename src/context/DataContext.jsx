@@ -46,15 +46,19 @@ const cleanDate = (dateStr) => {
 
 
 // Helper function to clean data
-const cleanData = (data) => {
+const cleanData = (data, dataType = null) => {
+  // Skip expensive date conversions for large datasets like music
+  const skipDateConversion = dataType === 'music';
+
   return data.map(item => {
     const cleanedItem = {};
     Object.entries(item).forEach(([key, value]) => {
       const cleanKey = cleanString(key).trim();
 
-      // Special handling for date fields
+      // Special handling for date fields (skip for large datasets)
       // Exclude segment_start_time and segment_end_time which are HH:MM time strings, not dates
-      if ((cleanKey.includes('date') ||
+      if (!skipDateConversion &&
+          (cleanKey.includes('date') ||
           cleanKey.includes('timestamp') ||
           cleanKey.includes('finish') ||
           cleanKey.includes('start')) &&
@@ -88,6 +92,7 @@ export const DataProvider = ({ children }) => {
   });
   const [loading, setLoading] = useState({});
   const [error, setError] = useState({});
+  const [loadingProgress, setLoadingProgress] = useState({});
 
   // Track which data types have been logged to avoid duplicates
   const loggedDataTypes = useRef(new Set());
@@ -163,14 +168,53 @@ export const DataProvider = ({ children }) => {
 
       const csvText = await response.text();
 
+      // Use chunked loading for large datasets (music)
+      const useChunkedLoading = dataType === 'music';
+      const chunkSize = 10000; // Process 10K rows at a time
+
       return new Promise((resolve, reject) => {
+        let accumulatedData = [];
+        let rowsProcessed = 0;
+        let totalRows = 0;
+
+        // Estimate total rows for progress (rough estimate from file size)
+        if (useChunkedLoading) {
+          const lines = csvText.split('\n').length;
+          totalRows = Math.max(lines - 1, 0); // Subtract header row
+          setLoadingProgress(prev => ({ ...prev, [dataType]: { current: 0, total: totalRows } }));
+        }
+
         Papa.parse(csvText, {
           delimiter: "|",
           header: true,
           skipEmptyLines: true,
           encoding: '', // Auto-detect encoding (handles both UTF-8 and UTF-16)
           transform: (value) => cleanString(value), // Clean each value as it's parsed
+          chunk: useChunkedLoading ? (results, parser) => {
+            // Process chunk
+            accumulatedData = accumulatedData.concat(results.data);
+            rowsProcessed += results.data.length;
+
+            // Update progress
+            const progress = Math.min(Math.round((rowsProcessed / totalRows) * 100), 100);
+            setLoadingProgress(prev => ({ ...prev, [dataType]: { current: rowsProcessed, total: totalRows, percent: progress } }));
+
+            // Small pause every 5 chunks to allow UI updates
+            if (rowsProcessed % (chunkSize * 5) === 0) {
+              parser.pause();
+              setTimeout(() => parser.resume(), 10);
+            }
+          } : undefined,
           complete: (results) => {
+            // Use accumulated data for chunked loading, otherwise use results.data
+            const rawData = useChunkedLoading ? accumulatedData : results.data;
+
+            // Clear loading progress when complete
+            if (useChunkedLoading) {
+              setLoadingProgress(prev => ({ ...prev, [dataType]: { current: totalRows, total: totalRows, percent: 100 } }));
+              console.log(`🎵 Loaded ${rawData.length.toLocaleString()} music records`);
+            }
+
             // Simplified logging for reading data types (only log once per data type)
             if ((dataType === 'readingBooks' || dataType === 'readingSessions') && !loggedDataTypes.current.has(dataType)) {
               loggedDataTypes.current.add(dataType);
@@ -184,12 +228,12 @@ export const DataProvider = ({ children }) => {
                       f.toLowerCase().includes('timestamp'))
               );
 
-              if (dateColumns.length > 0 && results.data.length > 0) {
+              if (dateColumns.length > 0 && rawData.length > 0) {
                 // Try each date column and find the latest date across all of them
                 let allDates = [];
 
                 dateColumns.forEach(dateColumn => {
-                  const dates = results.data
+                  const dates = rawData
                     .map(row => row[dateColumn])
                     .filter(d => d && d.toString().trim())
                     .map(d => new Date(d))
@@ -205,7 +249,7 @@ export const DataProvider = ({ children }) => {
               }
             }
 
-            let cleanedData = cleanData(results.data);
+            let cleanedData = cleanData(rawData, dataType);
 
             // Type conversion for reading books
             if (dataType === 'readingBooks') {
@@ -272,24 +316,39 @@ export const DataProvider = ({ children }) => {
 
             // Type conversion for music
             if (dataType === 'music') {
-              cleanedData = cleanedData.map(toggle => ({
-                ...toggle,
-                toggle_id: toggle.toggle_id ? parseInt(toggle.toggle_id) : 0,
-                followers: toggle.followers ? parseInt(toggle.followers) : 0,
-                artist_popularity: toggle.artist_popularity ? parseInt(toggle.artist_popularity) : 0,
-                track_popularity: toggle.track_popularity ? parseInt(toggle.track_popularity) : 0,
-                track_duration: toggle.track_duration ? parseInt(toggle.track_duration) : 0,
-                completion: toggle.completion ? parseFloat(toggle.completion) : 0,
-                listening_seconds: toggle.listening_seconds ? parseInt(toggle.listening_seconds) : 0,
-                // Boolean columns - convert to Yes/No for user-friendly filtering
-                is_skipped_track: parseInt(toggle.is_skipped_track) === 1 ? 'Yes' : 'No',
-                is_new_artist: parseInt(toggle.is_new_artist) === 1 ? 'Yes' : 'No',
-                is_new_track: parseInt(toggle.is_new_track) === 1 ? 'Yes' : 'No',
-                is_recurring_artist: parseInt(toggle.is_recurring_artist) === 1 ? 'Yes' : 'No',
-                is_recurring_track: parseInt(toggle.is_recurring_track) === 1 ? 'Yes' : 'No',
-                is_new_recurring_artist: parseInt(toggle.is_new_recurring_artist) === 1 ? 'Yes' : 'No',
-                is_new_recurring_track: parseInt(toggle.is_new_recurring_track) === 1 ? 'Yes' : 'No'
-              }));
+              cleanedData = cleanedData.map(toggle => {
+                const trackDuration = toggle.track_duration ? parseInt(toggle.track_duration) : 0;
+                const completion = toggle.completion ? parseFloat(toggle.completion) : 0;
+                const listeningSeconds = Math.round((trackDuration / 1000) * (completion / 100));
+
+                // Extract year from timestamp (keep as string for filtering)
+                const listeningYear = toggle.timestamp ? toggle.timestamp.substring(0, 4) : null;
+
+                // Use first genre as simplified genre
+                const simplifiedGenre = toggle.genre_1 || null;
+
+                return {
+                  ...toggle,
+                  toggle_id: toggle.toggle_id ? parseInt(toggle.toggle_id) : 0,
+                  followers: toggle.followers ? parseInt(toggle.followers) : 0,
+                  artist_popularity: toggle.artist_popularity ? parseInt(toggle.artist_popularity) : 0,
+                  track_popularity: toggle.track_popularity ? parseInt(toggle.track_popularity) : 0,
+                  track_duration: trackDuration,
+                  completion: completion,
+                  listening_seconds: listeningSeconds,
+                  listening_hours: listeningSeconds / 3600,
+                  listening_year: listeningYear,
+                  simplified_genre: simplifiedGenre,
+                  // Boolean columns - convert to Yes/No for user-friendly filtering
+                  is_skipped_track: parseInt(toggle.is_skipped_track) === 1 ? 'Yes' : 'No',
+                  is_new_artist: parseInt(toggle.is_new_artist) === 1 ? 'Yes' : 'No',
+                  is_new_track: parseInt(toggle.is_new_track) === 1 ? 'Yes' : 'No',
+                  is_recurring_artist: parseInt(toggle.is_recurring_artist) === 1 ? 'Yes' : 'No',
+                  is_recurring_track: parseInt(toggle.is_recurring_track) === 1 ? 'Yes' : 'No',
+                  is_new_recurring_artist: parseInt(toggle.is_new_recurring_artist) === 1 ? 'Yes' : 'No',
+                  is_new_recurring_track: parseInt(toggle.is_new_recurring_track) === 1 ? 'Yes' : 'No'
+                };
+              });
             }
 
             // Type conversion for healthDaily (daily summary data)
@@ -387,8 +446,9 @@ export const DataProvider = ({ children }) => {
     data,
     loading,
     error,
+    loadingProgress,
     fetchData
-  }), [data, loading, error, fetchData]);
+  }), [data, loading, error, loadingProgress, fetchData]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };
