@@ -744,6 +744,7 @@
   background-color: var(--base-color-white);
   border: var(--border-width-thin) solid var(--color-border);
   font-weight: var(--font-weight-bold) !important;
+  font-family: var(--font-secondary); /* Use Inter which has bold weight */
 }
 
 .filter-bubble.select-all-bubble.selected {
@@ -751,6 +752,7 @@
   border-color: var(--color-primary);
   color: white;
   font-weight: var(--font-weight-bold) !important;
+  font-family: var(--font-secondary); /* Use Inter which has bold weight */
 }
 
 /* Show more/less bubble variant */
