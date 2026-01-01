@@ -26,6 +26,7 @@ import TimeSeriesBarChart from '../../components/charts/TimeSeriesBarChart';
 import IntensityHeatmap from '../../components/charts/IntensityHeatmap';
 import TopChart from '../../components/charts/TopChart';
 import ProportionChart from '../../components/charts/ProportionChart';
+import BarChartRace from '../../components/charts/BarChartRace';
 
 // Import utilities
 import { sortByDateSafely } from '../../utils/sortingUtils';
@@ -428,6 +429,50 @@ const MusicPage = () => {
                 title="Listening Distribution"
                 maxCategories={8}
                 showPercentages={true}
+              />
+
+              <BarChartRace
+                data={filteredToggles}
+                dateColumnName="timestamp"
+                dimensionOptions={[
+                  { value: 'artist', label: 'Artist', field: 'artist_name' },
+                  { value: 'genre', label: 'Genre', field: 'simplified_genre' },
+                  { value: 'track', label: 'Track', field: 'track_name' },
+                  { value: 'album', label: 'Album', field: 'album_name' }
+                ]}
+                metricOptions={[
+                  {
+                    value: 'listening_time',
+                    label: 'Listening Time',
+                    aggregation: 'sum',
+                    field: 'listening_seconds',
+                    suffix: ' sec',
+                    decimals: 0
+                  },
+                  {
+                    value: 'listening_hours',
+                    label: 'Listening Hours',
+                    aggregation: 'sum',
+                    field: 'listening_hours',
+                    suffix: ' hrs',
+                    decimals: 1
+                  },
+                  {
+                    value: 'toggles',
+                    label: 'Play Count',
+                    aggregation: 'count',
+                    suffix: ' plays',
+                    decimals: 0
+                  }
+                ]}
+                defaultDimension="artist"
+                defaultMetric="listening_time"
+                title="Music Evolution Over Time"
+                topN={10}
+                timePeriod="monthly"
+                cumulative={true}
+                autoPlay={false}
+                frameDuration={500}
               />
               </>
             )}

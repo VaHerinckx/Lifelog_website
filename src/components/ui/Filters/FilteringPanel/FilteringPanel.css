@@ -292,8 +292,9 @@
 
 .filter-modal-header-button {
   background-color: var(--overlay-light);
-  border: none;
-  color: var(--color-text-primary);
+  /*border: none;*/
+  border-color: var(--base-color-accent);
+  color: var(--base-color-accent);
   padding: var(--spacing-xs) var(--spacing-sm);
   cursor: pointer;
   display: flex;
@@ -318,7 +319,7 @@
   flex: 1;
   overflow-y: auto;
   padding: var(--spacing-lg);
-  padding-bottom: var(--spacing-3xl);
+  padding-bottom: var(--spacing-6xl);
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
